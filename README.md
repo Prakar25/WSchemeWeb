@@ -1,6 +1,6 @@
 # WScheme Web
 
-A modern React application built with Vite and TypeScript.
+A modern React application built with Vite and JavaScript.
 
 ## Getting Started
 
@@ -53,21 +53,20 @@ npm run lint
 ```
 WSchemeWeb/
 ├── src/
-│   ├── App.tsx          # Main App component
+│   ├── App.jsx          # Main App component
 │   ├── App.css          # App styles
-│   ├── main.tsx         # Application entry point
+│   ├── main.jsx         # Application entry point
 │   └── index.css        # Global styles
 ├── index.html           # HTML template
 ├── package.json         # Dependencies and scripts
-├── tsconfig.json        # TypeScript configuration
-├── vite.config.ts       # Vite configuration
+├── vite.config.js       # Vite configuration
 └── README.md           # This file
 ```
 
 ## Technologies
 
 - **React 18** - UI library
-- **TypeScript** - Type safety
+- **JavaScript** - Programming language
 - **Vite** - Build tool and dev server
 - **ESLint** - Code linting
 
