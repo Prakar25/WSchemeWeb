@@ -1,28 +1,31 @@
-import { useState } from 'react'
-import './App.css'
+/* eslint-disable no-unused-vars */
+import { useState, useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import "./App.css";
+
+import { PublicLayout } from "./areas/public/PublicLayout";
+import DesktopOnlyRoute from "./areas/DesktopOnlyRoute";
+import Home from "./areas/public/pages/home.component";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [pathname]);
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>WScheme Web</h1>
-        <div className="card">
-          <button onClick={() => setCount((count) => count + 1)}>
-            count is {count}
-          </button>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test HMR
-          </p>
-        </div>
-        <p className="read-the-docs">
-          Click on the Vite and React logos to learn more
-        </p>
-      </header>
-    </div>
-  )
+    <>
+      <Routes>
+        <Route element={<PublicLayout />}>
+          <Route exact path="/" element={<Home />} />
+        </Route>
+      </Routes>
+    </>
+  );
 }
 
-export default App
-
+export default App;

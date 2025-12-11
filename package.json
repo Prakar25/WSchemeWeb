@@ -10,8 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/vite": "^4.1.17",
+    "postcss": "^8.5.6",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.68.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.10.1",
+    "vite": "^5.0.8"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
@@ -24,4 +31,3 @@
     "vite": "^5.0.8"
   }
 }
-
