@@ -10,13 +10,13 @@ import Error from "../../reusable-components/outputs/Error";
 const Login = () => {
   const adminUsers = [
     {
-      adminName: "Karma Tshering",
+      fullName: "Karma Tshering",
       username: "karma.tshering",
       contactNumber: "9876543210",
       password: "Admin@123",
     },
     {
-      adminName: "Maya Subba",
+      fullName: "Maya Subba",
       username: "maya.subba",
       contactNumber: "9123456780",
       password: "Admin@456",
@@ -155,7 +155,17 @@ const Login = () => {
 
   const handleOtpVerify = (data) => {
     if (data.otp_input === generatedOtp) {
-      navigate("/"); // redirect to homepage
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          ...aadhaarFoundUser,
+        })
+      );
+      localStorage.setItem("role", "Public User");
+
+      const to = "/user/dashboard";
+
+      navigate(to, { replace: true });
     } else {
       setLoginError("Incorrect OTP entered. Please try again.");
     }
@@ -172,6 +182,9 @@ const Login = () => {
       setLoginError("Incorrect credentials entered. Try again.");
       return;
     }
+
+    localStorage.setItem("user", JSON.stringify(admin));
+    localStorage.setItem("role", "System Admin");
 
     navigate("/");
   };
