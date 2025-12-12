@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
+import { Link } from "react-router-dom";
 
 import skGovtLogo from "../../assets/sikkim_gov.png";
 
@@ -39,9 +40,11 @@ const Navbar = () => {
             </a>
           </div>
 
-          <button className="bg-yellow-400 px-4 py-2 rounded-md font-medium hover:bg-yellow-500 cursor-pointer transition-all ease-in-out duration-500">
-            Login / Register
-          </button>
+          <Link to="/login">
+            <button className="bg-yellow-400 px-4 py-2 rounded-md font-medium hover:bg-yellow-500 cursor-pointer transition-all ease-in-out duration-500">
+              Login / Register
+            </button>
+          </Link>
         </div>
       </nav>
     </section>

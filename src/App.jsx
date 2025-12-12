@@ -5,7 +5,9 @@ import "./App.css";
 
 import { PublicLayout } from "./areas/public/PublicLayout";
 import DesktopOnlyRoute from "./areas/DesktopOnlyRoute";
+
 import Home from "./areas/public/pages/home.component";
+import Login from "./areas/common/login.component";
 
 function App() {
   const { pathname } = useLocation();
@@ -22,6 +24,8 @@ function App() {
       <Routes>
         <Route element={<PublicLayout />}>
           <Route exact path="/" element={<Home />} />
+
+          <Route exact path="/login" element={<Login />} />
         </Route>
       </Routes>
     </>
