@@ -10,6 +10,9 @@ import Home from "./areas/public/pages/home.component";
 import Login from "./areas/common/login.component";
 
 import PublicDashboard from "./areas/public/dashboard/PublicDashboard";
+import UserProfile from "./areas/public/dashboard/userProfile.component";
+import UserSchemes from "./areas/public/dashboard/userSchemes.component";
+import UserApplicationTracker from "./areas/public/dashboard/userApplicationTracker.component";
 
 function App() {
   const { pathname } = useLocation();
@@ -31,6 +34,13 @@ function App() {
         </Route>
 
         <Route exact path="/user/dashboard" element={<PublicDashboard />} />
+        <Route exact path="/user/profile" element={<UserProfile />} />
+        <Route exact path="/user/available-schemes" element={<UserSchemes />} />
+        <Route
+          exact
+          path="/user/application-status"
+          element={<UserApplicationTracker />}
+        />
       </Routes>
     </>
   );

@@ -8,7 +8,11 @@ export default function PublicDashboard() {
     <>
       <section className="hidden lg:block bg-gray-100">
         <Dashboard sidebarType="Public User">
-          <div className="min-h-screen">Public</div>
+          <div className="min-h-screen">
+            <div className="mt-20 text-center font-bold text-xl text-blue-900">
+              Welcome User
+            </div>
+          </div>
         </Dashboard>
       </section>
     </>

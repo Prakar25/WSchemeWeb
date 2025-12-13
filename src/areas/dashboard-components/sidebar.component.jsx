@@ -93,14 +93,14 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
       <div
         id="sidebar"
         ref={sidebar}
-        className={`flex flex-col hide-sidebar-scrollbar absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto  
+        className={`bg-blue-900 flex flex-col hide-sidebar-scrollbar absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto  
         lg:translate-x-0 transform h-screen overflow-y-scroll lg:overflow-y-auto no-scrollbar w-[16rem]
         lg:sidebar-expanded:!w-[16rem] shrink-0  pb-32  p-4 transition-all duration-200 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-44"
         }`}
       >
         {/* Sidebar header */}
-        <div className="flex justify-between mb-5 pr-3  border-b pb-2 ">
+        <div className="flex justify-between mb-5 pr-3  border-b border-white pb-2 ">
           <button
             ref={trigger}
             className="lg:hidden text-slate-700 hover:text-slate-800"
@@ -119,7 +119,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
               <path d="M10.7 18.7l1.4-1.4L7.8 13H20v-2H7.8l4.3-4.3-1.4-1.4L4 12z" />
             </svg>
           </button>
-          {/* Logo */}
+
           <NavLink end to="#" className="block">
             <div className="flex items-center">
               {sidebarExpanded && (
@@ -142,17 +142,13 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
                   </div>
 
                   <div>
-                    <p className="text-white text-sm font-medium">
+                    <p className="text-white text-base font-medium">
                       {user?.fullName}
                     </p>
 
-                    <p className="text-white text-xs font-medium italic">
-                      {userRole}
-                    </p>
+                    <p className="text-white text-xs">{userRole}</p>
                   </div>
                 </div>
-
-                // <img src={Logo} width="200" height="40" />
               )}
             </div>
           </NavLink>

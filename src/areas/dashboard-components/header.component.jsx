@@ -14,16 +14,16 @@ function Header({ sidebarOpen, setSidebarOpen }) {
   };
 
   return (
-    <header className="sticky top-0 bg-white border-b z-20 shadow-sm rounded-md">
+    <header className="sticky top-0 bg-white border-b border-blue-900 z-20 shadow-sm rounded-md">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between p-3">
           {/* Header: Left side */}
 
           <NavLink end to="/" className="block">
             <div className="flex items-center">
-              <img src={Logo} width="40" height="40" />
+              <img src={Logo} className="h-24 w-28" />
               {
-                <p className="text-slate-800 text-sm font-medium pl-2">
+                <p className="text-slate-800 text-base font-medium">
                   Women &amp; Child Welfare Department, Government of Sikkim
                 </p>
               }
@@ -56,7 +56,7 @@ function Header({ sidebarOpen, setSidebarOpen }) {
           {/* <Link to="/diet/admin/login"> */}
           <p
             onClick={() => signOut()}
-            className="border border-primary py-1 px-6 bg-white text-primary rounded-md shadow-lg text-sm hover:bg-primary hover:text-white cursor-pointer"
+            className="border border-primary py-1 px-6 bg-white text-primary rounded-md shadow-lg text-sm hover:bg-blue-900 hover:text-white cursor-pointer transition-all ease-in-out duration-500"
           >
             Logout
           </p>

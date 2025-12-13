@@ -25,20 +25,22 @@ const Login = () => {
 
   const publicUsers = [
     {
-      fullName: "Prakash Lepcha",
-      contactEmail: "prakash.lepcha@example.com",
+      fullName: "Tashi Lepcha",
+      contactEmail: "tashi.lepcha@example.com",
       phoneNumber: "9800015247",
       address: "Gangtok, Sikkim",
       dob: "12-03-1990",
       aadhaar: "123456789012",
+      gender: "female",
     },
     {
-      fullName: "Sonam Chhetri",
-      contactEmail: "sonam.chhetri@example.com",
+      fullName: "Suman Chhetri",
+      contactEmail: "suman.chettri@example.com",
       phoneNumber: "9802216258",
       address: "Pakyong, Sikkim",
       dob: "22-09-1988",
       aadhaar: "987654321098",
+      gender: "male",
     },
     {
       fullName: "Mingma Sherpa",
@@ -47,6 +49,7 @@ const Login = () => {
       address: "Namchi, Sikkim",
       dob: "17-05-1993",
       aadhaar: "564738291034",
+      gender: "male",
     },
     {
       fullName: "Pema Tamang",
@@ -55,6 +58,7 @@ const Login = () => {
       address: "Mangan, North Sikkim",
       dob: "03-08-1995",
       aadhaar: "675849302156",
+      gender: "female",
     },
     {
       fullName: "Rinchen Bhutia",
@@ -63,6 +67,7 @@ const Login = () => {
       address: "Ravangla, Sikkim",
       dob: "25-11-1991",
       aadhaar: "453627890123",
+      gender: "female",
     },
     {
       fullName: "Tashi Gurung",
@@ -71,14 +76,16 @@ const Login = () => {
       address: "Gyalshing, West Sikkim",
       dob: "10-04-1994",
       aadhaar: "890123456789",
+      gender: "male",
     },
     {
-      fullName: "Lhamu Shering",
-      contactEmail: "lhamu.shering@example.com",
+      fullName: "Lhamu Sherpa",
+      contactEmail: "lhamu.sherpa@example.com",
       phoneNumber: "9817713957",
       address: "Dentam, Sikkim",
       dob: "27-01-1992",
       aadhaar: "321654987012",
+      gender: "female",
     },
     {
       fullName: "Bijay Rai",
@@ -87,6 +94,7 @@ const Login = () => {
       address: "Jorethang, Sikkim",
       dob: "16-06-1990",
       aadhaar: "789654123098",
+      gender: "male",
     },
     {
       fullName: "Anita Subba",
@@ -95,6 +103,7 @@ const Login = () => {
       address: "Tadong, Sikkim",
       dob: "30-12-1996",
       aadhaar: "234567890111",
+      gender: "female",
     },
     {
       fullName: "Sangay Tamang",
@@ -103,6 +112,7 @@ const Login = () => {
       address: "Lachung, Sikkim",
       dob: "08-07-1987",
       aadhaar: "998877665544",
+      gender: "male",
     },
   ];
 
