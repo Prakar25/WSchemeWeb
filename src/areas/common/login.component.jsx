@@ -196,7 +196,9 @@ const Login = () => {
     localStorage.setItem("user", JSON.stringify(admin));
     localStorage.setItem("role", "System Admin");
 
-    navigate("/");
+    const to = "/system-admin/dashboard";
+
+    navigate(to, { replace: true });
   };
 
   return (

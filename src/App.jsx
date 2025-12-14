@@ -14,6 +14,12 @@ import UserProfile from "./areas/public/dashboard/userProfile.component";
 import UserSchemes from "./areas/public/dashboard/userSchemes.component";
 import UserApplicationTracker from "./areas/public/dashboard/userApplicationTracker.component";
 
+import SysAdminDashboard from "./areas/systemAdmin/dashboard/SysAdminDashboard";
+import SchemeConfig from "./areas/systemAdmin/modules/scheme-management/schemeConfig.component";
+import Beneficiaries from "./areas/systemAdmin/modules/beneficiaries/beneficiaries.component";
+import Reports from "./areas/systemAdmin/modules/reports/reports.component";
+import Alerts from "./areas/systemAdmin/modules/alerts/alerts.component";
+
 function App() {
   const { pathname } = useLocation();
 
@@ -33,6 +39,7 @@ function App() {
           <Route exact path="/login" element={<Login />} />
         </Route>
 
+        {/* Public User Dashboard Routes */}
         <Route exact path="/user/dashboard" element={<PublicDashboard />} />
         <Route exact path="/user/profile" element={<UserProfile />} />
         <Route exact path="/user/available-schemes" element={<UserSchemes />} />
@@ -41,6 +48,21 @@ function App() {
           path="/user/application-status"
           element={<UserApplicationTracker />}
         />
+
+        {/* System Admin Dashboard Routes */}
+        <Route
+          exact
+          path="/system-admin/dashboard"
+          element={<SysAdminDashboard />}
+        />
+        <Route exact path="/system-admin/schemes" element={<SchemeConfig />} />
+        <Route
+          exact
+          path="/system-admin/beneficiaries"
+          element={<Beneficiaries />}
+        />
+        <Route exact path="/system-admin/reports" element={<Reports />} />
+        <Route exact path="/system-admin/alerts" element={<Alerts />} />
       </Routes>
     </>
   );

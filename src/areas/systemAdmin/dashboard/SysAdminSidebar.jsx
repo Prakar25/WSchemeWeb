@@ -6,10 +6,10 @@ import {
   MdOutlineDashboardCustomize,
   MdFormatListBulleted,
 } from "react-icons/md";
-import { AiOutlineUser } from "react-icons/ai";
-import { LuFileClock } from "react-icons/lu";
+import { HiOutlineUserGroup, HiOutlineDocumentReport } from "react-icons/hi";
+import { TbBellRinging } from "react-icons/tb";
 
-export default function PublicSidebar({
+export default function SysAdminSidebar({
   // keep the pathname later to highlight the selected text
   pathname,
   sidebarExpanded,
@@ -22,14 +22,14 @@ export default function PublicSidebar({
           <li>
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
-                pathname.includes("/user/dashboard")
+                pathname.includes("/system-admin/dashboard")
                   ? "bg-white text-slate-700 font-semibold rounded-e-full"
                   : "text-yellow-200 font-normal"
               }`}
             >
               <MdOutlineDashboardCustomize size={20} />
               <div className="text-lg cursor-pointer">
-                <Link to="/user/dashboard" className="py-1">
+                <Link to="/system-admin/dashboard" className="py-1">
                   <p>Dashboard</p>
                 </Link>
               </div>
@@ -39,31 +39,14 @@ export default function PublicSidebar({
           <li>
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
-                pathname.includes("/user/profile")
-                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
-                  : "text-yellow-200 font-normal"
-              }`}
-            >
-              <AiOutlineUser size={20} />
-              <div className="text-lg cursor-pointer">
-                <Link to="/user/profile" className="py-1">
-                  <p>Profile</p>
-                </Link>
-              </div>
-            </div>
-          </li>
-
-          <li>
-            <div
-              className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
-                pathname.includes("/user/available-schemes")
+                pathname.includes("/system-admin/schemes")
                   ? "bg-white text-slate-700 font-semibold rounded-e-full"
                   : "text-yellow-200 font-normal"
               }`}
             >
               <MdFormatListBulleted size={20} />
               <div className="text-lg cursor-pointer">
-                <Link to="/user/available-schemes" className="py-1">
+                <Link to="/system-admin/schemes" className="py-1">
                   <p>Schemes</p>
                 </Link>
               </div>
@@ -73,15 +56,49 @@ export default function PublicSidebar({
           <li>
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
-                pathname.includes("/user/application-status")
+                pathname.includes("/system-admin/beneficiaries")
                   ? "bg-white text-slate-700 font-semibold rounded-e-full"
                   : "text-yellow-200 font-normal"
               }`}
             >
-              <LuFileClock size={20} />
+              <HiOutlineUserGroup size={20} />
               <div className="text-lg cursor-pointer">
-                <Link to="/user/application-status" className="py-1">
-                  <p>Application Status</p>
+                <Link to="/system-admin/beneficiaries" className="py-1">
+                  <p>Beneficiaries</p>
+                </Link>
+              </div>
+            </div>
+          </li>
+
+          <li>
+            <div
+              className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
+                pathname.includes("/system-admin/reports")
+                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
+                  : "text-yellow-200 font-normal"
+              }`}
+            >
+              <HiOutlineDocumentReport size={20} />
+              <div className="text-lg cursor-pointer">
+                <Link to="/system-admin/reports" className="py-1">
+                  <p>Reports</p>
+                </Link>
+              </div>
+            </div>
+          </li>
+
+          <li>
+            <div
+              className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
+                pathname.includes("/system-admin/alerts")
+                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
+                  : "text-yellow-200 font-normal"
+              }`}
+            >
+              <TbBellRinging size={20} />
+              <div className="text-lg cursor-pointer">
+                <Link to="/system-admin/alerts" className="py-1">
+                  <p>Alerts</p>
                 </Link>
               </div>
             </div>

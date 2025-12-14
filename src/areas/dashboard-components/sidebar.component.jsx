@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import PublicSidebar from "../public/dashboard/PublicSidebar";
+import SysAdminSidebar from "../systemAdmin/dashboard/SysAdminSidebar";
 
 function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
   const [user, setUser] = useState(null);
@@ -156,6 +157,14 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
 
         {sidebarType === "Public User" && (
           <PublicSidebar
+            pathname={pathname}
+            sidebarExpanded={sidebarExpanded}
+            setSidebarExpanded={setSidebarExpanded}
+          />
+        )}
+
+        {sidebarType === "System Admin" && (
+          <SysAdminSidebar
             pathname={pathname}
             sidebarExpanded={sidebarExpanded}
             setSidebarExpanded={setSidebarExpanded}
