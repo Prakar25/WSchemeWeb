@@ -13,7 +13,7 @@ const schemeDetails = [
       5: "Provide financial assistance to families",
       6: "Empower women socially and economically",
     },
-    eligibilityGender: ["female"],
+    eligibilityGender: ["F"],
     eligibilityLowerAgeLimit: 0,
     eligibilityUpperAgeLimit: 25,
     schemeBenefits: {
@@ -43,7 +43,7 @@ const schemeDetails = [
       5: "Support self-employment initiatives",
       6: "Strengthen workforce participation",
     },
-    eligibilityGender: ["male", "female"],
+    eligibilityGender: ["M", "F"],
     eligibilityLowerAgeLimit: 18,
     eligibilityUpperAgeLimit: 35,
     schemeBenefits: {
@@ -73,7 +73,7 @@ const schemeDetails = [
       5: "Ensure financial assistance",
       6: "Promote postnatal care",
     },
-    eligibilityGender: ["female"],
+    eligibilityGender: ["F"],
     eligibilityLowerAgeLimit: 18,
     eligibilityUpperAgeLimit: 45,
     schemeBenefits: {
@@ -103,7 +103,7 @@ const schemeDetails = [
       5: "Improve quality of life",
       6: "Strengthen social security",
     },
-    eligibilityGender: ["male", "female"],
+    eligibilityGender: ["M", "F"],
     eligibilityLowerAgeLimit: 60,
     eligibilityUpperAgeLimit: 120,
     schemeBenefits: {
@@ -133,7 +133,7 @@ const schemeDetails = [
       5: "Bridge skill gaps",
       6: "Support workforce readiness",
     },
-    eligibilityGender: ["male", "female"],
+    eligibilityGender: ["M", "F"],
     eligibilityLowerAgeLimit: 15,
     eligibilityUpperAgeLimit: 45,
     schemeBenefits: {
@@ -163,7 +163,7 @@ const schemeDetails = [
       5: "Improve market access",
       6: "Strengthen women empowerment",
     },
-    eligibilityGender: ["female"],
+    eligibilityGender: ["F"],
     eligibilityLowerAgeLimit: 21,
     eligibilityUpperAgeLimit: 55,
     schemeBenefits: {
@@ -193,7 +193,7 @@ const schemeDetails = [
       5: "Develop discipline and teamwork",
       6: "Support sports excellence",
     },
-    eligibilityGender: ["male", "female"],
+    eligibilityGender: ["M", "F"],
     eligibilityLowerAgeLimit: 10,
     eligibilityUpperAgeLimit: 30,
     schemeBenefits: {
@@ -223,7 +223,7 @@ const schemeDetails = [
       5: "Support mothers",
       6: "Enhance child development",
     },
-    eligibilityGender: ["male", "female"],
+    eligibilityGender: ["M", "F"],
     eligibilityLowerAgeLimit: 0,
     eligibilityUpperAgeLimit: 6,
     schemeBenefits: {
@@ -253,7 +253,7 @@ const schemeDetails = [
       5: "Promote regular health checkups",
       6: "Enhance quality of life",
     },
-    eligibilityGender: ["male", "female"],
+    eligibilityGender: ["M", "F"],
     eligibilityLowerAgeLimit: 60,
     eligibilityUpperAgeLimit: 120,
     schemeBenefits: {
@@ -283,7 +283,7 @@ const schemeDetails = [
       5: "Support disadvantaged students",
       6: "Improve education access",
     },
-    eligibilityGender: ["male", "female"],
+    eligibilityGender: ["M", "F"],
     eligibilityLowerAgeLimit: 17,
     eligibilityUpperAgeLimit: 30,
     schemeBenefits: {

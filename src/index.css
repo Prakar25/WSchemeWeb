@@ -2,6 +2,8 @@
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-roboto: "Roboto", sans-serif;
+  --font-montserrat: "Montserrat", sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -13,4 +15,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  .font-roboto {
+    font-family: var(--font-roboto);
+  }
+
+  .font-montserrat {
+    font-family: var(--font-montserrat);
+  }
 }

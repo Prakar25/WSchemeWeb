@@ -70,7 +70,7 @@ export default function PublicSidebar({
             </div>
           </li>
 
-          <li>
+          {/* <li>
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/application-status")
@@ -85,7 +85,7 @@ export default function PublicSidebar({
                 </Link>
               </div>
             </div>
-          </li>
+          </li> */}
         </ul>
       </div>
     </section>

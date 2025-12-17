@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { useNavigate, NavLink } from "react-router-dom";
 
+import { FiLogOut } from "react-icons/fi";
+
 import Logo from "../../assets/sikkim_gov.png";
 
 function Header({ sidebarOpen, setSidebarOpen }) {
@@ -52,15 +54,13 @@ function Header({ sidebarOpen, setSidebarOpen }) {
           </div>
 
           {/* Header: Right side */}
-
-          {/* <Link to="/diet/admin/login"> */}
           <p
             onClick={() => signOut()}
-            className="border border-primary py-1 px-6 bg-white text-primary rounded-md shadow-lg text-sm hover:bg-blue-900 hover:text-white cursor-pointer transition-all ease-in-out duration-500"
+            className="inline-flex items-center gap-2 border border-gray-200 py-2 px-5 bg-white text-primary rounded-md shadow-md text-sm font-medium hover:bg-blue-800 hover:text-white cursor-pointer transition-all duration-300 ease-in-out"
           >
+            <FiLogOut size={18} />
             Logout
           </p>
-          {/* </Link> */}
         </div>
       </div>
     </header>

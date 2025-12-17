@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
+import { motion } from "framer-motion";
 
 import childCareImg from "../../../assets/childCare.jpeg";
 import motherImg from "../../../assets/expectingMother.jpeg";
@@ -8,22 +9,107 @@ import childHealthImg from "../../../assets/childHealth.jpeg";
 import childDevImg from "../../../assets/childDevelopment.jpeg";
 import womenEmpImg from "../../../assets/womenEmpowerment.jpeg";
 
+// Card Animation Variants
+const cardVariants = {
+  offscreen: { opacity: 0, y: 50 },
+  onscreen: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 1, ease: "easeOut" },
+  },
+};
+
+// Container Animation for Stagger
+const containerVariants = {
+  offscreen: {},
+  onscreen: {
+    transition: {
+      staggerChildren: 0.3, // stagger between cards
+    },
+  },
+};
+
+// Reusable Card Component
+const SchemeCard = ({ img, title, description }) => (
+  <motion.div
+    variants={cardVariants}
+    whileHover={{ scale: 1.03 }}
+    whileTap={{ scale: 0.97 }}
+    className="bg-white shadow rounded-lg p-4"
+  >
+    <img src={img} className="rounded-md h-64 w-full object-cover" />
+    <h3 className="font-semibold mt-4">{title}</h3>
+    <p className="text-sm text-gray-600">{description}</p>
+  </motion.div>
+);
+
 const Home = () => {
+  const schemes = [
+    {
+      img: childCareImg,
+      title: "Scheme for Child Care",
+      description: "Provides daycare services for children of working mothers.",
+    },
+    {
+      img: motherImg,
+      title: "Support for Expectant Mothers",
+      description:
+        "Offers financial assistance and healthcare support during pregnancy.",
+    },
+    {
+      img: educationImg,
+      title: "Financial Aid for Education",
+      description:
+        "Supports education for girls from disadvantaged backgrounds.",
+    },
+    {
+      img: childHealthImg,
+      title: "National Child Health Program",
+      description:
+        "Ensures comprehensive health services for children up to 18 years.",
+    },
+    {
+      img: childDevImg,
+      title: "Integrated Child Development Services",
+      description: "Provides early childhood care and development services.",
+    },
+    {
+      img: womenEmpImg,
+      title: "Women Empowerment Scheme",
+      description: "Promotes economic and social empowerment of women.",
+    },
+  ];
+
   return (
     <section className="min-h-screen">
       <div className="w-full">
         {/* Hero Section */}
         <div className="text-center py-14 bg-gray-50">
-          <h1 className="text-4xl font-bold text-blue-900">
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="text-4xl font-bold text-blue-900"
+          >
             Access Government Welfare Schemes Online
-          </h1>
-          <p className="mt-3 text-gray-700 max-w-2xl mx-auto">
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+            className="mt-3 text-gray-700 max-w-2xl mx-auto"
+          >
             A single point of access for all welfare schemes for women and
             children from the State & Central Government.
-          </p>
+          </motion.p>
 
           {/* Search Filters */}
-          <div className="bg-white shadow-md w-full max-w-3xl mx-auto mt-10 p-6 rounded-lg">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+            className="bg-white shadow-md w-full max-w-3xl mx-auto mt-10 p-6 rounded-lg"
+          >
             <div className="grid md:grid-cols-3 gap-4">
               <select className="border rounded-md p-2 w-full">
                 <option>Eligibility</option>
@@ -44,105 +130,21 @@ const Home = () => {
             <button className="mt-5 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">
               Search Schemes
             </button>
-          </div>
+          </motion.div>
         </div>
 
-        {/* State Schemes */}
-        <section className="max-w-7xl mx-auto mt-16 px-6">
-          <h2 className="text-center text-2xl font-bold text-blue-900 mb-8">
-            State Schemes
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Card 1 */}
-            <div className="bg-white shadow rounded-lg p-4">
-              <img
-                src={childCareImg}
-                className="rounded-md h-64 w-full object-cover"
-              />
-              <h3 className="font-semibold mt-4">Scheme for Child Care</h3>
-              <p className="text-sm text-gray-600">
-                Provides daycare services for children of working mothers.
-              </p>
-            </div>
-
-            {/* Card 2 */}
-            <div className="bg-white shadow rounded-lg p-4">
-              <img
-                src={motherImg}
-                className="rounded-md h-64 w-full object-cover"
-              />
-              <h3 className="font-semibold mt-4">
-                Support for Expectant Mothers
-              </h3>
-              <p className="text-sm text-gray-600">
-                Offers financial assistance and healthcare support during
-                pregnancy.
-              </p>
-            </div>
-
-            {/* Card 3 */}
-            <div className="bg-white shadow rounded-lg p-4">
-              <img
-                src={educationImg}
-                className="rounded-md h-64 w-full object-cover"
-              />
-              <h3 className="font-semibold mt-4">
-                Financial Aid for Education
-              </h3>
-              <p className="text-sm text-gray-600">
-                Supports education for girls from disadvantaged backgrounds.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Central Schemes */}
-        <section className="max-w-7xl mx-auto mt-20 px-6 pb-20">
-          <h2 className="text-center text-2xl font-bold text-blue-900 mb-8">
-            Central Schemes
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white shadow rounded-lg p-4">
-              <img
-                src={childHealthImg}
-                className="rounded-md h-64 w-full object-cover"
-              />
-              <h3 className="font-semibold mt-4">
-                National Child Health Program
-              </h3>
-              <p className="text-sm text-gray-600">
-                Ensures comprehensive health services for children up to 18
-                years.
-              </p>
-            </div>
-
-            <div className="bg-white shadow rounded-lg p-4">
-              <img
-                src={childDevImg}
-                className="rounded-md h-64 w-full object-cover"
-              />
-              <h3 className="font-semibold mt-4">
-                Integrated Child Development Services
-              </h3>
-              <p className="text-sm text-gray-600">
-                Provides early childhood care and development services.
-              </p>
-            </div>
-
-            <div className="bg-white shadow rounded-lg p-4">
-              <img
-                src={womenEmpImg}
-                className="rounded-md h-64 w-full object-cover"
-              />
-              <h3 className="font-semibold mt-4">Women Empowerment Scheme</h3>
-              <p className="text-sm text-gray-600">
-                Promotes economic and social empowerment of women.
-              </p>
-            </div>
-          </div>
-        </section>
+        {/* Scheme Cards with Slow Fade In Up Animation */}
+        <motion.div
+          className="max-w-7xl mx-auto mt-16 px-6 grid md:grid-cols-3 gap-8"
+          initial="offscreen"
+          whileInView="onscreen"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
+        >
+          {schemes.map((scheme, index) => (
+            <SchemeCard key={index} {...scheme} />
+          ))}
+        </motion.div>
       </div>
     </section>
   );

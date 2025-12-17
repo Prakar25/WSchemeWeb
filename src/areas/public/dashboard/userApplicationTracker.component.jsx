@@ -1,55 +1,133 @@
+import { motion } from "framer-motion";
+import {
+  FaCheckCircle,
+  FaClock,
+  FaTimesCircle,
+  FaArrowRight,
+} from "react-icons/fa";
+
 import Dashboard from "../../dashboard-components/dashboard.component";
 
-const UserApplicationTracker = () => {
-  return (
-    <>
-      <Dashboard sidebarType="Public User">
-        <section className="bg-white p-5">
-          <h3 className="text-lg font-semibold mb-4">
-            Application Status Tracker
-          </h3>
+const applications = [
+  {
+    schemeName: "Mukhyamantri Kanya Shiksha Yojana",
+    applicationId: "APP-2024-001",
+    status: "Approved",
+    lastUpdated: "12 Sep 2024",
+  },
+  {
+    schemeName: "State Maternity Benefit Scheme",
+    applicationId: "APP-2024-014",
+    status: "Under Review",
+    lastUpdated: "20 Sep 2024",
+  },
+  {
+    schemeName: "Widow Pension Scheme",
+    applicationId: "APP-2024-022",
+    status: "Rejected",
+    lastUpdated: "01 Oct 2024",
+  },
+];
 
-          <div className="rounded-md shadow p-5 mt-6">
-            <table className="w-full text-base">
-              <thead className="text-left text-slate-500">
-                <tr>
-                  <th>Scheme</th>
-                  <th>Status</th>
-                  <th>Date Applied</th>
-                  <th>Action</th>
-                  <th></th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr className="border-t border-gray-400">
-                  <td className="py-5">Child Care Assistance Program</td>
-                  <td>
-                    <div className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs w-28 text-center">
-                      Under Review
-                    </div>
-                  </td>
-                  <td>15-08-2025</td>
-                  <td className="text-blue-600 cursor-pointer">View Details</td>
-                </tr>
-
-                <tr className="border-t border-gray-200">
-                  <td className="py-5">Maternity Support Scheme</td>
-                  <td>
-                    <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs w-28 text-center">
-                      Approved
-                    </div>
-                  </td>
-                  <td>20-07-2024</td>
-                  <td className="text-blue-600 cursor-pointer">View Details</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </Dashboard>
-    </>
-  );
+const statusConfig = {
+  Approved: {
+    bg: "from-green-400 to-emerald-500",
+    text: "text-green-700",
+    badge: "bg-green-100",
+    icon: <FaCheckCircle className="text-green-600 text-xl" />,
+  },
+  "Under Review": {
+    bg: "from-yellow-400 to-orange-400",
+    text: "text-yellow-800",
+    badge: "bg-yellow-100",
+    icon: <FaClock className="text-yellow-600 text-xl" />,
+  },
+  Rejected: {
+    bg: "from-red-400 to-rose-500",
+    text: "text-red-700",
+    badge: "bg-red-100",
+    icon: <FaTimesCircle className="text-red-600 text-xl" />,
+  },
 };
 
-export default UserApplicationTracker;
+export default function UserApplicationTracker() {
+  return (
+    <Dashboard sidebarType="Public User">
+      <section
+        className="bg-linear-to-br from-blue-50 via-white to-green-50
+                   rounded-2xl shadow-lg p-6"
+      >
+        <h2 className="text-2xl font-bold mb-6 text-slate-800">
+          Application Tracker
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {applications.map((app, index) => {
+            const status = statusConfig[app.status];
+
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.6,
+                  ease: "easeOut",
+                  delay: index * 0.12,
+                }}
+                className="relative bg-white rounded-xl overflow-hidden
+                           shadow-md hover:shadow-xl transition-shadow"
+              >
+                {/* Status strip */}
+                <div className={`h-2 bg-linear-to-r ${status.bg}`} />
+
+                <div className="p-5">
+                  {/* Header */}
+                  <div className="flex justify-between items-start">
+                    <div className="flex gap-3">
+                      <div className="mt-1">{status.icon}</div>
+                      <div>
+                        <h3 className="font-semibold text-slate-800">
+                          {app.schemeName}
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Application ID: {app.applicationId}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Status badge */}
+                    <span
+                      className={`px-3 py-1 text-xs font-semibold rounded-full
+                                  ${status.badge} ${status.text}`}
+                    >
+                      {app.status}
+                    </span>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="mt-5 flex justify-between items-center text-sm">
+                    <p className="text-slate-600">
+                      <span className="font-medium">Last Updated:</span>{" "}
+                      {app.lastUpdated}
+                    </p>
+
+                    <motion.button
+                      whileHover={{ x: 4 }}
+                      transition={{ ease: "easeOut", duration: 0.2 }}
+                      className="flex items-center gap-2 text-blue-600
+                                 font-semibold hover:text-blue-700"
+                    >
+                      View Details
+                      <FaArrowRight />
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </section>
+    </Dashboard>
+  );
+}

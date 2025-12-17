@@ -3,9 +3,11 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
+import axios from "../../api/axios";
+import { CHECK_AADHAAR_URL, ADMIN_LOGIN_URL } from "../../api/api_routing_urls";
+
 import Input from "../../reusable-components/inputs/InputTextBox/Input";
 import PasswordInput from "../../reusable-components/inputs/InputTextBox/PasswordInput";
-import Error from "../../reusable-components/outputs/Error";
 
 const Login = () => {
   const adminUsers = [
@@ -20,99 +22,6 @@ const Login = () => {
       username: "maya.subba",
       contactNumber: "9123456780",
       password: "Admin@456",
-    },
-  ];
-
-  const publicUsers = [
-    {
-      fullName: "Tashi Lepcha",
-      contactEmail: "tashi.lepcha@example.com",
-      phoneNumber: "9800015247",
-      address: "Gangtok, Sikkim",
-      dob: "12-03-1990",
-      aadhaar: "123456789012",
-      gender: "female",
-    },
-    {
-      fullName: "Suman Chhetri",
-      contactEmail: "suman.chettri@example.com",
-      phoneNumber: "9802216258",
-      address: "Pakyong, Sikkim",
-      dob: "22-09-1988",
-      aadhaar: "987654321098",
-      gender: "male",
-    },
-    {
-      fullName: "Mingma Sherpa",
-      contactEmail: "mingma.sherpa@example.com",
-      phoneNumber: "9805511468",
-      address: "Namchi, Sikkim",
-      dob: "17-05-1993",
-      aadhaar: "564738291034",
-      gender: "male",
-    },
-    {
-      fullName: "Pema Tamang",
-      contactEmail: "pema.tamang@example.com",
-      phoneNumber: "9808811258",
-      address: "Mangan, North Sikkim",
-      dob: "03-08-1995",
-      aadhaar: "675849302156",
-      gender: "female",
-    },
-    {
-      fullName: "Rinchen Bhutia",
-      contactEmail: "rinchen.bhutia@example.com",
-      phoneNumber: "9811115472",
-      address: "Ravangla, Sikkim",
-      dob: "25-11-1991",
-      aadhaar: "453627890123",
-      gender: "female",
-    },
-    {
-      fullName: "Tashi Gurung",
-      contactEmail: "tashi.gurung@example.com",
-      phoneNumber: "9814413587",
-      address: "Gyalshing, West Sikkim",
-      dob: "10-04-1994",
-      aadhaar: "890123456789",
-      gender: "male",
-    },
-    {
-      fullName: "Lhamu Sherpa",
-      contactEmail: "lhamu.sherpa@example.com",
-      phoneNumber: "9817713957",
-      address: "Dentam, Sikkim",
-      dob: "27-01-1992",
-      aadhaar: "321654987012",
-      gender: "female",
-    },
-    {
-      fullName: "Bijay Rai",
-      contactEmail: "bijay.rai@example.com",
-      phoneNumber: "9820014587",
-      address: "Jorethang, Sikkim",
-      dob: "16-06-1990",
-      aadhaar: "789654123098",
-      gender: "male",
-    },
-    {
-      fullName: "Anita Subba",
-      contactEmail: "anita.subba@example.com",
-      phoneNumber: "9823313164",
-      address: "Tadong, Sikkim",
-      dob: "30-12-1996",
-      aadhaar: "234567890111",
-      gender: "female",
-    },
-    {
-      fullName: "Sangay Tamang",
-      contactEmail: "sangay.tamang@example.com",
-      phoneNumber: "9826615126",
-      address: "Lachung, Sikkim",
-      dob: "08-07-1987",
-      aadhaar: "998877665544",
-      gender: "male",
     },
   ];
 
@@ -139,28 +48,54 @@ const Login = () => {
   const [generatedOtp, setGeneratedOtp] = useState(null);
   const [loginError, setLoginError] = useState("");
 
-  const handlePublicAadhaarSubmit = (data) => {
+  const handlePublicAadhaarSubmit = async (data) => {
     setLoginError("");
+    setOtpSent(false);
 
-    const user = publicUsers.find(
-      (u) => u.aadhaar === data.aadhaar_number.trim()
-    );
+    try {
+      const response = await axios.get(CHECK_AADHAAR_URL, {
+        params: {
+          aadhaarNumber: data.aadhaar_number.trim(),
+        },
+        // withCredentials: true,
+      });
 
-    if (!user) {
+      // console.log("handlePublicAadhaarSubmit response", response);
+
+      const { status, user, message } = response.data;
+
+      // Safety check (for 200 but invalid payload)
+      if (status !== "success" || !user) {
+        setLoginError(
+          "Aadhaar details not found in UIDAI database. Enter the correct details." ||
+            message
+        );
+        return;
+      }
+
+      // Aadhaar found
+      setAadhaarFoundUser(user);
+
+      // Mock OTP (temporary)
+      setGeneratedOtp("123456");
+      setOtpSent(true);
+    } catch (error) {
+      console.error("Aadhaar verification error:", error);
+
+      // Aadhaar not found / invalid (404)
+      if (error.response?.status === 404) {
+        setLoginError(
+          "Aadhaar details not found in UIDAI database. Enter the correct details." ||
+            error.response.data?.message
+        );
+        return;
+      }
+
+      // Other errors (500, network, etc.)
       setLoginError(
-        "Aadhaar details not found in UIDAI database. Enter the correct details."
+        "Unable to verify Aadhaar at the moment. Please try again later."
       );
-      return;
     }
-
-    setAadhaarFoundUser(user);
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    // setGeneratedOtp(otp);
-    setGeneratedOtp("123456");
-    setOtpSent(true);
-
-    // console.log("Mock OTP (for testing):", otp);
   };
 
   const handleOtpVerify = (data) => {
@@ -181,24 +116,51 @@ const Login = () => {
     }
   };
 
-  const handleAdminLogin = (data) => {
+  const handleAdminLogin = async (data) => {
     setLoginError("");
 
-    const admin = adminUsers.find(
-      (u) => u.username === data.admin_username.trim()
-    );
+    try {
+      const response = await axios.post(
+        ADMIN_LOGIN_URL,
+        {
+          username: data.admin_username.trim(),
+          password: data.admin_password,
+        },
+        {
+          // withCredentials: true,
+        }
+      );
 
-    if (!admin || admin.password !== data.admin_password) {
-      setLoginError("Incorrect credentials entered. Try again.");
-      return;
+      console.log("handleAdminLogin response", response);
+
+      const { status, user, message } = response.data;
+
+      // Invalid credentials (200 but unauthorized)
+      if (status !== "success" || !user) {
+        setLoginError("Incorrect credentials entered. Try again." || message);
+        return;
+      }
+
+      // Login success
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("role", "System Admin");
+
+      navigate("/system-admin/dashboard", { replace: true });
+    } catch (error) {
+      console.error("Admin login error:", error);
+
+      // Unauthorized (401 / 403)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        setLoginError(
+          "Incorrect credentials entered. Try again." ||
+            error.response.data?.message
+        );
+        return;
+      }
+
+      // Server / network error
+      setLoginError("Unable to login at the moment. Please try again later.");
     }
-
-    localStorage.setItem("user", JSON.stringify(admin));
-    localStorage.setItem("role", "System Admin");
-
-    const to = "/system-admin/dashboard";
-
-    navigate(to, { replace: true });
   };
 
   return (
