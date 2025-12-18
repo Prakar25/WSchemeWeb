@@ -28,8 +28,55 @@
 }
 
 @theme {
+  /* Colors */
   --color-primary: #1c398e;
   --color-secondary: #8bc5db;
   --color-ternary: #182c38;
   --color-quaternary: #e88935;
+
+  /* Fonts */
+  --font-display: "Inter", "sans-serif";
+  --font-primary: "Inter", "sans-serif";
+  --font-secondary: "Playfair Display", "serif";
+
+  /* Font family */
+  --font-montserrat: "Montserrat", "serif";
+  --font-roboto: "Roboto", "sans-serif";
+
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.88rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
+  --font-size-6xl: 3.75rem;
+
+  /* Line Heights */
+  --line-height-xs: 1.5;
+  --line-height-sm: 1.5715;
+  --line-height-base: 1.5;
+  --line-height-lg: 1.5;
+  --line-height-xl: 1.5;
+  --line-height-2xl: 1.33;
+  --line-height-3xl: 1.33;
+  --line-height-4xl: 1.25;
+  --line-height-5xl: 1.25;
+  --line-height-6xl: 1.2;
+
+  /* Letter Spacing */
+  --letter-spacing-base: -0.01em;
+  --letter-spacing-lg: -0.01em;
+  --letter-spacing-xl: -0.01em;
+  --letter-spacing-2xl: -0.01em;
+  --letter-spacing-3xl: -0.01em;
+  --letter-spacing-4xl: -0.02em;
+  --letter-spacing-5xl: -0.02em;
+  --letter-spacing-6xl: -0.02em;
+
+  /* --screens-tab: 550px; */
+  --breakpoint-tab: 490px;
 }
