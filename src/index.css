@@ -26,3 +26,10 @@
     font-family: var(--font-montserrat);
   }
 }
+
+@theme {
+  --color-primary: #1c398e;
+  --color-secondary: #8bc5db;
+  --color-ternary: #182c38;
+  --color-quaternary: #e88935;
+}

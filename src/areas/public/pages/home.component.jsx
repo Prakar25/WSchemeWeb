@@ -29,20 +29,6 @@ const containerVariants = {
   },
 };
 
-// Reusable Card Component
-const SchemeCard = ({ img, title, description }) => (
-  <motion.div
-    variants={cardVariants}
-    whileHover={{ scale: 1.03 }}
-    whileTap={{ scale: 0.97 }}
-    className="bg-white shadow rounded-lg p-4"
-  >
-    <img src={img} className="rounded-md h-64 w-full object-cover" />
-    <h3 className="font-semibold mt-4">{title}</h3>
-    <p className="text-sm text-gray-600">{description}</p>
-  </motion.div>
-);
-
 const Home = () => {
   const schemes = [
     {
@@ -89,7 +75,7 @@ const Home = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="text-4xl font-bold text-blue-900"
+            className="text-4xl font-bold text-primary"
           >
             Access Government Welfare Schemes Online
           </motion.h1>
@@ -151,3 +137,17 @@ const Home = () => {
 };
 
 export default Home;
+
+// Reusable Card Component
+const SchemeCard = ({ img, title, description }) => (
+  <motion.div
+    variants={cardVariants}
+    whileHover={{ scale: 1.03 }}
+    whileTap={{ scale: 0.97 }}
+    className="bg-white shadow rounded-lg p-4"
+  >
+    <img src={img} className="rounded-md h-64 w-full object-cover" />
+    <h3 className="font-semibold mt-4 text-primary">{title}</h3>
+    <p className="text-sm text-gray-600">{description}</p>
+  </motion.div>
+);
