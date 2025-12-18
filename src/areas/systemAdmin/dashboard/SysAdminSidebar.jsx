@@ -39,14 +39,14 @@ export default function SysAdminSidebar({
           <li>
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
-                pathname.includes("/system-admin/schemes")
+                pathname.includes("/system-admin/schemes-configuration")
                   ? "bg-white text-slate-700 font-semibold rounded-e-full"
                   : "text-yellow-200 font-normal"
               }`}
             >
               <MdFormatListBulleted size={20} />
               <div className="text-lg cursor-pointer">
-                <Link to="/system-admin/schemes" className="py-1">
+                <Link to="/system-admin/schemes-configuration" className="py-1">
                   <p>Schemes</p>
                 </Link>
               </div>

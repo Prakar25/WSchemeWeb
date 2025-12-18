@@ -16,6 +16,7 @@ import UserApplicationTracker from "./areas/public/dashboard/userApplicationTrac
 
 import SysAdminDashboard from "./areas/systemAdmin/dashboard/SysAdminDashboard";
 import SchemeConfig from "./areas/systemAdmin/modules/scheme-management/schemeConfig.component";
+import SchemesConfig from "./areas/systemAdmin/modules/scheme-management/schemesConfig.component";
 import Beneficiaries from "./areas/systemAdmin/modules/beneficiaries/beneficiaries.component";
 import Reports from "./areas/systemAdmin/modules/reports/reports.component";
 import Alerts from "./areas/systemAdmin/modules/alerts/alerts.component";
@@ -55,7 +56,12 @@ function App() {
           path="/system-admin/dashboard"
           element={<SysAdminDashboard />}
         />
-        <Route exact path="/system-admin/schemes" element={<SchemeConfig />} />
+        {/* <Route exact path="/system-admin/schemes" element={<SchemeConfig />} /> */}
+        <Route
+          exact
+          path="/system-admin/schemes-configuration"
+          element={<SchemesConfig />}
+        />
         <Route
           exact
           path="/system-admin/beneficiaries"
