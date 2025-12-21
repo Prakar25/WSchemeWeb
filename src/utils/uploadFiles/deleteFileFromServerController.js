@@ -7,7 +7,7 @@ const BASE_URL =
 
 export const deleteFileFromServer = async (filePath) => {
   try {
-    const response = await axios.post(`${BASE_URL}deleteFile`, { filePath });
+    const response = await axios.post(`${BASE_URL}/deleteFile`, { filePath });
     return response?.data?.message; // Optional: Handle server response message
   } catch (error) {
     console.error(

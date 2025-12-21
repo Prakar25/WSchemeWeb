@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import styled from "styled-components";
 
@@ -13,6 +13,7 @@ import { SCHEMES_CONFIG_URL } from "../../../../api/api_routing_urls";
 
 import HeadingAndButton from "../../../../reusable-components/HeadingAndButton";
 import Input from "../../../../reusable-components/inputs/InputTextBox/Input";
+import Dropdown from "../../../../reusable-components/inputs/Dropdowns/Dropdown";
 import TextArea from "../../../../reusable-components/inputs/InputTextAreas/TextArea";
 import GenericModal from "../../../../reusable-components/modals/GenericModal.component";
 import DocDropzone from "../../../../reusable-components/FileUploader/PDFImageDropZoneUploader/PDFImageDropZoneUploader.component";
@@ -44,13 +45,104 @@ const AddSchemeForm = ({
   const [showSchemeDz, setShowSchemeDz] = useState(false);
   const [docScheme, setDocScheme] = useState(null);
 
+  const [genderDD, setGenderDD] = useState([]);
+  const [categoryDD, setCategoryDD] = useState([]);
+  const [subCategoryDD, setSubCategoryDD] = useState([]);
+
+  const [selectedGender, setSelectedGender] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+
+  // Master Data
+  let genderList = [
+    { gender_name: "Male", gender_id: 1 },
+    { gender_name: "Female", gender_id: 2 },
+    { gender_name: "Others", gender_id: 3 },
+    { gender_name: "All", gender_id: 4 },
+  ];
+
+  let categoryList = [{ category_name: "Pension", category_id: 1 }];
+
+  let subCategoryList = [
+    { category_id: 1, sub_category_name: "Aama Yojana", sub_category_id: 1 },
+  ];
+
+  const prepareGenderList = () => {
+    let genderDD = [];
+    genderList?.map((genderObj) => {
+      genderDD.push({
+        label: genderObj?.gender_name,
+        value: genderObj?.gender_id,
+      });
+    });
+    setGenderDD(genderDD);
+  };
+
+  const prepareCategoryList = () => {
+    let categoryDD = [];
+    categoryList?.map((categoryObj) => {
+      categoryDD.push({
+        label: categoryObj?.category_name,
+        value: categoryObj?.category_id,
+      });
+    });
+    setCategoryDD(categoryDD);
+  };
+
+  const prepareSubCategoryList = () => {
+    let subCategoryDD = [];
+    subCategoryList?.map((subCategoryObj) => {
+      subCategoryDD.push({
+        label: subCategoryObj?.sub_category_name,
+        value: subCategoryObj?.sub_category_id,
+        category_id: subCategoryObj?.category_id,
+      });
+    });
+    setSubCategoryDD(subCategoryDD);
+  };
+
+  useEffect(() => {
+    prepareGenderList();
+    prepareCategoryList();
+    prepareSubCategoryList();
+  }, []);
+
   const isEdit = Object.keys(editSchemeDetails)?.length > 0;
 
   const defaultValues = {
     scheme_id: !isEdit ? "" : editSchemeDetails?.scheme_id,
     scheme_name: !isEdit ? "" : editSchemeDetails?.scheme_name,
     scheme_date: !isEdit ? "" : editSchemeDetails?.scheme_date,
-    scheme_content: !isEdit ? "" : editSchemeDetails?.scheme_content,
+    gender_id: !isEdit
+      ? ""
+      : {
+          label: editSchemeDetails?.gender_name,
+          value: editSchemeDetails?.gender_id,
+        },
+    category_id: !isEdit
+      ? ""
+      : {
+          label: editSchemeDetails?.category_name,
+          value: editSchemeDetails?.category_id,
+        },
+    sub_category_id: !isEdit
+      ? ""
+      : {
+          label: editSchemeDetails?.sub_category_name,
+          value: editSchemeDetails?.sub_category_id,
+        },
+    scheme_description: !isEdit ? "" : editSchemeDetails?.scheme_description,
+    scheme_objectives: !isEdit ? "" : editSchemeDetails?.scheme_objectives,
+    scheme_benefits: !isEdit ? "" : editSchemeDetails?.scheme_benefits,
+    scheme_eligibility_lower_age_limit: !isEdit
+      ? ""
+      : editSchemeDetails?.scheme_eligibility_lower_age_limit,
+    scheme_eligibility_upper_age_limit: !isEdit
+      ? ""
+      : editSchemeDetails?.scheme_eligibility_upper_age_limit,
+    scheme_required_documents: !isEdit
+      ? ""
+      : editSchemeDetails?.scheme_required_documents,
     scheme_image_file_url: !isEdit
       ? ""
       : editSchemeDetails?.scheme_image_file_url,
@@ -97,6 +189,12 @@ const AddSchemeForm = ({
       let sendDataObj = {
         scheme_name: data?.scheme_name,
         scheme_date: data?.scheme_date,
+        gender_id: selectedGender?.value,
+        gender_name: selectedGender?.label,
+        category_id: selectedCategory?.value,
+        category_name: selectedCategory?.label,
+        sub_category_id: selectedSubCategory?.value,
+        sub_category_name: selectedSubCategory?.label,
         scheme_description: data?.scheme_description,
         scheme_objectives: data?.scheme_objectives,
         scheme_benefits: data?.scheme_benefits,
@@ -232,6 +330,68 @@ const AddSchemeForm = ({
               setValue={setValue}
               defaultValue={defaultValues.scheme_date}
             />
+
+            <div className="col-span-2 grid grid-cols-3 gap-x-5">
+              <Dropdown
+                defaultName="gender_id"
+                register={register}
+                labelname="Gender"
+                required={true}
+                pattern={false}
+                errors={errors}
+                classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
+                setError={setError}
+                clearError={clearErrors}
+                onChangeInput={null}
+                control={control}
+                data={genderDD}
+                defaultValue={defaultValues.gender_id}
+                setValue={setValue}
+                setSelected={setSelectedGender}
+                selected={selectedGender}
+                maxMenuHeight={120}
+              />
+
+              <Dropdown
+                defaultName="category_id"
+                register={register}
+                labelname="Category"
+                required={true}
+                pattern={false}
+                errors={errors}
+                classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
+                setError={setError}
+                clearError={clearErrors}
+                onChangeInput={null}
+                control={control}
+                data={categoryDD}
+                defaultValue={defaultValues.category_id}
+                setValue={setValue}
+                setSelected={setSelectedCategory}
+                selected={selectedCategory}
+                maxMenuHeight={120}
+              />
+
+              <Dropdown
+                defaultName="sub_category_id"
+                register={register}
+                labelname="Sub-Category"
+                required={true}
+                pattern={false}
+                errors={errors}
+                classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
+                setError={setError}
+                clearError={clearErrors}
+                onChangeInput={null}
+                control={control}
+                data={subCategoryDD}
+                defaultValue={defaultValues.sub_category_id}
+                setValue={setValue}
+                setSelected={setSelectedSubCategory}
+                selected={selectedSubCategory}
+                maxMenuHeight={120}
+              />
+            </div>
 
             <div className="col-span-2">
               <TextArea

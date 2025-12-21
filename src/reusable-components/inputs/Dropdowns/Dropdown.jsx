@@ -40,10 +40,11 @@ export default function Dropdown({
 
   return (
     <div
-      className={`${showInput === undefined || showInput === true
-        ? "flex flex-col"
-        : "hidden"
-        } w-full my-2 justify-start text-left items-start`}
+      className={`${
+        showInput === undefined || showInput === true
+          ? "flex flex-col"
+          : "hidden"
+      } w-full my-2 justify-start text-left items-start`}
     >
       <label className="font-medium text-left text-gray-900 pl-1 pb-1 text-xs md:text-sm lg:text-base">
         {labelname} {required && <span className="text-red-700">*</span>}
@@ -54,9 +55,8 @@ export default function Dropdown({
           borderRadius: 0,
           colors: {
             ...theme.colors,
-            // primary25: "#F1F1F1",
-            primary25: "#8BC5DB", //Options background color
-            primary: "#447D9D", //Border color on focus
+            primary25: "#d9dddc", //Options background color
+            primary: "#1c398e", //Border color on focus
           },
         })}
         // maxMenuHeight={maxMenuHeight}
@@ -68,8 +68,9 @@ export default function Dropdown({
         isMulti={rest.isMulti}
         closeMenuOnSelect={rest.closeMenuOnSelect}
         {...rest}
-        className={`text-black text-xs md:text-sm  ${classes} ${errors[defaultName] ? "border rounded-none border-red-600" : ""
-          }`}
+        className={`text-black text-xs md:text-sm ${classes} ${
+          errors[defaultName] ? "border rounded-none border-red-600" : ""
+        }`}
         onChange={(e) => {
           // console.log(e);
           // rest.setValue(defaultName, e, { shouldTouch: true });
@@ -103,7 +104,7 @@ export default function Dropdown({
           }
         }}
         onBlur={onBlur}
-      // value={value}
+        // value={value}
       />
       {errors[defaultName] && (
         <Error

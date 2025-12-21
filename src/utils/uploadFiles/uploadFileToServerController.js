@@ -19,7 +19,7 @@ export const uploadFileToServer = async (file, folderName) => {
 
   try {
     const response = await axios.post(
-      `${BASE_URL}upload/filetoserver`,
+      `${BASE_URL}/upload/filetoserver`,
       formData,
       {
         headers: {
