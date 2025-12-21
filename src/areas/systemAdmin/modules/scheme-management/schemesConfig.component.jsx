@@ -27,7 +27,7 @@ const SchemesConfig = () => {
       const response = await axios.get(SCHEMES_CONFIG_URL);
 
       // console.log("Schemes List", { response });
-      response.status === 200 && setSchemesList(response?.data?.schemesList);
+      response.status === 200 && setSchemesList(response?.data);
       response.status === 202 &&
         showToast("No schemes list found in the system.", "error");
     } catch (error) {
@@ -48,7 +48,7 @@ const SchemesConfig = () => {
   useEffect(() => {
     let isMounted = true;
     if (isMounted) {
-      // getSchemesList();
+      getSchemesList();
       setEditSchemeDetails({});
       setEditSchemeDeleteImagePath(null);
     }

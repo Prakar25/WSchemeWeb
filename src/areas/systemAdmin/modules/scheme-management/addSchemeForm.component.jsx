@@ -26,6 +26,7 @@ import {
   uploadFileToServer,
   displayMedia,
 } from "../../../../utils/uploadFiles/uploadFileToServerController";
+import { formatDateForInput } from "../../../../utils/dateFunctions/formatdate";
 
 // Styled components for layout and styling
 const EditorContainer = styled.div`
@@ -112,7 +113,9 @@ const AddSchemeForm = ({
   const defaultValues = {
     scheme_id: !isEdit ? "" : editSchemeDetails?.scheme_id,
     scheme_name: !isEdit ? "" : editSchemeDetails?.scheme_name,
-    scheme_date: !isEdit ? "" : editSchemeDetails?.scheme_date,
+    scheme_date: !isEdit
+      ? ""
+      : formatDateForInput(editSchemeDetails?.scheme_date),
     gender_id: !isEdit
       ? ""
       : {
@@ -224,7 +227,7 @@ const AddSchemeForm = ({
         );
       }
 
-      // console.log({ response });
+      // console.log("Schemes Config Post Call Response", response);
 
       if (response.status === 200) {
         showToast("Scheme has been logged successfully.", "success");

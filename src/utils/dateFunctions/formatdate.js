@@ -46,3 +46,28 @@ export function formatTSWTZDate(dateString) {
   const formattedDate = `${day} ${months[monthIndex]}, ${year}`;
   return formattedDate;
 }
+
+export const formatDateDDMMYYYY = (isoTimestamp) => {
+  if (!isoTimestamp) return "";
+
+  const date = new Date(isoTimestamp);
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+  const year = date.getFullYear();
+
+  return `${day}-${month}-${year}`;
+};
+
+// utils/date/formatDateForInput.js
+export const formatDateForInput = (isoTimestamp) => {
+  if (!isoTimestamp) return "";
+
+  const date = new Date(isoTimestamp);
+
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};

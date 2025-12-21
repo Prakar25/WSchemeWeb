@@ -8,6 +8,11 @@ const BASE_URL =
     ? import.meta.env.VITE_ENDPOINT_URL
     : import.meta.env.VITE_ENDPOINT_URL_ONLINE;
 
+const MEDIA_URL =
+  import.meta.env.VITE_NODE_ENV === "development"
+    ? import.meta.env.VITE_MEDIA_ENDPOINT_URL
+    : import.meta.env.VITE_MEDIA_ENDPOINT_URL_ONLINE;
+
 export const uploadFileToServer = async (file, folderName) => {
   const formData = new FormData();
   formData.append("file", file);
@@ -40,8 +45,8 @@ export const uploadFileToServer = async (file, folderName) => {
 };
 
 export const displayMedia = (filePath) => {
-  // Construct the full URL using the BASE_URL environment variable
-  return `${BASE_URL}${filePath}`; // Full URL to the file
+  // Construct the full URL using the MEDIA_URL environment variable
+  return `${MEDIA_URL}/${filePath}`; // Full URL to the file
 };
 
 export const originalFilename = (filePath) => {

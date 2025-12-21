@@ -194,17 +194,40 @@ const SchemeCardAdmin = ({
 
         <div className="flex flex-col justify-between flex-1 px-5">
           <div>
-            <div className="font-semibold text-gray-700">
-              {schemeObj?.scheme_name}
+            <div className="flex justify-between mb-4">
+              <div className="font-semibold text-primary">
+                {schemeObj?.scheme_name}
+              </div>
+
+              <div className="flex items-center gap-x-2 text-gray-700 text-sm">
+                <strong>Gender:</strong>{" "}
+                <p className="py-1 px-3 rounded-full font-light bg-green-600 text-xs text-white">
+                  {schemeObj?.gender_name}
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-5 flex gap-x-8">
+              <div className="flex items-center gap-x-2 text-gray-700 text-sm">
+                <strong>Category:</strong>{" "}
+                <p className="">{schemeObj?.category_name}</p>
+              </div>
+
+              <div className="flex items-center gap-x-2 text-gray-700 text-sm">
+                <strong>Sub-Category:</strong>{" "}
+                <p className="">{schemeObj?.sub_category_name}</p>
+              </div>
             </div>
 
             {/* <div className="mt-1 text-sm text-gray-600 font-light">
-              {schemeObj?.scheme_content}
+              {schemeObj?.scheme_description}
             </div> */}
 
             <div
               className="mt-1 text-sm text-gray-600 font-light"
-              dangerouslySetInnerHTML={{ __html: schemeObj?.scheme_content }}
+              dangerouslySetInnerHTML={{
+                __html: schemeObj?.scheme_description,
+              }}
             ></div>
 
             {/* <Container>

@@ -15,7 +15,6 @@ import UserSchemes from "./areas/public/dashboard/userSchemes.component";
 import UserApplicationTracker from "./areas/public/dashboard/userApplicationTracker.component";
 
 import SysAdminDashboard from "./areas/systemAdmin/dashboard/SysAdminDashboard";
-import SchemeConfig from "./areas/systemAdmin/modules/scheme-management/schemeConfig.component";
 import SchemesConfig from "./areas/systemAdmin/modules/scheme-management/schemesConfig.component";
 import Beneficiaries from "./areas/systemAdmin/modules/beneficiaries/beneficiaries.component";
 import Reports from "./areas/systemAdmin/modules/reports/reports.component";
