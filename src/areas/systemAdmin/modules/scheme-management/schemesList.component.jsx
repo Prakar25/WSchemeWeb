@@ -202,7 +202,7 @@ const SchemeCardAdmin = ({
               <div className="flex items-center gap-x-2 text-gray-700 text-sm">
                 <strong>Gender:</strong>{" "}
                 <p className="py-1 px-3 rounded-full font-light bg-green-600 text-xs text-white">
-                  {schemeObj?.gender_name}
+                  {schemeObj?.gender || schemeObj?.gender_name}
                 </p>
               </div>
             </div>
@@ -210,12 +210,14 @@ const SchemeCardAdmin = ({
             <div className="mb-5 flex gap-x-8">
               <div className="flex items-center gap-x-2 text-gray-700 text-sm">
                 <strong>Category:</strong>{" "}
-                <p className="">{schemeObj?.category_name}</p>
+                <p className="">{schemeObj?.category || schemeObj?.category_name}</p>
               </div>
 
               <div className="flex items-center gap-x-2 text-gray-700 text-sm">
                 <strong>Sub-Category:</strong>{" "}
-                <p className="">{schemeObj?.sub_category_name}</p>
+                <p className="">
+                  {schemeObj?.sub_category || schemeObj?.sub_category_name}
+                </p>
               </div>
             </div>
 
@@ -247,7 +249,7 @@ const SchemeCardAdmin = ({
 
             <div
               onClick={() => {
-                setSchemeDeleteId(schemeObj?.scheme_id || null);
+                setSchemeDeleteId(schemeObj?._id || schemeObj?.scheme_id || null);
                 setSchemeDeleteImagePath(
                   schemeObj?.scheme_image_file_url || null
                 );

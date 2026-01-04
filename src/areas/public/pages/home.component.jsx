@@ -127,7 +127,7 @@ const Home = () => {
             variants={containerVariants}
           >
             {schemesList.map((scheme) => (
-              <SchemeCard key={scheme.scheme_id} scheme={scheme} />
+              <SchemeCard key={scheme._id || scheme.scheme_id} scheme={scheme} />
             ))}
           </motion.div>
         )}

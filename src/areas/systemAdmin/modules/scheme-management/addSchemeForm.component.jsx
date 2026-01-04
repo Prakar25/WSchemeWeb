@@ -110,8 +110,38 @@ const AddSchemeForm = ({
 
   const isEdit = Object.keys(editSchemeDetails)?.length > 0;
 
+  // Helper function to convert array to HTML string for RichTextArea
+  const arrayToHtmlString = (arr) => {
+    if (!arr) return "";
+    if (typeof arr === "string") return arr; // Already a string
+    if (Array.isArray(arr)) {
+      return arr.map((item) => `<div>${item}</div>`).join("\n");
+    }
+    return "";
+  };
+
+  // Helper function to find gender_id from gender string
+  const getGenderIdFromName = (genderName) => {
+    const gender = genderList.find((g) => g.gender_name === genderName);
+    return gender ? gender.gender_id : null;
+  };
+
+  // Helper function to find category_id from category string
+  const getCategoryIdFromName = (categoryName) => {
+    const category = categoryList.find((c) => c.category_name === categoryName);
+    return category ? category.category_id : null;
+  };
+
+  // Helper function to find sub_category_id from sub_category string
+  const getSubCategoryIdFromName = (subCategoryName) => {
+    const subCategory = subCategoryList.find(
+      (sc) => sc.sub_category_name === subCategoryName
+    );
+    return subCategory ? subCategory.sub_category_id : null;
+  };
+
   const defaultValues = {
-    scheme_id: !isEdit ? "" : editSchemeDetails?.scheme_id,
+    scheme_id: !isEdit ? "" : editSchemeDetails?._id || editSchemeDetails?.scheme_id,
     scheme_name: !isEdit ? "" : editSchemeDetails?.scheme_name,
     scheme_date: !isEdit
       ? ""
@@ -119,33 +149,53 @@ const AddSchemeForm = ({
     gender_id: !isEdit
       ? ""
       : {
-          label: editSchemeDetails?.gender_name,
-          value: editSchemeDetails?.gender_id,
+          label: editSchemeDetails?.gender || editSchemeDetails?.gender_name,
+          value:
+            getGenderIdFromName(editSchemeDetails?.gender) ||
+            editSchemeDetails?.gender_id,
         },
     category_id: !isEdit
       ? ""
       : {
-          label: editSchemeDetails?.category_name,
-          value: editSchemeDetails?.category_id,
+          label: editSchemeDetails?.category || editSchemeDetails?.category_name,
+          value:
+            getCategoryIdFromName(editSchemeDetails?.category) ||
+            editSchemeDetails?.category_id,
         },
     sub_category_id: !isEdit
       ? ""
       : {
-          label: editSchemeDetails?.sub_category_name,
-          value: editSchemeDetails?.sub_category_id,
+          label:
+            editSchemeDetails?.sub_category ||
+            editSchemeDetails?.sub_category_name,
+          value:
+            getSubCategoryIdFromName(editSchemeDetails?.sub_category) ||
+            editSchemeDetails?.sub_category_id,
         },
     scheme_description: !isEdit ? "" : editSchemeDetails?.scheme_description,
-    scheme_objectives: !isEdit ? "" : editSchemeDetails?.scheme_objectives,
-    scheme_benefits: !isEdit ? "" : editSchemeDetails?.scheme_benefits,
+    scheme_objectives: !isEdit
+      ? ""
+      : arrayToHtmlString(editSchemeDetails?.scheme_objectives),
+    scheme_benefits: !isEdit
+      ? ""
+      : arrayToHtmlString(editSchemeDetails?.scheme_benefits),
     scheme_eligibility_lower_age_limit: !isEdit
       ? ""
-      : editSchemeDetails?.scheme_eligibility_lower_age_limit,
+      : editSchemeDetails?.scheme_eligibility?.lower_age_limit ||
+        editSchemeDetails?.scheme_eligibility_lower_age_limit,
     scheme_eligibility_upper_age_limit: !isEdit
       ? ""
-      : editSchemeDetails?.scheme_eligibility_upper_age_limit,
+      : editSchemeDetails?.scheme_eligibility?.upper_age_limit ||
+        editSchemeDetails?.scheme_eligibility_upper_age_limit,
     scheme_required_documents: !isEdit
       ? ""
-      : editSchemeDetails?.scheme_required_documents,
+      : Array.isArray(editSchemeDetails?.scheme_required_documents)
+        ? arrayToHtmlString(
+            editSchemeDetails.scheme_required_documents.map(
+              (doc) => doc.document_type || doc
+            )
+          )
+        : editSchemeDetails?.scheme_required_documents || "",
     scheme_image_file_url: !isEdit
       ? ""
       : editSchemeDetails?.scheme_image_file_url,
@@ -219,7 +269,8 @@ const AddSchemeForm = ({
       } else {
         sendDataObj.scheme_image_file_url =
           editSchemeDeleteImagePath || updatedFileURL;
-        sendDataObj.scheme_id = editSchemeDetails?.scheme_id;
+        sendDataObj.scheme_id =
+          editSchemeDetails?._id || editSchemeDetails?.scheme_id;
 
         response = await axios.post(
           `${SCHEMES_CONFIG_URL}/update`,
@@ -264,8 +315,10 @@ const AddSchemeForm = ({
     try {
       let response = "";
       if (schemeId) {
+        // Use _id if available, otherwise use scheme_id
+        const idToSend = editSchemeDetails?._id || schemeId;
         response = await axios.post(`${SCHEMES_CONFIG_URL}/deleteImage`, {
-          scheme_id: schemeId,
+          scheme_id: idToSend,
         });
       }
 
