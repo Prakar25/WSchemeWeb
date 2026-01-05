@@ -101,10 +101,10 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
         }`}
       >
         {/* Sidebar header */}
-        <div className="flex justify-between mb-5 pr-3  border-b border-white pb-2 ">
+        <div className="flex justify-between mb-5 pr-3 border-b border-white pb-3">
           <button
             ref={trigger}
-            className="lg:hidden text-slate-700 hover:text-slate-800"
+            className="lg:hidden text-white hover:text-gray-200"
             onClick={() => {
               setSidebarOpen(!sidebarOpen);
             }}
@@ -121,38 +121,71 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
             </svg>
           </button>
 
-          <NavLink end to="#" className="block">
-            <div className="flex items-center">
+          {sidebarType === "System Admin" ? (
+            <NavLink end to="#" className="block w-full">
               {sidebarExpanded && (
-                <div className="flex gap-1 items-center">
-                  <div>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-green-600 flex items-center justify-center flex-shrink-0">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
-                      strokeWidth="1"
-                      stroke="currentColor"
-                      className="size-[45px] text-white"
+                      strokeWidth="1.5"
+                      stroke="white"
+                      className="w-8 h-8"
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
                   </div>
-
-                  <div>
-                    <p className="text-white text-base font-medium">
-                      {user?.fullName}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-base font-semibold truncate">
+                      Welfare Admin
                     </p>
-
-                    <p className="text-white text-xs">{userRole}</p>
+                    <p className="text-white text-xs text-gray-200 truncate">
+                      Manage welfare programs
+                    </p>
                   </div>
                 </div>
               )}
-            </div>
-          </NavLink>
+            </NavLink>
+          ) : (
+            <NavLink end to="#" className="block">
+              <div className="flex items-center">
+                {sidebarExpanded && (
+                  <div className="flex gap-1 items-center">
+                    <div>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="1"
+                        stroke="currentColor"
+                        className="size-[45px] text-white"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                        />
+                      </svg>
+                    </div>
+
+                    <div>
+                      <p className="text-white text-base font-medium">
+                        {user?.fullName}
+                      </p>
+
+                      <p className="text-white text-xs">{userRole}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </NavLink>
+          )}
         </div>
 
         {sidebarType === "Public User" && (

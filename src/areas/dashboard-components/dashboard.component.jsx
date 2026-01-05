@@ -11,11 +11,11 @@ export default function Dashboard(props) {
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
 
-      <div className=" relative group m-2 rounded-md shadow-md bg-primary">
+      <div className="relative group bg-primary">
         <div
-          className={`absolute  z-40 ${
+          className={`absolute z-40 ${
             toggleSidebar ? "right-0" : "left-2"
-          }  top-5`}
+          } top-5`}
           onClick={() => {
             setToggleSidebar((prev) => !prev);
           }}
@@ -64,9 +64,7 @@ export default function Dashboard(props) {
       {/* Content area */}
       <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
         {/*  Site header */}
-        <div className="m-2">
-          <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-        </div>
+        <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         <main>
           <div className="px-4 sm:px-6 lg:px-3 py-8 w-full max-w-9xl mx-auto">

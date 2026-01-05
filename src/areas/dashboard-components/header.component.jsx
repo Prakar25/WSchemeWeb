@@ -16,16 +16,16 @@ function Header({ sidebarOpen, setSidebarOpen }) {
   };
 
   return (
-    <header className="sticky top-0 bg-white border-b border-blue-900 z-20 shadow-sm rounded-md">
+    <header className="sticky top-0 bg-white border-b border-blue-900 z-20">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between p-3">
+        <div className="flex items-center justify-between py-2">
           {/* Header: Left side */}
 
           <NavLink end to="/" className="block">
             <div className="flex items-center">
-              <img src={Logo} className="h-24 w-28" />
+              <img src={Logo} className="h-12 w-16" />
               {
-                <p className="text-slate-800 text-base font-medium">
+                <p className="text-slate-800 text-sm font-medium">
                   Women &amp; Child Welfare Department, Government of Sikkim
                 </p>
               }
@@ -56,9 +56,9 @@ function Header({ sidebarOpen, setSidebarOpen }) {
           {/* Header: Right side */}
           <p
             onClick={() => signOut()}
-            className="inline-flex items-center gap-2 border border-gray-200 py-2 px-5 bg-white text-primary rounded-md shadow-md text-sm font-medium hover:bg-blue-800 hover:text-white cursor-pointer transition-all duration-300 ease-in-out"
+            className="inline-flex items-center gap-2 border border-gray-200 py-1.5 px-4 bg-white text-primary rounded-md text-sm font-medium hover:bg-blue-800 hover:text-white cursor-pointer transition-all duration-300 ease-in-out"
           >
-            <FiLogOut size={18} />
+            <FiLogOut size={16} />
             Logout
           </p>
         </div>

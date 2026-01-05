@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaBell } from "react-icons/fa";
+import { FiLogOut } from "react-icons/fi";
 import axios from "../../../api/axios";
 import { PROFILE_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
@@ -49,6 +50,13 @@ export default function PublicHeader() {
     return location.pathname === path;
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    localStorage.removeItem("sidebar-expanded");
+    navigate("/login", { replace: true });
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -95,7 +103,7 @@ export default function PublicHeader() {
             </button>
           </nav>
 
-          {/* Right side - Notification and Profile */}
+          {/* Right side - Notification, Profile, and Logout */}
           <div className="flex items-center gap-4">
             {/* Notification Bell */}
             <div className="relative cursor-pointer">
@@ -124,6 +132,15 @@ export default function PublicHeader() {
                 )}
               </button>
             )}
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+              title="Logout"
+            >
+              <FiLogOut size={18} />
+            </button>
           </div>
         </div>
       </div>
