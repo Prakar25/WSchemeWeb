@@ -15,6 +15,7 @@ export default function Input({
   clearError,
   onChangeInput,
   showInput,
+  setValue,
   ...rest
 }) {
   const { onChange, ...props } = register(defaultName, {
@@ -24,9 +25,9 @@ export default function Input({
 
   useEffect(() => {
     if (rest?.defaultValue !== "") {
-      rest.setValue(defaultName, rest?.defaultValue, { shouldTouch: true });
+      setValue?.(defaultName, rest?.defaultValue, { shouldTouch: true });
     }
-  }, [rest?.defaultValue]);
+  }, [rest?.defaultValue, setValue, defaultName]);
 
   const numberInputOnWheelPreventChange = (e) => {
     // Prevent the input value change

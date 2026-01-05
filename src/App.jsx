@@ -10,9 +10,9 @@ import Home from "./areas/public/pages/home.component";
 import Login from "./areas/common/login.component";
 
 import PublicDashboard from "./areas/public/dashboard/PublicDashboard";
-import UserProfile from "./areas/public/dashboard/userProfile.component";
-import UserSchemes from "./areas/public/dashboard/userSchemes.component";
-import UserApplicationTracker from "./areas/public/dashboard/userApplicationTracker.component";
+import PublicProfile from "./areas/public/dashboard/PublicProfile.page";
+import PublicSchemes from "./areas/public/dashboard/PublicSchemes.page";
+import PublicApplications from "./areas/public/dashboard/PublicApplications.page";
 
 import SysAdminDashboard from "./areas/systemAdmin/dashboard/SysAdminDashboard";
 import SchemesConfig from "./areas/systemAdmin/modules/scheme-management/schemesConfig.component";
@@ -41,13 +41,9 @@ function App() {
 
         {/* Public User Dashboard Routes */}
         <Route exact path="/user/dashboard" element={<PublicDashboard />} />
-        <Route exact path="/user/profile" element={<UserProfile />} />
-        <Route exact path="/user/available-schemes" element={<UserSchemes />} />
-        <Route
-          exact
-          path="/user/application-status"
-          element={<UserApplicationTracker />}
-        />
+        <Route exact path="/user/profile" element={<PublicProfile />} />
+        <Route exact path="/user/schemes" element={<PublicSchemes />} />
+        <Route exact path="/user/applications" element={<PublicApplications />} />
 
         {/* System Admin Dashboard Routes */}
         <Route

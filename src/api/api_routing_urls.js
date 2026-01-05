@@ -1,5 +1,6 @@
 //#region Public User URLs
 export const CHECK_AADHAAR_URL = "/public-users";
+export const PROFILE_URL = "/profile";
 
 //#endregion
 

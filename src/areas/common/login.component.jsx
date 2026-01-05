@@ -60,8 +60,6 @@ const Login = () => {
         // withCredentials: true,
       });
 
-      // console.log("handlePublicAadhaarSubmit response", response);
-
       const { status, user, message } = response.data;
 
       // Safety check (for 200 but invalid payload)
@@ -73,7 +71,7 @@ const Login = () => {
         return;
       }
 
-      // Aadhaar found
+      // Aadhaar found - store the user object from API
       setAadhaarFoundUser(user);
 
       // Mock OTP (temporary)
@@ -100,12 +98,8 @@ const Login = () => {
 
   const handleOtpVerify = (data) => {
     if (data.otp_input === generatedOtp) {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          ...aadhaarFoundUser,
-        })
-      );
+      // Store the user object from API (already has _id and userId)
+      localStorage.setItem("user", JSON.stringify(aadhaarFoundUser));
       localStorage.setItem("role", "Public User");
 
       const to = "/user/dashboard";
@@ -243,7 +237,9 @@ const Login = () => {
                 <p className="text-sm text-gray-700 text-center mb-3">
                   A 6-digit OTP is sent to the linked mobile number ending with{" "}
                   <span className="font-semibold">
-                    ******{aadhaarFoundUser.phoneNumber.slice(-4)}
+                    {aadhaarFoundUser?.phoneNumber
+                      ? `******${aadhaarFoundUser.phoneNumber.slice(-4)}`
+                      : "****"}
                   </span>
                 </p>
 

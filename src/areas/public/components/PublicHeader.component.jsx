@@ -1,0 +1,133 @@
+/* eslint-disable no-unused-vars */
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { FaBell } from "react-icons/fa";
+import axios from "../../../api/axios";
+import { PROFILE_URL } from "../../../api/api_routing_urls";
+import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
+import { getStoredUser } from "../../../utils/user.utils";
+import { useEffect, useState } from "react";
+import skGovtLogo from "../../../assets/sikkim_gov.png";
+
+export default function PublicHeader() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = getStoredUser();
+    
+    // Fetch user profile from API for updated data
+    const fetchUserProfile = async () => {
+      if (!storedUser?._id && !storedUser?.userId) {
+        // Fallback to stored user if no ID
+        if (storedUser) {
+          setUser(storedUser);
+        }
+        return;
+      }
+
+      try {
+        const userId = storedUser._id || storedUser.userId;
+        const response = await axios.get(`${PROFILE_URL}/${userId}`);
+        
+        if (response.status === 200 && response.data?.user) {
+          setUser(response.data.user);
+        }
+      } catch (error) {
+        console.error("fetchUserProfile", error);
+        // Fallback to stored user if API fails
+        if (storedUser) {
+          setUser(storedUser);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
+  return (
+    <header className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/user/dashboard" className="flex items-center gap-3">
+            <img src={skGovtLogo} alt="Logo" className="h-12 w-12 object-contain" />
+            <span className="text-xl font-bold text-green-600">
+              WelfareConnect
+            </span>
+          </Link>
+
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center gap-6">
+            <button
+              onClick={() => navigate("/user/dashboard")}
+              className={`font-medium transition-colors ${
+                isActive("/user/dashboard")
+                  ? "text-green-600 font-semibold"
+                  : "text-gray-700 hover:text-green-600"
+              }`}
+            >
+              Home
+            </button>
+            <button
+              onClick={() => navigate("/user/schemes")}
+              className={`font-medium transition-colors ${
+                isActive("/user/schemes")
+                  ? "text-green-600 font-semibold"
+                  : "text-gray-700 hover:text-green-600"
+              }`}
+            >
+              Schemes
+            </button>
+            <button
+              onClick={() => navigate("/user/applications")}
+              className={`font-medium transition-colors ${
+                isActive("/user/applications")
+                  ? "text-green-600 font-semibold"
+                  : "text-gray-700 hover:text-green-600"
+              }`}
+            >
+              My Applications
+            </button>
+          </nav>
+
+          {/* Right side - Notification and Profile */}
+          <div className="flex items-center gap-4">
+            {/* Notification Bell */}
+            <div className="relative cursor-pointer">
+              <FaBell className="text-gray-600 text-xl" />
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                1
+              </span>
+            </div>
+
+            {/* Profile Picture */}
+            {user && (
+              <button
+                onClick={() => navigate("/user/profile")}
+                className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              >
+                {user.photo?.url ? (
+                  <img
+                    src={displayMedia(user.photo.url)}
+                    alt={user.fullName || "User"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-400 to-green-400 flex items-center justify-center text-white font-bold">
+                    {(user.fullName || "U").charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
