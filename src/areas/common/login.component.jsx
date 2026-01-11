@@ -136,8 +136,20 @@ const Login = () => {
       }
 
       // Login success
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("role", "System Admin");
+      // Store user with role and roleLevel if available
+      // Normalize roleLevel (handle both camelCase and snake_case)
+      const normalizedRoleLevel = user.roleLevel || user.role_level || null;
+      const userToStore = {
+        ...user,
+        role: user.role || "System Admin",
+        roleLevel: normalizedRoleLevel,
+      };
+      console.log("Login - Storing user data:", userToStore);
+      localStorage.setItem("user", JSON.stringify(userToStore));
+      localStorage.setItem("role", user.role || "System Admin");
+      // Store credentials in sessionStorage for API authentication (more secure than localStorage)
+      sessionStorage.setItem("admin_username", data.admin_username.trim());
+      sessionStorage.setItem("admin_password", data.admin_password);
 
       navigate("/system-admin/dashboard", { replace: true });
     } catch (error) {

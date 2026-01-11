@@ -53,6 +53,9 @@ const AddSchemeForm = ({
   const [selectedGender, setSelectedGender] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+  const [selectedExcludedSchemes, setSelectedExcludedSchemes] = useState([]);
+  const [allSchemes, setAllSchemes] = useState([]);
+  const [excludedSchemesDD, setExcludedSchemesDD] = useState([]);
 
   // Master Data
   let genderList = [
@@ -102,13 +105,62 @@ const AddSchemeForm = ({
     setSubCategoryDD(subCategoryDD);
   };
 
+  // Check if editing (must be declared before useEffects that use it)
+  const isEdit = Object.keys(editSchemeDetails)?.length > 0;
+
+  // Fetch all schemes for excluded_schemes dropdown
+  useEffect(() => {
+    const fetchAllSchemes = async () => {
+      try {
+        const response = await axios.get(SCHEMES_CONFIG_URL);
+        if (response.status === 200 && Array.isArray(response.data)) {
+          setAllSchemes(response.data);
+          // Prepare dropdown options
+          const schemesDD = response.data
+            .filter((scheme) => {
+              // Exclude current scheme if editing
+              if (isEdit) {
+                const currentSchemeId = editSchemeDetails?._id || editSchemeDetails?.scheme_id;
+                return (scheme._id || scheme.scheme_id) !== currentSchemeId;
+              }
+              return true;
+            })
+            .map((scheme) => ({
+              label: scheme.scheme_name,
+              value: scheme._id || scheme.scheme_id,
+            }));
+          setExcludedSchemesDD(schemesDD);
+
+          // Set default excluded schemes if editing
+          if (isEdit && editSchemeDetails?.excluded_schemes && Array.isArray(editSchemeDetails.excluded_schemes)) {
+            const excludedOptions = editSchemeDetails.excluded_schemes
+              .map((schemeId) => {
+                const scheme = response.data.find(
+                  (s) => (s._id || s.scheme_id) === (schemeId._id || schemeId || schemeId)
+                );
+                return scheme
+                  ? {
+                      label: scheme.scheme_name,
+                      value: scheme._id || scheme.scheme_id,
+                    }
+                  : null;
+              })
+              .filter(Boolean);
+            setSelectedExcludedSchemes(excludedOptions);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching schemes for excluded_schemes:", error);
+      }
+    };
+    fetchAllSchemes();
+  }, [isEdit, editSchemeDetails]);
+
   useEffect(() => {
     prepareGenderList();
     prepareCategoryList();
     prepareSubCategoryList();
   }, []);
-
-  const isEdit = Object.keys(editSchemeDetails)?.length > 0;
 
   // Helper function to convert array to HTML string for RichTextArea
   const arrayToHtmlString = (arr) => {
@@ -199,6 +251,8 @@ const AddSchemeForm = ({
     scheme_image_file_url: !isEdit
       ? ""
       : editSchemeDetails?.scheme_image_file_url,
+    department: !isEdit ? "" : editSchemeDetails?.department || "",
+    excluded_schemes: !isEdit ? [] : selectedExcludedSchemes || [],
   };
 
   const {
@@ -239,9 +293,15 @@ const AddSchemeForm = ({
 
       let updatedFileURL = `public${fileURL}`; //Since the folder path received from server is missing out on the "public" parent folder
 
+      // Extract excluded scheme IDs from selected options
+      const excludedSchemeIds = Array.isArray(selectedExcludedSchemes)
+        ? selectedExcludedSchemes.map((option) => option.value || option)
+        : [];
+
       let sendDataObj = {
         scheme_name: data?.scheme_name,
         scheme_date: data?.scheme_date,
+        department: data?.department,
         gender_id: selectedGender?.value,
         gender_name: selectedGender?.label,
         category_id: selectedCategory?.value,
@@ -256,6 +316,7 @@ const AddSchemeForm = ({
         scheme_eligibility_upper_age_limit:
           data?.scheme_eligibility_upper_age_limit,
         scheme_required_documents: data?.scheme_required_documents,
+        excluded_schemes: excludedSchemeIds,
       };
 
       // console.log("sendDataObj inside onSubmit()", sendDataObj);
@@ -293,6 +354,8 @@ const AddSchemeForm = ({
 
         return;
       }
+      // Reset form including excluded schemes
+      setSelectedExcludedSchemes([]);
       reset();
     } catch (error) {
       console.error("error", error);
@@ -385,6 +448,24 @@ const AddSchemeForm = ({
               onChangeInput={null}
               setValue={setValue}
               defaultValue={defaultValues.scheme_date}
+            />
+
+            <Input
+              defaultName="department"
+              register={register}
+              name="Department"
+              required={true}
+              pattern={null}
+              errors={errors}
+              placeholder="e.g., Health Department, Education Department"
+              setError={setError}
+              clearError={clearErrors}
+              autoComplete="off"
+              type="text"
+              classes={`px-3 py-2 text-sm w-full rounded`}
+              onChangeInput={null}
+              defaultValue={defaultValues.department}
+              setValue={setValue}
             />
 
             <div className="col-span-2 grid grid-cols-3 gap-x-5">
@@ -530,6 +611,31 @@ const AddSchemeForm = ({
               defaultValue={defaultValues.scheme_eligibility_upper_age_limit}
               setValue={setValue}
             />
+
+            <div className="col-span-2">
+              <Dropdown
+                defaultName="excluded_schemes"
+                register={register}
+                labelname="Excluded Schemes"
+                required={false}
+                pattern={false}
+                errors={errors}
+                classes={`rounded-lg text-sm w-full z-30 cursor-pointer`}
+                setError={setError}
+                clearError={clearErrors}
+                onChangeInput={null}
+                control={control}
+                data={excludedSchemesDD}
+                defaultValue={defaultValues.excluded_schemes}
+                setValue={setValue}
+                setSelected={setSelectedExcludedSchemes}
+                selected={selectedExcludedSchemes}
+                isMulti={true}
+                closeMenuOnSelect={false}
+                maxMenuHeight={200}
+                placeholder="Select schemes to exclude (if user applies to these, they cannot apply to this scheme)"
+              />
+            </div>
 
             <div className="col-span-2">
               <RichTextArea

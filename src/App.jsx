@@ -13,12 +13,15 @@ import PublicDashboard from "./areas/public/dashboard/PublicDashboard";
 import PublicProfile from "./areas/public/dashboard/PublicProfile.page";
 import PublicSchemes from "./areas/public/dashboard/PublicSchemes.page";
 import PublicApplications from "./areas/public/dashboard/PublicApplications.page";
+import ApplyToScheme from "./areas/public/dashboard/ApplyToScheme.page";
 
 import SysAdminDashboard from "./areas/systemAdmin/dashboard/SysAdminDashboard";
 import SchemesConfig from "./areas/systemAdmin/modules/scheme-management/schemesConfig.component";
 import Beneficiaries from "./areas/systemAdmin/modules/beneficiaries/beneficiaries.component";
+import Applications from "./areas/systemAdmin/modules/applications/applications.component";
 import Reports from "./areas/systemAdmin/modules/reports/reports.component";
 import Alerts from "./areas/systemAdmin/modules/alerts/alerts.component";
+import AdminProfile from "./areas/systemAdmin/modules/profile/AdminProfile.page";
 
 function App() {
   const { pathname } = useLocation();
@@ -44,6 +47,7 @@ function App() {
         <Route exact path="/user/profile" element={<PublicProfile />} />
         <Route exact path="/user/schemes" element={<PublicSchemes />} />
         <Route exact path="/user/applications" element={<PublicApplications />} />
+        <Route exact path="/user/apply-to-scheme" element={<ApplyToScheme />} />
 
         {/* System Admin Dashboard Routes */}
         <Route
@@ -62,8 +66,14 @@ function App() {
           path="/system-admin/beneficiaries"
           element={<Beneficiaries />}
         />
+        <Route
+          exact
+          path="/system-admin/applications"
+          element={<Applications />}
+        />
         <Route exact path="/system-admin/reports" element={<Reports />} />
         <Route exact path="/system-admin/alerts" element={<Alerts />} />
+        <Route exact path="/system-admin/profile" element={<AdminProfile />} />
       </Routes>
     </>
   );

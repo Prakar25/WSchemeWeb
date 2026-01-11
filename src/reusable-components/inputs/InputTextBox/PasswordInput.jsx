@@ -21,6 +21,7 @@ export default function PasswordInput({
   clearError,
   onChangeInput,
   showInput,
+  setValue,
   ...rest
 }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -32,10 +33,10 @@ export default function PasswordInput({
   });
 
   useEffect(() => {
-    if (rest?.defaultValue !== "") {
-      rest.setValue(defaultName, rest?.defaultValue, { shouldTouch: true });
+    if (rest?.defaultValue !== "" && setValue) {
+      setValue(defaultName, rest?.defaultValue, { shouldTouch: true });
     }
-  }, [rest?.defaultValue]);
+  }, [rest?.defaultValue, setValue, defaultName]);
 
   const numberInputOnWheelPreventChange = (e) => {
     // Prevent the input value change

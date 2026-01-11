@@ -28,7 +28,18 @@ export default function PublicProfile() {
 
       try {
         const userId = storedUser._id || storedUser.userId;
-        const response = await axios.get(`${PROFILE_URL}/${userId}`);
+        if (!userId) {
+          throw new Error("No user ID found");
+        }
+        
+        // Try path parameter first, then query parameter as fallback
+        let response;
+        try {
+          response = await axios.get(`${PROFILE_URL}/${userId}`);
+        } catch (pathError) {
+          // If path parameter fails, try query parameter
+          response = await axios.get(`${PROFILE_URL}?user_id=${userId}`);
+        }
         
         if (response.status === 200 && response.data?.user) {
           setUser(response.data.user);

@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import axios from "../../api/axios";
+import { ADMIN_PROFILE_URL } from "../../api/api_routing_urls";
 
 import PublicSidebar from "../public/dashboard/PublicSidebar";
 import SysAdminSidebar from "../systemAdmin/dashboard/SysAdminSidebar";
@@ -8,7 +10,59 @@ import SysAdminSidebar from "../systemAdmin/dashboard/SysAdminSidebar";
 function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [adminProfile, setAdminProfile] = useState(null);
   const navigate = useNavigate();
+
+  // Get admin credentials helper
+  const getAdminCredentials = () => {
+    return {
+      username: sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username"),
+      password: sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password"),
+    };
+  };
+
+  // Fetch admin profile for System Admin
+  useEffect(() => {
+    if (sidebarType === "System Admin") {
+      const fetchAdminProfile = async () => {
+        try {
+          const credentials = getAdminCredentials();
+          const params = new URLSearchParams();
+          if (credentials.username) params.append("username", credentials.username);
+          if (credentials.password) params.append("password", credentials.password);
+
+          const response = await axios.get(
+            `${ADMIN_PROFILE_URL}?${params.toString()}`
+          );
+          console.log("Admin profile API response:", response.data);
+          if (response.data.status === "success" && response.data.user) {
+            const userData = response.data.user;
+            // Normalize roleLevel (handle both camelCase and snake_case)
+            const roleLevel = userData.roleLevel || userData.role_level || userData.roleLevel;
+            if (roleLevel !== undefined) {
+              userData.roleLevel = roleLevel;
+            }
+            console.log("Admin profile fetched - userData:", userData);
+            console.log("Admin profile - roleLevel value:", userData.roleLevel);
+            setAdminProfile(userData);
+          }
+        } catch (err) {
+          console.error("Error fetching admin profile:", err);
+          // Fallback to localStorage user if API fails
+          const storedUser = localStorage.getItem("user");
+          if (storedUser) {
+            try {
+              setAdminProfile(JSON.parse(storedUser));
+            } catch (e) {
+              console.error("Error parsing stored user:", e);
+            }
+          }
+        }
+      };
+
+      fetchAdminProfile();
+    }
+  }, [sidebarType]);
 
   // Fetch localStorage user on mount
   useEffect(() => {
@@ -143,11 +197,33 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-base font-semibold truncate">
-                      Welfare Admin
+                      {adminProfile?.fullName || user?.fullName || "Welfare Admin"}
                     </p>
-                    <p className="text-white text-xs text-gray-200 truncate">
-                      Manage welfare programs
-                    </p>
+                    <div className="flex flex-col gap-1 mt-1">
+                      {adminProfile?.role && (
+                        <p className="text-white text-xs font-medium truncate">
+                          {adminProfile.role}
+                        </p>
+                      )}
+                      {adminProfile?.roleLevel !== undefined && adminProfile?.roleLevel !== null && adminProfile?.roleLevel !== 0 && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-white/25 text-white border border-white/30">
+                            Level {adminProfile.roleLevel}
+                          </span>
+                          {adminProfile.roleLevel === 1 && (
+                            <span className="text-xs text-yellow-300 font-medium">(Highest)</span>
+                          )}
+                          {adminProfile.roleLevel === 8 && (
+                            <span className="text-xs text-gray-300 font-medium">(Lowest)</span>
+                          )}
+                        </div>
+                      )}
+                      {!adminProfile?.role && !adminProfile?.roleLevel && (
+                        <p className="text-white text-xs text-gray-200 truncate">
+                          Manage welfare programs
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}

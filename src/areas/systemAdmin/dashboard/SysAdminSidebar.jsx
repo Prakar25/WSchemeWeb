@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 import {
   MdOutlineDashboardCustomize,
@@ -10,6 +11,28 @@ import { HiOutlineUserGroup, HiOutlineDocumentReport } from "react-icons/hi";
 import { TbBellRinging } from "react-icons/tb";
 import { IoSettingsOutline } from "react-icons/io5";
 import { FiLogOut } from "react-icons/fi";
+import { FaFileAlt } from "react-icons/fa";
+
+function NavItem({ to, pathname, icon, label, isActive }) {
+  return (
+    <Link to={to} className="block">
+      <motion.div
+        whileHover={{ x: 4, scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className={`flex items-center gap-x-2 my-3 py-2 px-3 rounded-lg transition-all duration-200 ${
+          isActive
+            ? "bg-white text-orange-600 font-semibold shadow-sm"
+            : "text-yellow-200 font-normal hover:bg-white/10 hover:text-white"
+        }`}
+      >
+        <div className={isActive ? "text-orange-600" : ""}>{icon}</div>
+        <div className="text-lg cursor-pointer">
+          <p>{label}</p>
+        </div>
+      </motion.div>
+    </Link>
+  );
+}
 
 export default function SysAdminSidebar({
   // keep the pathname later to highlight the selected text
@@ -23,6 +46,8 @@ export default function SysAdminSidebar({
     localStorage.removeItem("user");
     localStorage.removeItem("role");
     localStorage.removeItem("sidebar-expanded");
+    sessionStorage.removeItem("admin_username");
+    sessionStorage.removeItem("admin_password");
     navigate("/login");
   };
 
@@ -31,71 +56,63 @@ export default function SysAdminSidebar({
       <div className="flex-1">
         <ul>
           <li>
-            <div
-              className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
-                pathname.includes("/system-admin/schemes-configuration")
-                  ? "bg-white text-orange-600 font-semibold rounded-e-full"
-                  : "text-yellow-200 font-normal"
-              }`}
-            >
-              <MdFormatListBulleted size={20} />
-              <div className="text-lg cursor-pointer">
-                <Link to="/system-admin/schemes-configuration" className="py-1">
-                  <p>Schemes</p>
-                </Link>
-              </div>
-            </div>
+            <NavItem
+              to="/system-admin/dashboard"
+              pathname={pathname}
+              icon={<MdOutlineDashboardCustomize size={20} />}
+              label="Dashboard"
+              isActive={pathname === "/system-admin/dashboard" || pathname.includes("/system-admin/dashboard")}
+            />
           </li>
 
           <li>
-            <div
-              className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
-                pathname.includes("/system-admin/beneficiaries")
-                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
-                  : "text-yellow-200 font-normal"
-              }`}
-            >
-              <HiOutlineUserGroup size={20} />
-              <div className="text-lg cursor-pointer">
-                <Link to="/system-admin/beneficiaries" className="py-1">
-                  <p>Beneficiaries</p>
-                </Link>
-              </div>
-            </div>
+            <NavItem
+              to="/system-admin/schemes-configuration"
+              pathname={pathname}
+              icon={<MdFormatListBulleted size={20} />}
+              label="Schemes"
+              isActive={pathname.includes("/system-admin/schemes-configuration")}
+            />
           </li>
 
           <li>
-            <div
-              className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
-                pathname.includes("/system-admin/reports")
-                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
-                  : "text-yellow-200 font-normal"
-              }`}
-            >
-              <HiOutlineDocumentReport size={20} />
-              <div className="text-lg cursor-pointer">
-                <Link to="/system-admin/reports" className="py-1">
-                  <p>Reports</p>
-                </Link>
-              </div>
-            </div>
+            <NavItem
+              to="/system-admin/beneficiaries"
+              pathname={pathname}
+              icon={<HiOutlineUserGroup size={20} />}
+              label="Beneficiaries"
+              isActive={pathname.includes("/system-admin/beneficiaries")}
+            />
           </li>
 
           <li>
-            <div
-              className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
-                pathname.includes("/system-admin/alerts")
-                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
-                  : "text-yellow-200 font-normal"
-              }`}
-            >
-              <TbBellRinging size={20} />
-              <div className="text-lg cursor-pointer">
-                <Link to="/system-admin/alerts" className="py-1">
-                  <p>Alerts</p>
-                </Link>
-              </div>
-            </div>
+            <NavItem
+              to="/system-admin/applications"
+              pathname={pathname}
+              icon={<FaFileAlt size={20} />}
+              label="Applications"
+              isActive={pathname.includes("/system-admin/applications")}
+            />
+          </li>
+
+          <li>
+            <NavItem
+              to="/system-admin/reports"
+              pathname={pathname}
+              icon={<HiOutlineDocumentReport size={20} />}
+              label="Reports"
+              isActive={pathname.includes("/system-admin/reports")}
+            />
+          </li>
+
+          <li>
+            <NavItem
+              to="/system-admin/alerts"
+              pathname={pathname}
+              icon={<TbBellRinging size={20} />}
+              label="Alerts"
+              isActive={pathname.includes("/system-admin/alerts")}
+            />
           </li>
         </ul>
       </div>
@@ -104,18 +121,19 @@ export default function SysAdminSidebar({
       <div className="border-t border-white/20 pt-3 mt-auto">
         <ul>
           <li>
-            <div className="flex items-center gap-x-2 my-3 py-2 px-2 text-yellow-200 font-normal hover:text-white transition-colors">
-              <IoSettingsOutline size={20} />
-              <div className="text-lg cursor-pointer">
-                <Link to="#" className="py-1">
-                  <p>Settings</p>
-                </Link>
-              </div>
-            </div>
+            <NavItem
+              to="/system-admin/profile"
+              pathname={pathname}
+              icon={<IoSettingsOutline size={20} />}
+              label="Settings"
+              isActive={pathname.includes("/system-admin/profile")}
+            />
           </li>
 
           <li>
-            <div 
+            <motion.div
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.95 }}
               className="flex items-center gap-x-2 my-3 py-2 px-2 text-yellow-200 font-normal hover:text-white transition-colors cursor-pointer"
               onClick={handleLogout}
             >
@@ -123,7 +141,7 @@ export default function SysAdminSidebar({
               <div className="text-lg">
                 <p>Logout</p>
               </div>
-            </div>
+            </motion.div>
           </li>
         </ul>
       </div>

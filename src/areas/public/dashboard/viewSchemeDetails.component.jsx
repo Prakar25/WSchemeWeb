@@ -1,9 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 
 const ViewSchemeDetails = ({ scheme, onClose }) => {
+  const navigate = useNavigate();
   if (!scheme) return null;
 
   // Helper function to normalize items (handle both array and object formats)
@@ -175,7 +177,12 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                   <p className="text-gray-700 mb-4">
                     You are eligible to apply.
                   </p>
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                  <button
+                    onClick={() => {
+                      navigate("/user/apply-to-scheme", { state: { scheme } });
+                    }}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                  >
                     Apply Now
                     <FaArrowRight />
                   </button>

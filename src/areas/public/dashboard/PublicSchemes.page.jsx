@@ -20,10 +20,17 @@ export default function PublicSchemes() {
   const [selectedScheme, setSelectedScheme] = useState(null);
 
   useEffect(() => {
-    // Fetch schemes
+    // Fetch user ID from localStorage
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = storedUser?._id || storedUser?.userId;
+
+    // Fetch schemes with user_id if available
     const getSchemesList = async () => {
       try {
-        const response = await axios.get(SCHEMES_CONFIG_URL);
+        const url = userId
+          ? `${SCHEMES_CONFIG_URL}?user_id=${userId}`
+          : SCHEMES_CONFIG_URL;
+        const response = await axios.get(url);
         if (response.status === 200) {
           setSchemesList(response.data);
         }
