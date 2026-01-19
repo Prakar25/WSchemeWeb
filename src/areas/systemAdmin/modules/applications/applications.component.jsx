@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaSearch, FaFilter, FaEye, FaCheckCircle, FaTimesCircle, FaClock, FaArrowRight, FaArrowLeft, FaUserCheck } from "react-icons/fa";
 import axios from "../../../../api/axios";
-import { APPLICATIONS_ADMIN_URL, APPLICATION_DETAIL_URL, APPLICATION_VERIFY_URL, APPLICATION_FORWARD_URL, APPLICATION_NEXT_STAGE_ADMINS_URL, ADMIN_PROFILE_URL } from "../../../../api/api_routing_urls";
+import { APPLICATIONS_ADMIN_URL, APPLICATION_DETAIL_URL, APPLICATION_VERIFY_URL, APPLICATION_FORWARD_URL, APPLICATION_NEXT_STAGE_ADMINS_URL, ADMIN_PROFILE_URL, DEPARTMENTS_URL, CATEGORIES_URL } from "../../../../api/api_routing_urls";
 import Dashboard from "../../../dashboard-components/dashboard.component";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import showToast from "../../../../utils/notification/NotificationModal";
@@ -19,6 +19,7 @@ const Applications = () => {
   const [detailedApplication, setDetailedApplication] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [adminRoleLevel, setAdminRoleLevel] = useState(null);
+  const [adminDepartmentId, setAdminDepartmentId] = useState(null);
   const [processingAction, setProcessingAction] = useState(false);
   const [verificationRemarks, setVerificationRemarks] = useState("");
   const [selectedAction, setSelectedAction] = useState(""); // "Verified" | "Forwarded" | "Rejected" | "Returned"
@@ -26,6 +27,8 @@ const Applications = () => {
   const [nextStageAdmins, setNextStageAdmins] = useState([]); // Available admins for next stage
   const [selectedForwardAdmin, setSelectedForwardAdmin] = useState(""); // Selected admin ID to forward to
   const [loadingNextStageAdmins, setLoadingNextStageAdmins] = useState(false);
+  const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
+  const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
 
   // Get admin credentials
   const getAdminCredentials = () => {
@@ -33,6 +36,39 @@ const Applications = () => {
     const password = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
     return { username, password };
   };
+
+  // Fetch departments and categories for lookup maps
+  useEffect(() => {
+    const fetchLookups = async () => {
+      try {
+        // Fetch departments
+        const deptResponse = await axios.get(DEPARTMENTS_URL);
+        if (deptResponse.status === 200) {
+          const deptData = deptResponse.data?.departments || deptResponse.data || [];
+          const deptMap = new Map();
+          deptData.forEach((dept) => {
+            deptMap.set(dept._id, dept);
+          });
+          setDepartments(deptMap);
+        }
+
+        // Fetch categories
+        const catResponse = await axios.get(CATEGORIES_URL);
+        if (catResponse.status === 200) {
+          const catData = catResponse.data?.categories || catResponse.data || [];
+          const catMap = new Map();
+          catData.forEach((cat) => {
+            catMap.set(cat._id, cat);
+          });
+          setCategories(catMap);
+        }
+      } catch (error) {
+        console.error("Error fetching departments/categories:", error);
+      }
+    };
+
+    fetchLookups();
+  }, []);
 
   // Fetch admin profile to check role level
   const fetchAdminProfile = async () => {
@@ -46,8 +82,44 @@ const Applications = () => {
 
       const response = await axios.get(`${ADMIN_PROFILE_URL}?${params.toString()}`);
       if (response.status === 200 && response.data?.user) {
-        const roleLevel = response.data.user.roleLevel || response.data.user.role_level;
+        const userData = response.data.user;
+        const roleLevel = userData.roleLevel || userData.role_level;
         setAdminRoleLevel(roleLevel);
+        
+        // Extract departmentId for frontend filtering
+        // Backend API now returns both 'department' (name) and 'departmentId' (ObjectId string)
+        // Priority: 1. departmentId field (from API), 2. department as ObjectId string (fallback), 3. lookup department name (fallback)
+        let deptId = userData.departmentId || userData.department_id;
+        
+        // Fallback: If departmentId not found in response, check if department is an ObjectId string
+        if (!deptId && userData.department) {
+          const deptValue = String(userData.department).trim();
+          // Check if department is an ObjectId string format (24 hex characters)
+          const isObjectIdFormat = /^[0-9a-fA-F]{24}$/.test(deptValue);
+          if (isObjectIdFormat) {
+            deptId = deptValue;
+            console.log("⚠ Using department field as ObjectId (fallback):", deptId);
+          } else if (departments.size > 0) {
+            // Department is a name string, look it up in departments map (fallback)
+            for (const [id, dept] of departments.entries()) {
+              if (dept.department_display_name === deptValue || 
+                  dept.department_name === deptValue) {
+                deptId = id;
+                console.log("⚠ Found departmentId from name lookup (fallback):", deptId);
+                break;
+              }
+            }
+          }
+        }
+        
+        console.log("Admin profile - departmentId for filtering:", deptId);
+        console.log("Admin profile - department name:", userData.department);
+        if (deptId) {
+          setAdminDepartmentId(deptId.trim());
+          console.log("✓ departmentId stored successfully:", deptId.trim());
+        } else {
+          console.warn("⚠ Admin profile missing departmentId - department filtering may not work correctly");
+        }
       }
     } catch (error) {
       console.error("Error fetching admin profile:", error);
@@ -250,12 +322,27 @@ const Applications = () => {
       return false;
     }
     
-    // Use required_role_levels from the application if available
+    // NEW: Check if application uses scheme-specific authorization_levels workflow
+    if (app.authorization_levels && Array.isArray(app.authorization_levels) && app.authorization_levels.length > 0) {
+      const currentIndex = app.authorization_level_index !== undefined ? app.authorization_level_index : 0;
+      
+      // Check if we're still within the workflow array
+      if (currentIndex < app.authorization_levels.length) {
+        const expectedLevel = app.authorization_levels[currentIndex];
+        // Admin's role level must match the expected level at current index
+        return adminRoleLevel === expectedLevel;
+      }
+      
+      // If index is beyond array, application is completed
+      return false;
+    }
+    
+    // Use required_role_levels from the application if available (legacy)
     if (app.required_role_levels && Array.isArray(app.required_role_levels)) {
       return app.required_role_levels.includes(adminRoleLevel);
     }
     
-    // Fallback: Level-based permissions using verification_level
+    // Fallback: Level-based permissions using verification_level (legacy)
     switch (verificationLevel) {
       case 0: // Applied
       case 7: // Post Operator Review
@@ -278,6 +365,21 @@ const Applications = () => {
     }
   };
 
+  // Get role level name for display
+  const getRoleLevelName = (level) => {
+    const roleLevelNames = {
+      1: "Super Admin",
+      2: "Admin",
+      3: "Department Secretary",
+      4: "Department Head",
+      5: "Department User",
+      6: "DistrictHQ Head",
+      7: "District Overlookers",
+      8: "Post Operator",
+    };
+    return roleLevelNames[level] || `Level ${level}`;
+  };
+
   // Get stage name for display (using new verification_level)
   const getStageDisplayName = (app) => {
     // Prefer verification_stage if available (backend provides this)
@@ -285,7 +387,24 @@ const Applications = () => {
       return app.verification_stage.replace(/_/g, " ");
     }
     
-    // Fallback to verification_level
+    // NEW: If application uses scheme-specific authorization_levels workflow
+    if (app.authorization_levels && Array.isArray(app.authorization_levels) && app.authorization_levels.length > 0) {
+      const currentIndex = app.authorization_level_index !== undefined ? app.authorization_level_index : 0;
+      
+      // If completed (index beyond array)
+      if (currentIndex >= app.authorization_levels.length) {
+        return "Completed";
+      }
+      
+      // Get current level in workflow
+      const currentLevel = app.authorization_levels[currentIndex];
+      const levelName = getRoleLevelName(currentLevel);
+      
+      // Show progress: "Step X of Y: Role Name"
+      return `Step ${currentIndex + 1} of ${app.authorization_levels.length}: ${levelName}`;
+    }
+    
+    // Fallback to verification_level (legacy)
     const level = app.verification_level;
     const levelMap = {
       0: "Applied",
@@ -332,6 +451,8 @@ const Applications = () => {
         applicationId,
         currentStage: selectedApplication.verification_stage,
         currentLevel: selectedApplication.verification_level,
+        authorizationLevels: selectedApplication.authorization_levels,
+        authorizationLevelIndex: selectedApplication.authorization_level_index,
         requiredRoleLevels: selectedApplication.required_role_levels,
         adminRoleLevel,
         username,
@@ -399,23 +520,39 @@ const Applications = () => {
       const { username, password } = getAdminCredentials();
       
       // Build query parameters
-      // Note: Backend auto-filters by role level, but we can add explicit filters
+      // Note: Backend automatically applies department-based filtering:
+      // - Secretary (level 3) and above: can view all departments
+      // - Below Secretary (level > 3): can only view applications from their own department
+      // All admins can view applications (verification level filtering removed)
+      // Department comparison uses ObjectId strings (direct string match)
       const params = new URLSearchParams();
       if (username) params.append("username", username);
       if (password) params.append("password", password);
       if (searchText) params.append("search", searchText);
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (stageFilter !== "all") params.append("verification_stage", stageFilter);
-      // Optional: assigned_to_me filter
+      // Optional query parameters (as per API documentation):
+      // - user_id: Filter by user ID (ObjectId)
+      // - scheme_id: Filter by scheme ID (ObjectId)
+      // - assigned_to_me: If true, only returns applications assigned to current admin
       // params.append("assigned_to_me", "true");
       
       const response = await axios.get(`${APPLICATIONS_ADMIN_URL}?${params.toString()}`);
       
       if (response.status === 200 && response.data) {
-        // Handle both array and object with data property
-        const apps = Array.isArray(response.data) 
-          ? response.data 
-          : (response.data.data || response.data.applications || []);
+        // Handle API response format: { status: "success", data: [...], count: number }
+        // or legacy format: array or { data: [...] } or { applications: [...] }
+        let apps = [];
+        if (response.data.status === "success" && response.data.data) {
+          // New API format with status and data properties
+          apps = Array.isArray(response.data.data) ? response.data.data : [];
+        } else if (Array.isArray(response.data)) {
+          // Direct array response
+          apps = response.data;
+        } else {
+          // Legacy object format
+          apps = response.data.data || response.data.applications || [];
+        }
         setApplications(apps);
       }
     } catch (error) {
@@ -427,8 +564,21 @@ const Applications = () => {
     }
   };
 
+  // Fetch admin profile - will retry after departments are loaded if departmentId lookup is needed
   useEffect(() => {
     fetchAdminProfile();
+  }, []);
+
+  // Re-fetch admin profile after departments are loaded (to resolve department name to ID if needed)
+  useEffect(() => {
+    if (departments.size > 0 && adminDepartmentId === null) {
+      // Retry fetching admin profile to resolve department name to ID
+      console.log("Departments loaded, retrying admin profile to resolve departmentId");
+      fetchAdminProfile();
+    }
+  }, [departments]);
+
+  useEffect(() => {
     fetchApplications();
   }, []);
 
@@ -791,7 +941,29 @@ const Applications = () => {
                             {app.scheme_id?.department && (
                               <div>
                                 <label className="text-sm font-medium text-gray-500">Department</label>
-                                <p className="text-gray-900">{app.scheme_id.department}</p>
+                                <p className="text-gray-900">
+                                  {(() => {
+                                    const deptId = app.scheme_id?.department;
+                                    const dept = departments.get(deptId);
+                                    return dept 
+                                      ? (dept.department_display_name || dept.department_name)
+                                      : (deptId || "N/A");
+                                  })()}
+                                </p>
+                              </div>
+                            )}
+                            {app.scheme_id?.category && (
+                              <div>
+                                <label className="text-sm font-medium text-gray-500">Category</label>
+                                <p className="text-gray-900">
+                                  {(() => {
+                                    const catId = app.scheme_id?.category;
+                                    const cat = categories.get(catId);
+                                    return cat 
+                                      ? (cat.category_display_name || cat.category_name)
+                                      : (catId || "N/A");
+                                  })()}
+                                </p>
                               </div>
                             )}
                             <div>
@@ -806,6 +978,43 @@ const Applications = () => {
                                   </span>
                                 )}
                               </div>
+                              {/* NEW: Show workflow progress if authorization_levels exists */}
+                              {app.authorization_levels && Array.isArray(app.authorization_levels) && app.authorization_levels.length > 0 && (
+                                <div className="mt-3">
+                                  <label className="text-xs font-medium text-gray-500 mb-2 block">Workflow Progress</label>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {app.authorization_levels.map((level, index) => {
+                                      const currentIndex = app.authorization_level_index !== undefined ? app.authorization_level_index : 0;
+                                      const isCompleted = index < currentIndex;
+                                      const isCurrent = index === currentIndex;
+                                      const isPending = index > currentIndex;
+                                      
+                                      return (
+                                        <div key={index} className="flex items-center gap-1">
+                                          <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${
+                                            isCompleted 
+                                              ? "bg-green-500 text-white" 
+                                              : isCurrent 
+                                              ? "bg-blue-500 text-white ring-2 ring-blue-300" 
+                                              : "bg-gray-200 text-gray-600"
+                                          }`}>
+                                            {isCompleted ? "✓" : index + 1}
+                                          </div>
+                                          <span className={`text-xs ${isCurrent ? "font-semibold text-blue-600" : isCompleted ? "text-green-600" : "text-gray-500"}`}>
+                                            {getRoleLevelName(level)}
+                                          </span>
+                                          {index < app.authorization_levels.length - 1 && (
+                                            <span className="text-gray-300 mx-1">→</span>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-2">
+                                    Step {((app.authorization_level_index !== undefined ? app.authorization_level_index : 0) + 1)} of {app.authorization_levels.length}
+                                  </p>
+                                </div>
+                              )}
                             </div>
                             {app.required_role_levels && app.required_role_levels.length > 0 && (
                               <div>
@@ -1055,15 +1264,34 @@ const Applications = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                                       >
                                         <option value="">Auto-assign (system will assign automatically)</option>
-                                        {nextStageAdmins.map((admin) => (
-                                          <option key={admin._id} value={admin._id}>
-                                            {admin.fullName} 
-                                            {admin.role && ` (${admin.role}`}
-                                            {admin.roleLevel && ` - Level ${admin.roleLevel}`}
-                                            {admin.role && `)`}
-                                            {admin.department && ` - ${admin.department}`}
-                                          </option>
-                                        ))}
+                                        {nextStageAdmins
+                                          .filter((admin) => {
+                                            // Frontend filtering by departmentId if admin is below Secretary level
+                                            // Secretary (level 3) and above can see all departments
+                                            if (adminRoleLevel && adminRoleLevel > 3 && adminDepartmentId) {
+                                              // Only show admins from the same department
+                                              const adminDeptId = admin.departmentId || admin.department_id;
+                                              return adminDeptId && adminDeptId.trim() === adminDepartmentId.trim();
+                                            }
+                                            // Secretary level and above see all admins
+                                            return true;
+                                          })
+                                          .map((admin) => {
+                                            // Get department name from departments map using departmentId
+                                            const adminDeptId = admin.departmentId || admin.department_id;
+                                            const departmentObj = adminDeptId ? departments.get(adminDeptId) : null;
+                                            const departmentName = departmentObj?.department_display_name || departmentObj?.department_name || admin.department || "";
+                                            
+                                            return (
+                                              <option key={admin._id} value={admin._id}>
+                                                {admin.fullName} 
+                                                {admin.role && ` (${admin.role}`}
+                                                {admin.roleLevel && ` - Level ${admin.roleLevel}`}
+                                                {admin.role && `)`}
+                                                {departmentName && ` - ${departmentName}`}
+                                              </option>
+                                            );
+                                          })}
                                       </select>
                                       <p className="text-xs text-blue-600 mt-2">
                                         {nextStageAdmins.length} admin(s) with higher authority available (Level {nextStageAdmins.map(a => a.roleLevel).filter((v, i, a) => a.indexOf(v) === i).sort().join(", ")})

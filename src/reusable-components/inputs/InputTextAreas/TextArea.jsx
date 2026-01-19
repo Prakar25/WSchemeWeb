@@ -14,6 +14,7 @@ export default function TextArea({
   setError,
   clearError,
   onChangeInput,
+  setValue,
   ...rest
 }) {
   const { onChange, ...props } = register(defaultName, {
@@ -22,11 +23,11 @@ export default function TextArea({
   });
   useEffect(() => {
     if (rest?.defaultValue !== "") {
-      rest.setValue(defaultName, rest?.defaultValue, { shouldTouch: true });
+      setValue?.(defaultName, rest?.defaultValue, { shouldTouch: true });
     } else {
-      rest.setValue(defaultName, "", { shouldTouch: true });
+      setValue?.(defaultName, "", { shouldTouch: true });
     }
-  }, [rest?.defaultValue]);
+  }, [rest?.defaultValue, setValue, defaultName]);
   return (
     <div className="flex flex-col w-full max-w-full my-2 justify-start items-start">
       <label className="font-medium text-left text-gray-900 pl-1 pb-1 text-xs md:text-sm lg:text-base">

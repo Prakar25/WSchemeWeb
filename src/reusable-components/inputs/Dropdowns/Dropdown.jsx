@@ -59,15 +59,22 @@ export default function Dropdown({
             primary: "#1c398e", //Border color on focus
           },
         })}
-        // maxMenuHeight={maxMenuHeight}
+        maxMenuHeight={maxMenuHeight || 200}
         isClearable={true}
-        options={data}
+        options={data || []}
         name={name}
         value={rest.selected}
         inputRef={ref}
         isMulti={rest.isMulti}
         closeMenuOnSelect={rest.closeMenuOnSelect}
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+        menuPosition="fixed"
+        styles={{
+          menuPortal: (base) => ({ ...base, zIndex: 9998 }),
+          menu: (base) => ({ ...base, zIndex: 9998 }),
+        }}
         {...rest}
+        isDisabled={rest.isDisabled}
         className={`text-black text-xs md:text-sm ${classes} ${
           errors[defaultName] ? "border rounded-none border-red-600" : ""
         }`}

@@ -30,7 +30,11 @@ export default function PublicHeader() {
       try {
         const userId = storedUser._id || storedUser.userId;
         if (!userId) {
-          throw new Error("No user ID found");
+          // No user ID, use stored user as fallback
+          if (storedUser) {
+            setUser(storedUser);
+          }
+          return;
         }
         
         // Try path parameter first, then query parameter as fallback
@@ -38,15 +42,40 @@ export default function PublicHeader() {
         try {
           response = await axios.get(`${PROFILE_URL}/${userId}`);
         } catch (pathError) {
-          // If path parameter fails, try query parameter
-          response = await axios.get(`${PROFILE_URL}?user_id=${userId}`);
+          // If path parameter fails (404), try query parameter
+          if (pathError.response?.status === 404) {
+            // Try query parameter as fallback
+            try {
+              response = await axios.get(`${PROFILE_URL}?user_id=${userId}`);
+            } catch (queryError) {
+              // Both endpoints failed, use stored user
+              if (storedUser) {
+                setUser(storedUser);
+              }
+              return;
+            }
+          } else {
+            // Non-404 error, use stored user
+            if (storedUser) {
+              setUser(storedUser);
+            }
+            return;
+          }
         }
         
-        if (response.status === 200 && response.data?.user) {
+        if (response && response.status === 200 && response.data?.user) {
           setUser(response.data.user);
+        } else {
+          // API response doesn't have user data, use stored user
+          if (storedUser) {
+            setUser(storedUser);
+          }
         }
       } catch (error) {
-        console.error("fetchUserProfile", error);
+        // Only log non-404 errors (404 is expected if endpoint doesn't exist)
+        if (error.response?.status !== 404) {
+          console.error("fetchUserProfile error:", error);
+        }
         // Fallback to stored user if API fails
         if (storedUser) {
           setUser(storedUser);

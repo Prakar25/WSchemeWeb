@@ -22,18 +22,35 @@ const SchemesConfig = () => {
 
   const [schemesList, setSchemesList] = useState([]);
 
-  const getSchemesList = async () => {
+  const getSchemesList = async (filterOptions = {}) => {
     try {
-      const response = await axios.get(SCHEMES_CONFIG_URL);
+      // Build query parameters
+      const params = new URLSearchParams();
+      params.append("filter_type", "scheme"); // Use scheme-level filtering
+      
+      // Add optional filters
+      if (filterOptions.pending_approval) {
+        params.append("pending_approval", "true");
+      }
+      if (filterOptions.approved_only) {
+        params.append("approved_only", "true");
+      }
+      
+      const url = `${SCHEMES_CONFIG_URL}?${params.toString()}`;
+      const response = await axios.get(url);
 
       // console.log("Schemes List", { response });
-      response.status === 200 && setSchemesList(response?.data);
-      response.status === 202 &&
+      if (response.status === 200) {
+        const schemes = Array.isArray(response.data) ? response.data : [];
+        setSchemesList(schemes);
+      } else if (response.status === 202) {
         showToast("No schemes list found in the system.", "error");
+        setSchemesList([]);
+      }
     } catch (error) {
       console.error("getSchemesList", error);
       if (!error?.response) {
-        showToast("No Server Response");
+        showToast("No Server Response", "error");
       } else if (error.response.status === 422) {
         showToast("Some of the required inputs were not provided.", "error");
       } else {
@@ -42,6 +59,7 @@ const SchemesConfig = () => {
           "error"
         );
       }
+      setSchemesList([]);
     }
   };
 

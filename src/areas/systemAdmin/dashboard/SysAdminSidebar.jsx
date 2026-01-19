@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import {
   MdOutlineDashboardCustomize,
   MdFormatListBulleted,
+  MdPendingActions,
 } from "react-icons/md";
 import { HiOutlineUserGroup, HiOutlineDocumentReport } from "react-icons/hi";
 import { TbBellRinging } from "react-icons/tb";
@@ -72,6 +73,16 @@ export default function SysAdminSidebar({
               icon={<MdFormatListBulleted size={20} />}
               label="Schemes"
               isActive={pathname.includes("/system-admin/schemes-configuration")}
+            />
+          </li>
+
+          <li>
+            <NavItem
+              to="/system-admin/pending-approvals"
+              pathname={pathname}
+              icon={<MdPendingActions size={20} />}
+              label="Pending Approvals"
+              isActive={pathname.includes("/system-admin/pending-approvals")}
             />
           </li>
 

@@ -32,10 +32,21 @@ const Home = () => {
 
   const getSchemesList = async () => {
     try {
-      const response = await axios.get(SCHEMES_CONFIG_URL);
+      // Public home page should only show approved schemes
+      const params = new URLSearchParams();
+      params.append("approved_only", "true");
+      params.append("filter_type", "scheme");
+      
+      const url = `${SCHEMES_CONFIG_URL}?${params.toString()}`;
+      const response = await axios.get(url);
 
       if (response.status === 200) {
-        setSchemesList(response.data);
+        const schemes = Array.isArray(response.data) ? response.data : [];
+        // Additional client-side filter to ensure only approved schemes
+        const approvedSchemes = schemes.filter(scheme => 
+          !scheme.approval_status || scheme.approval_status === "approved"
+        );
+        setSchemesList(approvedSchemes);
       }
     } catch (error) {
       console.error("getSchemesList", error);

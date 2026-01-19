@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { FaArrowLeft, FaUpload, FaCheckCircle, FaTimes } from "react-icons/fa";
 
 import axios from "../../../api/axios";
-import { APPLICATIONS_APPLY_URL } from "../../../api/api_routing_urls";
+import { APPLICATIONS_APPLY_URL, DEPARTMENTS_URL, CATEGORIES_URL } from "../../../api/api_routing_urls";
 import { uploadFileToServer } from "../../../utils/uploadFiles/uploadFileToServerController";
 import { getStoredUser } from "../../../utils/user.utils";
 import showToast from "../../../utils/notification/NotificationModal";
@@ -25,12 +25,47 @@ export default function ApplyToScheme() {
   const [showDocUploader, setShowDocUploader] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
+  const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
 
   // Get required documents from scheme
   const requiredDocuments = scheme?.scheme_required_document_types || 
     (Array.isArray(scheme?.scheme_required_documents)
       ? scheme.scheme_required_documents.map((doc) => doc.document_type || doc)
       : []);
+
+  // Fetch departments and categories for lookup maps
+  useEffect(() => {
+    const fetchLookups = async () => {
+      try {
+        // Fetch departments
+        const deptResponse = await axios.get(DEPARTMENTS_URL);
+        if (deptResponse.status === 200) {
+          const deptData = deptResponse.data?.departments || deptResponse.data || [];
+          const deptMap = new Map();
+          deptData.forEach((dept) => {
+            deptMap.set(dept._id, dept);
+          });
+          setDepartments(deptMap);
+        }
+
+        // Fetch categories
+        const catResponse = await axios.get(CATEGORIES_URL);
+        if (catResponse.status === 200) {
+          const catData = catResponse.data?.categories || catResponse.data || [];
+          const catMap = new Map();
+          catData.forEach((cat) => {
+            catMap.set(cat._id, cat);
+          });
+          setCategories(catMap);
+        }
+      } catch (error) {
+        console.error("Error fetching departments/categories:", error);
+      }
+    };
+
+    fetchLookups();
+  }, []);
 
   useEffect(() => {
     if (!scheme) {
@@ -255,12 +290,24 @@ export default function ApplyToScheme() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <span className="font-medium text-gray-700">Department:</span>{" "}
-              <span className="text-gray-900">{scheme.department || "N/A"}</span>
+              <span className="text-gray-900">
+                {(() => {
+                  const dept = departments.get(scheme.department);
+                  return dept 
+                    ? (dept.department_display_name || dept.department_name)
+                    : (scheme.department || "N/A");
+                })()}
+              </span>
             </div>
             <div>
               <span className="font-medium text-gray-700">Category:</span>{" "}
               <span className="text-gray-900">
-                {scheme.category || scheme.category_name || "N/A"}
+                {(() => {
+                  const cat = categories.get(scheme.category);
+                  return cat 
+                    ? (cat.category_display_name || cat.category_name)
+                    : (scheme.category || "N/A");
+                })()}
               </span>
             </div>
             <div>

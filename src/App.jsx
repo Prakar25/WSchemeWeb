@@ -17,7 +17,9 @@ import ApplyToScheme from "./areas/public/dashboard/ApplyToScheme.page";
 
 import SysAdminDashboard from "./areas/systemAdmin/dashboard/SysAdminDashboard";
 import SchemesConfig from "./areas/systemAdmin/modules/scheme-management/schemesConfig.component";
+import PendingApprovals from "./areas/systemAdmin/modules/scheme-management/pendingApprovals.component";
 import Beneficiaries from "./areas/systemAdmin/modules/beneficiaries/beneficiaries.component";
+import SchemeBeneficiaries from "./areas/systemAdmin/modules/beneficiaries/SchemeBeneficiaries.page";
 import Applications from "./areas/systemAdmin/modules/applications/applications.component";
 import Reports from "./areas/systemAdmin/modules/reports/reports.component";
 import Alerts from "./areas/systemAdmin/modules/alerts/alerts.component";
@@ -63,8 +65,18 @@ function App() {
         />
         <Route
           exact
+          path="/system-admin/pending-approvals"
+          element={<PendingApprovals />}
+        />
+        <Route
+          exact
           path="/system-admin/beneficiaries"
           element={<Beneficiaries />}
+        />
+        <Route
+          exact
+          path="/system-admin/scheme-beneficiaries/:scheme_id"
+          element={<SchemeBeneficiaries />}
         />
         <Route
           exact

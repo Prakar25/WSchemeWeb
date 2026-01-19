@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 
 import axios from "../../../api/axios";
-import { SCHEMES_CONFIG_URL } from "../../../api/api_routing_urls";
+import { SCHEMES_CONFIG_URL, DEPARTMENTS_URL, CATEGORIES_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 import ViewSchemeDetails from "./viewSchemeDetails.component";
 import Footer from "../footer.component";
@@ -15,9 +15,43 @@ export default function PublicSchemes() {
   const navigate = useNavigate();
   const [schemesList, setSchemesList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [stateCentralFilter, setStateCentralFilter] = useState("All");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [selectedScheme, setSelectedScheme] = useState(null);
+  const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
+  const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
+
+  // Fetch departments and categories for lookup maps
+  useEffect(() => {
+    const fetchLookups = async () => {
+      try {
+        // Fetch departments
+        const deptResponse = await axios.get(DEPARTMENTS_URL);
+        if (deptResponse.status === 200) {
+          const deptData = deptResponse.data?.departments || deptResponse.data || [];
+          const deptMap = new Map();
+          deptData.forEach((dept) => {
+            deptMap.set(dept._id, dept);
+          });
+          setDepartments(deptMap);
+        }
+
+        // Fetch categories
+        const catResponse = await axios.get(CATEGORIES_URL);
+        if (catResponse.status === 200) {
+          const catData = catResponse.data?.categories || catResponse.data || [];
+          const catMap = new Map();
+          catData.forEach((cat) => {
+            catMap.set(cat._id, cat);
+          });
+          setCategories(catMap);
+        }
+      } catch (error) {
+        console.error("Error fetching departments/categories:", error);
+      }
+    };
+
+    fetchLookups();
+  }, []);
 
   useEffect(() => {
     // Fetch user ID from localStorage
@@ -25,14 +59,27 @@ export default function PublicSchemes() {
     const userId = storedUser?._id || storedUser?.userId;
 
     // Fetch schemes with user_id if available
+    // Public users should only see approved schemes
     const getSchemesList = async () => {
       try {
-        const url = userId
-          ? `${SCHEMES_CONFIG_URL}?user_id=${userId}`
-          : SCHEMES_CONFIG_URL;
+        const params = new URLSearchParams();
+        params.append("approved_only", "true");
+        params.append("filter_type", "scheme");
+        
+        if (userId) {
+          params.append("user_id", userId);
+          params.append("filter_type", "applicant"); // Use applicant filter when user_id is provided
+        }
+        
+        const url = `${SCHEMES_CONFIG_URL}?${params.toString()}`;
         const response = await axios.get(url);
         if (response.status === 200) {
-          setSchemesList(response.data);
+          const schemes = Array.isArray(response.data) ? response.data : [];
+          // Additional client-side filter to ensure only approved schemes
+          const approvedSchemes = schemes.filter(scheme => 
+            !scheme.approval_status || scheme.approval_status === "approved"
+          );
+          setSchemesList(approvedSchemes);
         }
       } catch (error) {
         console.error("getSchemesList", error);
@@ -48,18 +95,26 @@ export default function PublicSchemes() {
   }, [selectedScheme]);
 
   // Filter schemes based on search and filters
+  // Public users should only see approved schemes (or schemes without approval_status for backward compatibility)
   const filteredSchemes = schemesList.filter((scheme) => {
+    // Only show approved schemes (or legacy schemes without approval_status)
+    const isApproved = !scheme.approval_status || scheme.approval_status === "approved";
+    if (!isApproved) return false;
+
     const matchesSearch =
       scheme.scheme_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       scheme.scheme_description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStateCentral =
-      stateCentralFilter === "All" || scheme.category === stateCentralFilter;
+    // Department and category are now ObjectId strings
+    const categoryObj = categories.get(scheme.category);
+    const schemeCategory = categoryObj 
+      ? (categoryObj.category_display_name || categoryObj.category_name)
+      : scheme.category;
 
     const matchesCategory =
-      categoryFilter === "All" || scheme.category === categoryFilter;
+      categoryFilter === "All" || schemeCategory === categoryFilter;
 
-    return matchesSearch && matchesStateCentral && matchesCategory;
+    return matchesSearch && matchesCategory;
   });
 
   const handleSchemeClick = (scheme) => {
@@ -95,18 +150,7 @@ export default function PublicSchemes() {
 
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8 border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* State/Central Filter */}
-            <select
-              value={stateCentralFilter}
-              onChange={(e) => setStateCentralFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="All">State / Central</option>
-              <option value="State">State</option>
-              <option value="Central">Central</option>
-            </select>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Category Filter */}
             <select
               value={categoryFilter}
@@ -136,8 +180,15 @@ export default function PublicSchemes() {
         {/* Scheme Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {filteredSchemes.map((scheme, index) => {
-            const isEligible = true; // This should be calculated based on user eligibility
-            const schemeType = scheme.category || "STATE";
+            // Use isEligible from API response (defaults to true if not provided for backward compatibility)
+            const isEligible = scheme.isEligible !== undefined ? scheme.isEligible : true;
+            const eligibilityReason = scheme.eligibilityReason || null;
+            // Department and category are now ObjectId strings
+            const categoryObj = categories.get(scheme.category);
+            const schemeCategory = categoryObj 
+              ? (categoryObj.category_display_name || categoryObj.category_name)
+              : scheme.category;
+            const schemeType = schemeCategory || "STATE";
 
             return (
               <motion.div
@@ -145,7 +196,11 @@ export default function PublicSchemes() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                className={`bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden transition-all cursor-pointer ${
+                  isEligible 
+                    ? "hover:shadow-lg" 
+                    : "opacity-60 grayscale hover:opacity-70"
+                }`}
                 onClick={() => handleSchemeClick(scheme)}
               >
                 {/* Scheme Image */}
@@ -192,6 +247,11 @@ export default function PublicSchemes() {
                         ? `Age: ${scheme.scheme_eligibility.lower_age_limit || "N/A"} - ${scheme.scheme_eligibility.upper_age_limit || "N/A"} years`
                         : "Check scheme details"}
                     </p>
+                    {!isEligible && eligibilityReason && (
+                      <p className="text-xs text-red-600 mt-1 italic">
+                        {eligibilityReason}
+                      </p>
+                    )}
                   </div>
 
                   {/* Benefits */}

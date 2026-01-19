@@ -10,9 +10,10 @@ import {
 } from "react-icons/fa";
 
 import axios from "../../../api/axios";
-import { SCHEMES_CONFIG_URL, PROFILE_URL } from "../../../api/api_routing_urls";
+import { SCHEMES_CONFIG_URL, PROFILE_URL, DEPARTMENTS_URL, CATEGORIES_URL, APPLICATIONS_USER_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 import { getStoredUser } from "../../../utils/user.utils";
+import { formatDateInDDMonYYYY } from "../../../utils/dateFunctions/formatdate";
 import ViewSchemeDetails from "./viewSchemeDetails.component";
 import Footer from "../footer.component";
 import PublicHeader from "../components/PublicHeader.component";
@@ -22,9 +23,43 @@ export default function PublicDashboard() {
   const [schemesList, setSchemesList] = useState([]);
   const [applications, setApplications] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [stateCentralFilter, setStateCentralFilter] = useState("All");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [selectedScheme, setSelectedScheme] = useState(null);
+  const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
+  const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
+
+  // Fetch departments and categories for lookup maps
+  useEffect(() => {
+    const fetchLookups = async () => {
+      try {
+        // Fetch departments
+        const deptResponse = await axios.get(DEPARTMENTS_URL);
+        if (deptResponse.status === 200) {
+          const deptData = deptResponse.data?.departments || deptResponse.data || [];
+          const deptMap = new Map();
+          deptData.forEach((dept) => {
+            deptMap.set(dept._id, dept);
+          });
+          setDepartments(deptMap);
+        }
+
+        // Fetch categories
+        const catResponse = await axios.get(CATEGORIES_URL);
+        if (catResponse.status === 200) {
+          const catData = catResponse.data?.categories || catResponse.data || [];
+          const catMap = new Map();
+          catData.forEach((cat) => {
+            catMap.set(cat._id, cat);
+          });
+          setCategories(catMap);
+        }
+      } catch (error) {
+        console.error("Error fetching departments/categories:", error);
+      }
+    };
+
+    fetchLookups();
+  }, []);
 
   useEffect(() => {
     const storedUser = getStoredUser();
@@ -42,13 +77,29 @@ export default function PublicDashboard() {
 
       try {
         const userId = storedUser._id || storedUser.userId;
+        if (!userId) {
+          // No user ID, use stored user as fallback
+          if (storedUser) {
+            setUser(storedUser);
+          }
+          return;
+        }
+        
         const response = await axios.get(`${PROFILE_URL}/${userId}`);
         
-        if (response.status === 200 && response.data?.user) {
+        if (response && response.status === 200 && response.data?.user) {
           setUser(response.data.user);
+        } else {
+          // API response doesn't have user data, use stored user
+          if (storedUser) {
+            setUser(storedUser);
+          }
         }
       } catch (error) {
-        console.error("fetchUserProfile", error);
+        // Only log non-404 errors (404 is expected if endpoint doesn't exist)
+        if (error.response?.status !== 404) {
+          console.error("fetchUserProfile error:", error);
+        }
         // Fallback to stored user if API fails
         if (storedUser) {
           setUser(storedUser);
@@ -59,15 +110,29 @@ export default function PublicDashboard() {
     fetchUserProfile();
 
     // Fetch schemes with user_id if available
+    // Public users should only see approved schemes
     const getSchemesList = async () => {
       try {
         const userId = user?._id || user?.userId || storedUser?._id || storedUser?.userId;
-        const url = userId
-          ? `${SCHEMES_CONFIG_URL}?user_id=${userId}`
-          : SCHEMES_CONFIG_URL;
+        const params = new URLSearchParams();
+        params.append("approved_only", "true");
+        
+        if (userId) {
+          params.append("user_id", userId);
+          params.append("filter_type", "applicant"); // Use applicant filter when user_id is provided
+        } else {
+          params.append("filter_type", "scheme"); // Use scheme filter when no user_id
+        }
+        
+        const url = `${SCHEMES_CONFIG_URL}?${params.toString()}`;
         const response = await axios.get(url);
         if (response.status === 200) {
-          setSchemesList(response.data);
+          const schemes = Array.isArray(response.data) ? response.data : [];
+          // Additional client-side filter to ensure only approved schemes
+          const approvedSchemes = schemes.filter(scheme => 
+            !scheme.approval_status || scheme.approval_status === "approved"
+          );
+          setSchemesList(approvedSchemes);
         }
       } catch (error) {
         console.error("getSchemesList", error);
@@ -76,25 +141,33 @@ export default function PublicDashboard() {
 
     getSchemesList();
 
-    // Mock applications data - replace with actual API call
-    setApplications([
-      {
-        schemeName: "Child Care Assistance Program",
-        status: "Under Review",
-        dateApplied: "2023-08-15",
-      },
-      {
-        schemeName: "Maternity Support Scheme",
-        status: "Approved",
-        dateApplied: "2023-07-20",
-      },
-      {
-        schemeName: "Skill Enhancement for Women",
-        status: "Applied",
-        dateApplied: "2023-09-05",
-      },
-    ]);
-  }, []);
+    // Fetch user applications
+    const fetchApplications = async () => {
+      try {
+        const userId = user?._id || user?.userId || storedUser?._id || storedUser?.userId;
+        if (!userId) {
+          setApplications([]);
+          return;
+        }
+
+        const response = await axios.get(`${APPLICATIONS_USER_URL}/${userId}`);
+        if (response.status === 200 && response.data?.status === "success") {
+          const apps = response.data.data || [];
+          // Show only recent applications (limit to 3 for dashboard)
+          setApplications(apps.slice(0, 3));
+        } else {
+          setApplications([]);
+        }
+      } catch (error) {
+        console.error("Error fetching applications:", error);
+        setApplications([]);
+      }
+    };
+
+    if (user || storedUser) {
+      fetchApplications();
+    }
+  }, [user]);
 
   // Mask Aadhaar number for display
   const maskAadhaar = (aadhaar) => {
@@ -119,13 +192,16 @@ export default function PublicDashboard() {
       scheme.scheme_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       scheme.scheme_description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStateCentral =
-      stateCentralFilter === "All" || scheme.category === stateCentralFilter;
+    // Department and category are now ObjectId strings
+    const categoryObj = categories.get(scheme.category);
+    const schemeCategory = categoryObj 
+      ? (categoryObj.category_display_name || categoryObj.category_name)
+      : scheme.category;
 
     const matchesCategory =
-      categoryFilter === "All" || scheme.category === categoryFilter;
+      categoryFilter === "All" || schemeCategory === categoryFilter;
 
-    return matchesSearch && matchesStateCentral && matchesCategory;
+    return matchesSearch && matchesCategory;
   });
 
   // Get status config
@@ -234,18 +310,7 @@ export default function PublicDashboard() {
 
           {/* Filters and Search */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* State/Central Filter */}
-              <select
-                value={stateCentralFilter}
-                onChange={(e) => setStateCentralFilter(e.target.value)}
-                className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="All">State / Central</option>
-                <option value="State">State</option>
-                <option value="Central">Central</option>
-              </select>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Category Filter */}
               <select
                 value={categoryFilter}
@@ -275,8 +340,13 @@ export default function PublicDashboard() {
           {/* Scheme Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredSchemes.slice(0, 6).map((scheme, index) => {
-              const isEligible = true; // This should be calculated based on user eligibility
-              const schemeType = scheme.category || "STATE"; // Determine if STATE or CENTRAL
+              // Use isEligible from API response (defaults to true if not provided for backward compatibility)
+              const isEligible = scheme.isEligible !== undefined ? scheme.isEligible : true;
+              const eligibilityReason = scheme.eligibilityReason || null;
+              const schemeCategory = typeof scheme.category === "object"
+                ? scheme.category.category_display_name || scheme.category.category_name
+                : scheme.category;
+              const schemeType = schemeCategory || "STATE"; // Determine if STATE or CENTRAL
 
               return (
                 <motion.div
@@ -284,7 +354,11 @@ export default function PublicDashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                  className={`bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden transition-all cursor-pointer ${
+                    isEligible 
+                      ? "hover:shadow-lg" 
+                      : "opacity-60 grayscale hover:opacity-70"
+                  }`}
                   onClick={() => handleSchemeClick(scheme)}
                 >
                   {/* Scheme Image */}
@@ -331,6 +405,11 @@ export default function PublicDashboard() {
                           ? `Age: ${scheme.scheme_eligibility.lower_age_limit || "N/A"} - ${scheme.scheme_eligibility.upper_age_limit || "N/A"} years`
                           : "Check scheme details"}
                       </p>
+                      {!isEligible && eligibilityReason && (
+                        <p className="text-xs text-red-600 mt-1 italic">
+                          {eligibilityReason}
+                        </p>
+                      )}
                     </div>
 
                     {/* Benefits */}
@@ -402,35 +481,51 @@ export default function PublicDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {applications.map((app, index) => {
-                    const status = statusConfig[app.status] || statusConfig.Applied;
+                  {applications.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                        No applications found.
+                      </td>
+                    </tr>
+                  ) : (
+                    applications.map((app, index) => {
+                      const status = statusConfig[app.status] || statusConfig.Applied;
+                      const dateApplied = app.date_applied 
+                        ? formatDateInDDMonYYYY(app.date_applied) 
+                        : "N/A";
 
-                    return (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {app.schemeName}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${status.bg} ${status.text}`}
-                          >
-                            {status.icon}
-                            {app.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {app.dateApplied}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button className="text-blue-600 hover:text-blue-800 font-semibold">
-                            View Details
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                      return (
+                        <tr key={app._id || app.applicationId || index} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {app.schemeName || app.scheme_name || "N/A"}
+                            </div>
+                            {app.verification_stage_display && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                {app.verification_stage_display}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${status.bg} ${status.text}`}
+                            >
+                              {status.icon}
+                              {app.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {dateApplied}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <button className="text-blue-600 hover:text-blue-800 font-semibold">
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>

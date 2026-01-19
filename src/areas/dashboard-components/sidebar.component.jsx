@@ -44,6 +44,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
             }
             console.log("Admin profile fetched - userData:", userData);
             console.log("Admin profile - roleLevel value:", userData.roleLevel);
+            console.log("Admin profile - department:", userData.department);
+            console.log("Admin profile - departmentId:", userData.departmentId || userData.department_id);
             setAdminProfile(userData);
           }
         } catch (err) {

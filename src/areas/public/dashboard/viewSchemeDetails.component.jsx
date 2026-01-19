@@ -174,18 +174,40 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Application Status
                   </h3>
-                  <p className="text-gray-700 mb-4">
-                    You are eligible to apply.
-                  </p>
-                  <button
-                    onClick={() => {
-                      navigate("/user/apply-to-scheme", { state: { scheme } });
-                    }}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                  >
-                    Apply Now
-                    <FaArrowRight />
-                  </button>
+                  {scheme.isEligible !== false ? (
+                    <>
+                      <p className="text-gray-700 mb-4">
+                        You are eligible to apply.
+                      </p>
+                      <button
+                        onClick={() => {
+                          navigate("/user/apply-to-scheme", { state: { scheme } });
+                        }}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                      >
+                        Apply Now
+                        <FaArrowRight />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-red-600 mb-2 font-medium">
+                        You are not eligible for this scheme.
+                      </p>
+                      {scheme.eligibilityReason && (
+                        <p className="text-sm text-gray-600 mb-4 italic">
+                          {scheme.eligibilityReason}
+                        </p>
+                      )}
+                      <button
+                        disabled
+                        className="w-full bg-gray-300 text-gray-500 font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"
+                      >
+                        Apply Now
+                        <FaArrowRight />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

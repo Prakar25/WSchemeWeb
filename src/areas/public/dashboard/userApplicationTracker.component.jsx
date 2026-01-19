@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   FaCheckCircle,
@@ -6,28 +7,12 @@ import {
   FaArrowRight,
 } from "react-icons/fa";
 
-import Dashboard from "../../dashboard-components/dashboard.component";
+import axios from "../../../api/axios";
+import { APPLICATIONS_USER_URL } from "../../../api/api_routing_urls";
+import { getStoredUser } from "../../../utils/user.utils";
+import { formatDateInDDMonYYYY } from "../../../utils/dateFunctions/formatdate";
 
-const applications = [
-  {
-    schemeName: "Mukhyamantri Kanya Shiksha Yojana",
-    applicationId: "APP-2024-001",
-    status: "Approved",
-    lastUpdated: "12 Sep 2024",
-  },
-  {
-    schemeName: "State Maternity Benefit Scheme",
-    applicationId: "APP-2024-014",
-    status: "Under Review",
-    lastUpdated: "20 Sep 2024",
-  },
-  {
-    schemeName: "Widow Pension Scheme",
-    applicationId: "APP-2024-022",
-    status: "Rejected",
-    lastUpdated: "01 Oct 2024",
-  },
-];
+import Dashboard from "../../dashboard-components/dashboard.component";
 
 const statusConfig = {
   Approved: {
@@ -51,6 +36,41 @@ const statusConfig = {
 };
 
 export default function UserApplicationTracker() {
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        setLoading(true);
+        const user = getStoredUser();
+        
+        if (!user || (!user._id && !user.userId)) {
+          console.error("No user ID found");
+          setApplications([]);
+          return;
+        }
+
+        const userId = user._id || user.userId;
+        const response = await axios.get(`${APPLICATIONS_USER_URL}/${userId}`);
+
+        if (response.status === 200 && response.data?.status === "success") {
+          const apps = response.data.data || [];
+          setApplications(apps);
+        } else {
+          setApplications([]);
+        }
+      } catch (error) {
+        console.error("Error fetching applications:", error);
+        setApplications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, []);
+
   return (
     <Dashboard sidebarType="Public User">
       <section
@@ -61,9 +81,23 @@ export default function UserApplicationTracker() {
           Application Tracker
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {applications.map((app, index) => {
-            const status = statusConfig[app.status];
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">
+            Loading applications...
+          </div>
+        ) : applications.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No applications found.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {applications.map((app, index) => {
+              const status = statusConfig[app.status] || statusConfig["Under Review"];
+              const lastUpdated = app.last_updated 
+                ? formatDateInDDMonYYYY(app.last_updated) 
+                : app.date_applied 
+                ? formatDateInDDMonYYYY(app.date_applied)
+                : "N/A";
 
             return (
               <motion.div
@@ -88,11 +122,16 @@ export default function UserApplicationTracker() {
                       <div className="mt-1">{status.icon}</div>
                       <div>
                         <h3 className="font-semibold text-slate-800">
-                          {app.schemeName}
+                          {app.schemeName || app.scheme_name || "N/A"}
                         </h3>
                         <p className="text-xs text-slate-500 mt-1">
-                          Application ID: {app.applicationId}
+                          Application ID: {app.applicationId || app._id || "N/A"}
                         </p>
+                        {app.verification_stage_display && (
+                          <p className="text-xs text-slate-500 mt-1">
+                            Stage: {app.verification_stage_display}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -107,10 +146,17 @@ export default function UserApplicationTracker() {
 
                   {/* Footer */}
                   <div className="mt-5 flex justify-between items-center text-sm">
-                    <p className="text-slate-600">
-                      <span className="font-medium">Last Updated:</span>{" "}
-                      {app.lastUpdated}
-                    </p>
+                    <div>
+                      <p className="text-slate-600">
+                        <span className="font-medium">Last Updated:</span>{" "}
+                        {lastUpdated}
+                      </p>
+                      {app.current_verifier && (
+                        <p className="text-xs text-slate-500 mt-1">
+                          Verifier: {app.current_verifier.name || app.current_verifier.role || "N/A"}
+                        </p>
+                      )}
+                    </div>
 
                     <motion.button
                       whileHover={{ x: 4 }}
@@ -126,7 +172,8 @@ export default function UserApplicationTracker() {
               </motion.div>
             );
           })}
-        </div>
+          </div>
+        )}
       </section>
     </Dashboard>
   );

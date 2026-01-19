@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaSearch, FaFilter, FaDownload, FaTimes } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
@@ -13,6 +14,7 @@ import {
 import Dashboard from "../../dashboard-components/dashboard.component";
 
 export default function SysAdminDashboard() {
+  const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -103,7 +105,7 @@ export default function SysAdminDashboard() {
         setSchemes(
           schemesData.map((scheme) => ({
             scheme: scheme.schemeName || scheme.scheme_name || "",
-            schemeId: scheme.schemeId || scheme.scheme_id || "",
+            schemeId: scheme.schemeId || scheme.scheme_id || scheme._id || "",
             total: (scheme.totalBeneficiaries || scheme.total_beneficiaries || 0).toLocaleString(),
             approved: (scheme.approved || 0).toLocaleString(),
             pending: (scheme.pending || 0).toLocaleString(),
@@ -330,7 +332,16 @@ export default function SysAdminDashboard() {
                       </tr>
                     ) : schemes.length > 0 ? (
                       schemes.map((item, index) => (
-                        <TableRow key={item.schemeId || index} {...item} index={index} />
+                        <TableRow 
+                          key={item.schemeId || index} 
+                          {...item} 
+                          index={index}
+                          onRowClick={(schemeId) => {
+                            if (schemeId) {
+                              navigate(`/system-admin/scheme-beneficiaries/${schemeId}`);
+                            }
+                          }}
+                        />
                       ))
                     ) : (
                       <tr>
@@ -425,7 +436,13 @@ function SummaryCard({
   );
 }
 
-function TableRow({ scheme, total, approved, pending, rejected, index }) {
+function TableRow({ scheme, schemeId, total, approved, pending, rejected, index, onRowClick }) {
+  const handleClick = () => {
+    if (onRowClick && schemeId) {
+      onRowClick(schemeId);
+    }
+  };
+
   return (
     <motion.tr
       initial={{ opacity: 0 }}
@@ -433,6 +450,7 @@ function TableRow({ scheme, total, approved, pending, rejected, index }) {
       transition={{ duration: 0.2, delay: index * 0.05 }}
       className="hover:bg-blue-50 transition-colors cursor-pointer border-b border-gray-100"
       whileHover={{ backgroundColor: "rgb(239 246 255)" }}
+      onClick={handleClick}
     >
       <td className="py-4 px-4 text-gray-800 font-medium">{scheme}</td>
       <td className="py-4 px-4 text-gray-700">{total}</td>
