@@ -6,8 +6,9 @@ import { FaArrowLeft, FaUpload, FaCheckCircle, FaTimes } from "react-icons/fa";
 import axios from "../../../api/axios";
 import { APPLICATIONS_APPLY_URL, DEPARTMENTS_URL, CATEGORIES_URL } from "../../../api/api_routing_urls";
 import { uploadFileToServer } from "../../../utils/uploadFiles/uploadFileToServerController";
-import { getStoredUser } from "../../../utils/user.utils";
+import { getStoredUser, isProfileComplete, getVerificationStatus, getAccountStatusMessage } from "../../../utils/user.utils";
 import showToast from "../../../utils/notification/NotificationModal";
+import { PUBLIC_PROFILE_GET_URL } from "../../../api/api_routing_urls";
 import PublicHeader from "../components/PublicHeader.component";
 import Footer from "../footer.component";
 import DocDropzone from "../../../reusable-components/FileUploader/PDFImageDropZoneUploader/PDFImageDropZoneUploader.component";
@@ -81,7 +82,78 @@ export default function ApplyToScheme() {
       navigate("/login");
       return;
     }
-    setUser(storedUser);
+
+    // Check profile completion
+    const checkProfileCompletion = async () => {
+      try {
+        const userId = storedUser._id || storedUser.userId;
+        const response = await axios.get(PUBLIC_PROFILE_GET_URL, {
+          params: { userId },
+        });
+
+        if (response.data.status === "success" && response.data.user) {
+          const userData = response.data.user;
+          setUser(userData);
+          localStorage.setItem("user", JSON.stringify(userData));
+
+          if (!isProfileComplete(userData)) {
+            showToast(
+              "Please complete your profile before applying for schemes.",
+              "error"
+            );
+            navigate("/user/complete-profile");
+            return;
+          }
+          if (getVerificationStatus(userData) !== "verified") {
+            showToast(
+              getAccountStatusMessage(userData) || "Please verify your account at the nearest CSD Center before applying.",
+              "error"
+            );
+            navigate("/user/dashboard");
+            return;
+          }
+        } else {
+          if (!isProfileComplete(storedUser)) {
+            showToast(
+              "Please complete your profile before applying for schemes.",
+              "error"
+            );
+            navigate("/user/complete-profile");
+            return;
+          }
+          if (getVerificationStatus(storedUser) !== "verified") {
+            showToast(
+              getAccountStatusMessage(storedUser) || "Please verify your account before applying.",
+              "error"
+            );
+            navigate("/user/dashboard");
+            return;
+          }
+          setUser(storedUser);
+        }
+      } catch (error) {
+        console.error("Error checking profile:", error);
+        if (!isProfileComplete(storedUser)) {
+          showToast(
+            "Please complete your profile before applying for schemes.",
+            "error"
+          );
+          navigate("/user/complete-profile");
+          return;
+        }
+        if (getVerificationStatus(storedUser) !== "verified") {
+          showToast(
+            getAccountStatusMessage(storedUser) || "Please verify your account before applying.",
+            "error"
+          );
+          navigate("/user/dashboard");
+          return;
+        }
+        setUser(storedUser);
+      }
+    };
+
+    checkProfileCompletion();
 
     // Initialize document state for each required document
     const initialDocs = {};
@@ -225,34 +297,27 @@ export default function ApplyToScheme() {
       }
     } catch (error) {
       console.error("Error submitting application:", error);
-      console.error("Error response:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      
-      // Log the full error details for debugging
-      if (error.response?.data) {
-        console.error("API Error Details:", JSON.stringify(error.response.data, null, 2));
-      }
-      
-      // Build a detailed error message from API response
+
       let errorMessage = "Failed to submit application. Please try again.";
-      
-      if (error.response?.data) {
-        const apiError = error.response.data;
-        
-        // If there's a specific message and reason, combine them
-        if (apiError.message && apiError.reason) {
-          errorMessage = `${apiError.message}: ${apiError.reason}`;
-        } else if (apiError.message) {
-          errorMessage = apiError.message;
-        } else if (apiError.error) {
-          errorMessage = apiError.error;
+      const status = error.response?.status;
+      const data = error.response?.data;
+
+      if (status === 403) {
+        errorMessage = data?.message || getAccountStatusMessage(user) || "You must complete verification before applying to schemes.";
+      } else if (data) {
+        if (data.message && data.reason) {
+          errorMessage = `${data.message}: ${data.reason}`;
+        } else if (data.message) {
+          errorMessage = data.message;
+        } else if (data.error) {
+          errorMessage = data.error;
         }
-      } else if (error.response?.status === 400) {
+      } else if (status === 400) {
         errorMessage = "Invalid request. Please check your input and try again.";
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       showToast(errorMessage, "error");
     } finally {
       setIsSubmitting(false);

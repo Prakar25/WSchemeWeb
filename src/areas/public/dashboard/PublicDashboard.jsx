@@ -10,15 +10,18 @@ import {
 } from "react-icons/fa";
 
 import axios from "../../../api/axios";
-import { SCHEMES_CONFIG_URL, PROFILE_URL, DEPARTMENTS_URL, CATEGORIES_URL, APPLICATIONS_USER_URL } from "../../../api/api_routing_urls";
+import { SCHEMES_CONFIG_URL, PROFILE_URL, DEPARTMENTS_URL, CATEGORIES_URL, APPLICATIONS_USER_URL, PUBLIC_PROFILE_GET_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
-import { getStoredUser } from "../../../utils/user.utils";
+import { getStoredUser, isProfileComplete } from "../../../utils/user.utils";
 import { formatDateInDDMonYYYY } from "../../../utils/dateFunctions/formatdate";
 import ViewSchemeDetails from "./viewSchemeDetails.component";
 import Footer from "../footer.component";
 import PublicHeader from "../components/PublicHeader.component";
+import { useNavigate } from "react-router-dom";
+import { FiAlertCircle, FiX } from "react-icons/fi";
 
 export default function PublicDashboard() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [schemesList, setSchemesList] = useState([]);
   const [applications, setApplications] = useState([]);
@@ -27,6 +30,7 @@ export default function PublicDashboard() {
   const [selectedScheme, setSelectedScheme] = useState(null);
   const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
   const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
 
   // Fetch departments and categories for lookup maps
   useEffect(() => {
@@ -81,28 +85,73 @@ export default function PublicDashboard() {
           // No user ID, use stored user as fallback
           if (storedUser) {
             setUser(storedUser);
+            // Check if profile is incomplete
+            if (!isProfileComplete(storedUser)) {
+              setShowProfilePrompt(true);
+            }
           }
           return;
         }
         
-        const response = await axios.get(`${PROFILE_URL}/${userId}`);
-        
-        if (response && response.status === 200 && response.data?.user) {
-          setUser(response.data.user);
-        } else {
-          // API response doesn't have user data, use stored user
-          if (storedUser) {
-            setUser(storedUser);
+        // Try new profile endpoint first
+        try {
+          const profileResponse = await axios.get(PUBLIC_PROFILE_GET_URL, {
+            params: { userId },
+          });
+          
+          if (profileResponse.data.status === "success" && profileResponse.data.user) {
+            const userData = profileResponse.data.user;
+            setUser(userData);
+            localStorage.setItem("user", JSON.stringify(userData));
+            
+            // Check if profile is incomplete
+            if (!isProfileComplete(userData)) {
+              setShowProfilePrompt(true);
+            }
+            return;
+          }
+        } catch (profileError) {
+          // Silently handle errors - backend might not have endpoint yet or server error
+          // Only try old endpoint if it's not a network/server error
+          if (profileError.response?.status && profileError.response.status !== 500 && profileError.response.status !== 404) {
+            // Only log unexpected errors (not 500, not 404, not network)
+            if (profileError.code !== "ERR_NETWORK") {
+              console.log("New profile endpoint failed, trying old endpoint");
+            }
           }
         }
-      } catch (error) {
-        // Only log non-404 errors (404 is expected if endpoint doesn't exist)
-        if (error.response?.status !== 404) {
-          console.error("fetchUserProfile error:", error);
+        
+        // Fallback to old profile endpoint (only if new one didn't work)
+        try {
+          const response = await axios.get(`${PROFILE_URL}/${userId}`);
+          
+          if (response && response.status === 200 && response.data?.user) {
+            const userData = response.data.user;
+            setUser(userData);
+            // Check if profile is incomplete
+            if (!isProfileComplete(userData)) {
+              setShowProfilePrompt(true);
+            }
+            return;
+          }
+        } catch (oldEndpointError) {
+          // Silently handle - will fall back to localStorage
         }
+        
         // Fallback to stored user if API fails
         if (storedUser) {
           setUser(storedUser);
+          if (!isProfileComplete(storedUser)) {
+            setShowProfilePrompt(true);
+          }
+        }
+      } catch (error) {
+        // Silently fall back to stored user for any error
+        if (storedUser) {
+          setUser(storedUser);
+          if (!isProfileComplete(storedUser)) {
+            setShowProfilePrompt(true);
+          }
         }
       }
     };
@@ -135,7 +184,11 @@ export default function PublicDashboard() {
           setSchemesList(approvedSchemes);
         }
       } catch (error) {
-        console.error("getSchemesList", error);
+        // Silently handle errors - backend might be down or endpoint not available
+        // Only log unexpected errors (not network/server errors)
+        if (error.code !== "ERR_NETWORK" && error.response?.status !== 500) {
+          console.error("getSchemesList", error);
+        }
       }
     };
 
@@ -159,7 +212,11 @@ export default function PublicDashboard() {
           setApplications([]);
         }
       } catch (error) {
-        console.error("Error fetching applications:", error);
+        // Silently handle errors - backend might be down or endpoint not available
+        // Only log unexpected errors (not network/server errors)
+        if (error.code !== "ERR_NETWORK" && error.response?.status !== 500) {
+          console.error("Error fetching applications:", error);
+        }
         setApplications([]);
       }
     };
@@ -266,6 +323,48 @@ export default function PublicDashboard() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
           Public User Dashboard
         </h1>
+
+        {/* Verification status message (when not verified) */}
+        {user?.accountStatusMessage && (
+          <div className="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-lg shadow-md" role="alert">
+            <div className="flex items-start gap-3">
+              <FiAlertCircle className="text-amber-600 text-xl mt-0.5 flex-shrink-0" />
+              <p className="text-amber-800 text-sm font-medium">{user.accountStatusMessage}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Profile Completion Prompt */}
+        {showProfilePrompt && (
+          <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow-md">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3 flex-1">
+                <FiAlertCircle className="text-yellow-600 text-2xl mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-1">
+                    Complete Your Profile
+                  </h3>
+                  <p className="text-yellow-700 text-sm mb-3">
+                    Your profile is incomplete. Please complete your profile to apply for schemes and access all features.
+                  </p>
+                  <button
+                    onClick={() => navigate("/user/complete-profile")}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white font-medium px-6 py-2 rounded-md transition-colors"
+                  >
+                    Complete Profile Now
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowProfilePrompt(false)}
+                className="text-yellow-600 hover:text-yellow-800 ml-4"
+                aria-label="Dismiss"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* User Profile Summary */}
         {user && (

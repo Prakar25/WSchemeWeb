@@ -1,11 +1,77 @@
 /* eslint-disable no-unused-vars */
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
+import axios from "../../../api/axios";
+import { PUBLIC_PROFILE_GET_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
+import { getStoredUser, isProfileComplete, getVerificationStatus, getAccountStatusMessage } from "../../../utils/user.utils";
+import showToast from "../../../utils/notification/NotificationModal";
 
 const ViewSchemeDetails = ({ scheme, onClose }) => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [profileComplete, setProfileComplete] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
+
+  useEffect(() => {
+    const checkProfile = async () => {
+      const storedUser = getStoredUser();
+      if (!storedUser) {
+        setUser(null);
+        setProfileComplete(false);
+        setCheckingProfile(false);
+        return;
+      }
+
+      try {
+        const userId = storedUser._id || storedUser.userId;
+        const response = await axios.get(PUBLIC_PROFILE_GET_URL, {
+          params: { userId },
+        });
+
+        if (response.data.status === "success" && response.data.user) {
+          const userData = response.data.user;
+          setUser(userData);
+          setProfileComplete(isProfileComplete(userData));
+          localStorage.setItem("user", JSON.stringify(userData));
+        } else {
+          setUser(storedUser);
+          setProfileComplete(isProfileComplete(storedUser));
+        }
+      } catch (error) {
+        console.error("Error checking profile:", error);
+        setUser(storedUser);
+        setProfileComplete(isProfileComplete(storedUser));
+      } finally {
+        setCheckingProfile(false);
+      }
+    };
+
+    checkProfile();
+  }, []);
+
+  const isVerified = getVerificationStatus(user) === "verified";
+  const canApply = profileComplete && isVerified;
+  const accountStatusMessage = getAccountStatusMessage(user);
+
+  const handleApplyClick = () => {
+    if (!profileComplete) {
+      showToast(
+        "Please complete your profile before applying for schemes.",
+        "error"
+      );
+      navigate("/user/complete-profile");
+      return;
+    }
+    if (!isVerified) {
+      showToast(accountStatusMessage || "Please verify your account to apply for schemes.", "error");
+      return;
+    }
+    navigate("/user/apply-to-scheme", { state: { scheme } });
+  };
+
   if (!scheme) return null;
 
   // Helper function to normalize items (handle both array and object formats)
@@ -179,14 +245,32 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                   <p className="text-gray-700 mb-4">
                     You are eligible to apply.
                   </p>
+                  {!profileComplete && (
+                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800">
+                        ⚠ Please complete your profile to apply for this scheme.
+                      </p>
+                    </div>
+                  )}
+                  {profileComplete && !isVerified && accountStatusMessage && (
+                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-sm text-amber-800">{accountStatusMessage}</p>
+                    </div>
+                  )}
+                  {profileComplete && !isVerified && !accountStatusMessage && (
+                    <p className="text-sm text-gray-600 mb-4">Verify your account to apply.</p>
+                  )}
                   <button
-                    onClick={() => {
-                      navigate("/user/apply-to-scheme", { state: { scheme } });
-                    }}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                    onClick={handleApplyClick}
+                    disabled={checkingProfile || !canApply}
+                    className={`w-full font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors ${
+                      checkingProfile || !canApply
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-green-600 hover:bg-green-700 text-white"
+                    }`}
                   >
-                    Apply Now
-                    <FaArrowRight />
+                    {checkingProfile ? "Checking..." : "Apply Now"}
+                    {!checkingProfile && <FaArrowRight />}
                   </button>
                     </>
                   ) : (

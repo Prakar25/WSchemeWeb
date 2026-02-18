@@ -1,10 +1,16 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 import axios from "../../api/axios";
-import { CHECK_AADHAAR_URL, ADMIN_LOGIN_URL } from "../../api/api_routing_urls";
+import {
+  ADMIN_LOGIN_URL,
+  PUBLIC_AUTH_REGISTER_SEND_OTP_URL,
+  PUBLIC_AUTH_REGISTER_VERIFY_OTP_URL,
+  PUBLIC_AUTH_LOGIN_SEND_OTP_URL,
+  PUBLIC_AUTH_LOGIN_VERIFY_OTP_URL,
+} from "../../api/api_routing_urls";
 
 import Input from "../../reusable-components/inputs/InputTextBox/Input";
 import PasswordInput from "../../reusable-components/inputs/InputTextBox/PasswordInput";
@@ -39,75 +45,235 @@ const Login = () => {
   } = useForm({
     mode: "onChange",
     criteriaMode: "all",
-    // defaultValues: defaultValues,
   });
 
   const [activeTab, setActiveTab] = useState("public");
-  const [aadhaarFoundUser, setAadhaarFoundUser] = useState(null);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [mobileNumber, setMobileNumber] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [generatedOtp, setGeneratedOtp] = useState(null);
+  const [otpFromServer, setOtpFromServer] = useState(null);
   const [loginError, setLoginError] = useState("");
+  const [otpTimer, setOtpTimer] = useState(0);
+  const [isResendingOtp, setIsResendingOtp] = useState(false);
 
-  const handlePublicAadhaarSubmit = async (data) => {
+  // OTP Timer countdown
+  useEffect(() => {
+    let interval = null;
+    if (otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (otpTimer === 0 && interval) {
+      clearInterval(interval);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [otpTimer]);
+
+  // Mobile number validation: 10-digit Indian mobile number starting with 6-9
+  const validateMobileNumber = (mobile) => {
+    const mobileRegex = /^[6-9]\d{9}$/;
+    return mobileRegex.test(mobile);
+  };
+
+  // Handle sending OTP for login
+  const handleLoginSendOtp = async (data) => {
     setLoginError("");
     setOtpSent(false);
+    const mobile = data.mobile_number?.trim() || "";
+
+    if (!validateMobileNumber(mobile)) {
+      setLoginError("Invalid mobile number. Please enter a valid 10-digit Indian mobile number.");
+      return;
+    }
 
     try {
-      const response = await axios.get(CHECK_AADHAAR_URL, {
-        params: {
-          aadhaarNumber: data.aadhaar_number.trim(),
-        },
-        // withCredentials: true,
+      const response = await axios.post(PUBLIC_AUTH_LOGIN_SEND_OTP_URL, {
+        mobileNumber: mobile,
+      });
+
+      const { status, message, otp } = response.data;
+
+      if (status === "success") {
+        setMobileNumber(mobile);
+        setOtpSent(true);
+        setOtpFromServer(otp || null); // Store OTP if returned (dev mode)
+        setOtpTimer(600); // 10 minutes = 600 seconds
+        setLoginError("");
+        // Clear mobile number field
+        reset({ mobile_number: "" });
+      } else {
+        setLoginError(message || "Failed to send OTP. Please try again.");
+      }
+    } catch (error) {
+      console.error("Login send OTP error:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Unable to send OTP at the moment. Please try again later.";
+      setLoginError(errorMessage);
+    }
+  };
+
+  // Handle verifying OTP for login
+  const handleLoginVerifyOtp = async (data) => {
+    setLoginError("");
+
+    try {
+      const response = await axios.post(PUBLIC_AUTH_LOGIN_VERIFY_OTP_URL, {
+        mobileNumber: mobileNumber,
+        otp: data.otp_input?.trim() || "",
       });
 
       const { status, user, message } = response.data;
 
-      // Safety check (for 200 but invalid payload)
-      if (status !== "success" || !user) {
-        setLoginError(
-          "Aadhaar details not found in UIDAI database. Enter the correct details." ||
-            message
-        );
-        return;
+      if (status === "success" && user) {
+        // Store user data
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("role", "Public User");
+
+        // Reset form state
+        reset();
+        setOtpSent(false);
+        setMobileNumber("");
+        setOtpTimer(0);
+
+        navigate("/user/dashboard", { replace: true });
+      } else {
+        setLoginError(message || "OTP verification failed. Please try again.");
       }
-
-      // Aadhaar found - store the user object from API
-      setAadhaarFoundUser(user);
-
-      // Mock OTP (temporary)
-      setGeneratedOtp("123456");
-      setOtpSent(true);
     } catch (error) {
-      console.error("Aadhaar verification error:", error);
-
-      // Aadhaar not found / invalid (404)
-      if (error.response?.status === 404) {
-        setLoginError(
-          "Aadhaar details not found in UIDAI database. Enter the correct details." ||
-            error.response.data?.message
-        );
-        return;
-      }
-
-      // Other errors (500, network, etc.)
-      setLoginError(
-        "Unable to verify Aadhaar at the moment. Please try again later."
-      );
+      console.error("Login verify OTP error:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Invalid OTP. Please try again.";
+      setLoginError(errorMessage);
     }
   };
 
-  const handleOtpVerify = (data) => {
-    if (data.otp_input === generatedOtp) {
-      // Store the user object from API (already has _id and userId)
-      localStorage.setItem("user", JSON.stringify(aadhaarFoundUser));
-      localStorage.setItem("role", "Public User");
+  // Handle sending OTP for registration
+  const handleRegisterSendOtp = async (data) => {
+    setLoginError("");
+    setOtpSent(false);
+    const mobile = data.mobile_number?.trim() || "";
 
-      const to = "/user/dashboard";
-
-      navigate(to, { replace: true });
-    } else {
-      setLoginError("Incorrect OTP entered. Please try again.");
+    if (!validateMobileNumber(mobile)) {
+      setLoginError("Invalid mobile number. Please enter a valid 10-digit Indian mobile number.");
+      return;
     }
+
+    try {
+      const response = await axios.post(PUBLIC_AUTH_REGISTER_SEND_OTP_URL, {
+        mobileNumber: mobile,
+      });
+
+      const { status, message, otp } = response.data;
+
+      if (status === "success") {
+        setMobileNumber(mobile);
+        setOtpSent(true);
+        setOtpFromServer(otp || null); // Store OTP if returned (dev mode)
+        setOtpTimer(600); // 10 minutes = 600 seconds
+        setLoginError("");
+        // Clear mobile number field
+        reset({ mobile_number: "" });
+      } else {
+        setLoginError(message || "Failed to send OTP. Please try again.");
+      }
+    } catch (error) {
+      console.error("Register send OTP error:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Unable to send OTP at the moment. Please try again later.";
+      setLoginError(errorMessage);
+    }
+  };
+
+  // Handle verifying OTP for registration
+  const handleRegisterVerifyOtp = async (data) => {
+    setLoginError("");
+
+    try {
+      const response = await axios.post(PUBLIC_AUTH_REGISTER_VERIFY_OTP_URL, {
+        mobileNumber: mobileNumber,
+        otp: data.otp_input?.trim() || "",
+        fullName: data.full_name?.trim() || "",
+        email: data.email?.trim() || "",
+      });
+
+      const { status, user, message } = response.data;
+
+      if (status === "success" && user) {
+        // Store user data
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("role", "Public User");
+
+        // Reset form state
+        reset();
+        setOtpSent(false);
+        setIsRegistering(false);
+        setMobileNumber("");
+        setOtpTimer(0);
+
+        navigate("/user/dashboard", { replace: true });
+      } else {
+        setLoginError(message || "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Register verify OTP error:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Invalid OTP. Please try again.";
+      setLoginError(errorMessage);
+    }
+  };
+
+  // Handle resending OTP
+  const handleResendOtp = async () => {
+    if (!mobileNumber || isResendingOtp) return;
+
+    setIsResendingOtp(true);
+    setLoginError("");
+
+    try {
+      const endpoint = isRegistering
+        ? PUBLIC_AUTH_REGISTER_SEND_OTP_URL
+        : PUBLIC_AUTH_LOGIN_SEND_OTP_URL;
+
+      const response = await axios.post(endpoint, {
+        mobileNumber: mobileNumber,
+      });
+
+      const { status, message, otp } = response.data;
+
+      if (status === "success") {
+        setOtpFromServer(otp || null);
+        setOtpTimer(600); // Reset timer to 10 minutes
+        setLoginError("");
+      } else {
+        setLoginError(message || "Failed to resend OTP. Please try again.");
+      }
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Unable to resend OTP. Please try again later.";
+      setLoginError(errorMessage);
+    } finally {
+      setIsResendingOtp(false);
+    }
+  };
+
+  // Format timer display (MM:SS)
+  const formatTimer = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleAdminLogin = async (data) => {
@@ -169,6 +335,26 @@ const Login = () => {
     }
   };
 
+  // Reset form when switching tabs or modes
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setLoginError("");
+    reset();
+    setOtpSent(false);
+    setIsRegistering(false);
+    setMobileNumber("");
+    setOtpTimer(0);
+  };
+
+  const handleToggleRegister = () => {
+    setIsRegistering(!isRegistering);
+    setLoginError("");
+    reset();
+    setOtpSent(false);
+    setMobileNumber("");
+    setOtpTimer(0);
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 px-4">
       <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-8">
@@ -180,10 +366,7 @@ const Login = () => {
         {/* Tabs */}
         <div className="flex border-b border-gray-200 mb-6">
           <button
-            onClick={() => {
-              setActiveTab("public");
-              setLoginError("");
-            }}
+            onClick={() => handleTabChange("public")}
             className={`cursor-pointer w-1/2 pb-2 text-center font-medium ${
               activeTab === "public"
                 ? "text-orange-600 border-b-2 border-orange-600"
@@ -194,10 +377,7 @@ const Login = () => {
           </button>
 
           <button
-            onClick={() => {
-              setActiveTab("admin");
-              setLoginError("");
-            }}
+            onClick={() => handleTabChange("admin")}
             className={`cursor-pointer w-1/2 pb-2 text-center font-medium ${
               activeTab === "admin"
                 ? "text-orange-600 border-b-2 border-orange-600"
@@ -210,7 +390,7 @@ const Login = () => {
 
         {/* Error Message */}
         {loginError && (
-          <div className="text-red-700 text-xs mb-4 text-center font-semibold">
+          <div className="text-red-700 text-xs mb-4 text-center font-semibold bg-red-50 p-3 rounded-md">
             {loginError}
           </div>
         )}
@@ -219,43 +399,133 @@ const Login = () => {
         {activeTab === "public" && (
           <>
             {!otpSent ? (
-              <form onSubmit={handleSubmit(handlePublicAadhaarSubmit)}>
-                <Input
-                  defaultName="aadhaar_number"
-                  register={register}
-                  name="Aadhaar Number"
-                  required={true}
-                  pattern={/^[0-9]{12}$/}
-                  errors={errors}
-                  placeholder="Enter your 12-digit Aadhaar number"
-                  setError={setError}
-                  clearError={clearErrors}
-                  autoComplete="off"
-                  type="text"
-                  classes="rounded-md px-3 py-2 text-sm w-full"
-                  onChangeInput={null}
-                  setValue={setValue}
-                />
+              <>
+                {/* Login/Register Toggle */}
+                <div className="flex border-b border-gray-200 mb-6">
+                  <button
+                    onClick={handleToggleRegister}
+                    type="button"
+                    className={`cursor-pointer w-1/2 pb-2 text-center text-sm font-medium ${
+                      !isRegistering
+                        ? "text-blue-600 border-b-2 border-blue-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={handleToggleRegister}
+                    type="button"
+                    className={`cursor-pointer w-1/2 pb-2 text-center text-sm font-medium ${
+                      isRegistering
+                        ? "text-blue-600 border-b-2 border-blue-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    Register
+                  </button>
+                </div>
 
-                <button
-                  type="submit"
-                  className="mt-8 w-full bg-green-600 text-white rounded-md py-2 hover:bg-green-700 cursor-pointer transition-all ease-in-out duration-500"
+                <form
+                  onSubmit={handleSubmit(
+                    isRegistering ? handleRegisterSendOtp : handleLoginSendOtp
+                  )}
                 >
-                  Get OTP
-                </button>
-              </form>
+                  <Input
+                    defaultName="mobile_number"
+                    register={register}
+                    name="Mobile Number"
+                    required={true}
+                    pattern={/^[6-9]\d{9}$/}
+                    errors={errors}
+                    placeholder="Enter your 10-digit mobile number"
+                    setError={setError}
+                    clearError={clearErrors}
+                    autoComplete="off"
+                    type="text"
+                    classes="rounded-md px-3 py-2 text-sm w-full"
+                    onChangeInput={null}
+                    setValue={setValue}
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="mt-8 w-full bg-green-600 text-white rounded-md py-2 hover:bg-green-700 cursor-pointer transition-all ease-in-out duration-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? "Sending..." : "Send OTP"}
+                  </button>
+                </form>
+              </>
             ) : (
               <>
                 <p className="text-sm text-gray-700 text-center mb-3">
-                  A 6-digit OTP is sent to the linked mobile number ending with{" "}
+                  A 6-digit OTP has been sent to{" "}
                   <span className="font-semibold">
-                    {aadhaarFoundUser?.phoneNumber
-                      ? `******${aadhaarFoundUser.phoneNumber.slice(-4)}`
-                      : "****"}
+                    {mobileNumber ? `******${mobileNumber.slice(-4)}` : "your mobile number"}
                   </span>
                 </p>
 
-                <form onSubmit={handleSubmit(handleOtpVerify)}>
+                {/* OTP Timer */}
+                {otpTimer > 0 && (
+                  <p className="text-xs text-gray-500 text-center mb-3">
+                    OTP expires in: <span className="font-semibold">{formatTimer(otpTimer)}</span>
+                  </p>
+                )}
+
+                {/* Development Mode OTP Display */}
+                {otpFromServer && (
+                  <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-xs text-yellow-800 text-center">
+                      <strong>Dev Mode:</strong> OTP is {otpFromServer}
+                    </p>
+                  </div>
+                )}
+
+                <form
+                  onSubmit={handleSubmit(
+                    isRegistering ? handleRegisterVerifyOtp : handleLoginVerifyOtp
+                  )}
+                >
+                  {/* Registration fields (only shown during registration) */}
+                  {isRegistering && (
+                    <>
+                      <Input
+                        defaultName="full_name"
+                        register={register}
+                        name="Full Name (Optional)"
+                        required={false}
+                        pattern={null}
+                        errors={errors}
+                        placeholder="Enter your full name (optional)"
+                        setError={setError}
+                        clearError={clearErrors}
+                        autoComplete="off"
+                        type="text"
+                        classes="mb-3 rounded-md px-3 py-2 text-sm w-full"
+                        onChangeInput={null}
+                        setValue={setValue}
+                      />
+
+                      <Input
+                        defaultName="email"
+                        register={register}
+                        name="Email (Optional)"
+                        required={false}
+                        pattern={/^[^\s@]+@[^\s@]+\.[^\s@]+$/}
+                        errors={errors}
+                        placeholder="Enter your email (optional)"
+                        setError={setError}
+                        clearError={clearErrors}
+                        autoComplete="off"
+                        type="email"
+                        classes="mb-3 rounded-md px-3 py-2 text-sm w-full"
+                        onChangeInput={null}
+                        setValue={setValue}
+                      />
+                    </>
+                  )}
+
                   <Input
                     defaultName="otp_input"
                     register={register}
@@ -275,9 +545,45 @@ const Login = () => {
 
                   <button
                     type="submit"
-                    className="mt-8 w-full bg-orange-600 text-white rounded-md py-2 hover:bg-orange-700 cursor-pointer transition-all ease-in-out duration-500"
+                    disabled={isSubmitting}
+                    className="mt-4 w-full bg-orange-600 text-white rounded-md py-2 hover:bg-orange-700 cursor-pointer transition-all ease-in-out duration-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    Login
+                    {isSubmitting
+                      ? "Verifying..."
+                      : isRegistering
+                      ? "Register"
+                      : "Login"}
+                  </button>
+
+                  {/* Resend OTP */}
+                  <div className="mt-4 text-center">
+                    {otpTimer > 0 ? (
+                      <p className="text-xs text-gray-500">
+                        Didn&apos;t receive OTP? Resend in {formatTimer(otpTimer)}
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={isResendingOtp}
+                        className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+                      >
+                        {isResendingOtp ? "Resending..." : "Resend OTP"}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Back button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpSent(false);
+                      reset();
+                      setOtpTimer(0);
+                    }}
+                    className="mt-2 w-full text-sm text-gray-600 hover:text-gray-800"
+                  >
+                    ← Change Mobile Number
                   </button>
                 </form>
               </>
@@ -319,25 +625,17 @@ const Login = () => {
               autoComplete="off"
               classes={`rounded-md px-3 py-2 text-sm w-full`}
               onChangeInput={null}
-              // defaultValue={defaultValues.admin_password}
               setValue={setValue}
             />
 
             <button
               type="submit"
-              className="mt-8 w-full bg-orange-600 text-white rounded-md py-2 hover:bg-orange-700 cursor-pointer transition-all ease-in-out duration-500"
+              disabled={isSubmitting}
+              className="mt-8 w-full bg-orange-600 text-white rounded-md py-2 hover:bg-orange-700 cursor-pointer transition-all ease-in-out duration-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Login
+              {isSubmitting ? "Logging in..." : "Login"}
             </button>
           </form>
-        )}
-
-        {/* Register Link */}
-        {activeTab === "public" && !otpSent && (
-          <p className="mt-8 text-center text-xs">
-            Don&apos;t have an account?{" "}
-            <span className="text-blue-600 cursor-pointer">Register</span>
-          </p>
         )}
       </div>
     </div>

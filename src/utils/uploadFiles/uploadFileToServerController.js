@@ -8,10 +8,19 @@ const BASE_URL =
     ? import.meta.env.VITE_ENDPOINT_URL
     : import.meta.env.VITE_ENDPOINT_URL_ONLINE;
 
-const MEDIA_URL =
-  import.meta.env.VITE_NODE_ENV === "development"
-    ? import.meta.env.VITE_MEDIA_ENDPOINT_URL
-    : import.meta.env.VITE_MEDIA_ENDPOINT_URL_ONLINE;
+// Base URL for document/media view links. Use env with no trailing slash, e.g.:
+// VITE_MEDIA_ENDPOINT_URL=http://localhost:3000 or VITE_API_URL=http://localhost:3000
+const getMediaBaseUrl = () => {
+  const url =
+    import.meta.env.VITE_NODE_ENV === "development"
+      ? import.meta.env.VITE_MEDIA_ENDPOINT_URL ||
+        import.meta.env.VITE_API_URL ||
+        import.meta.env.VITE_ENDPOINT_URL
+      : import.meta.env.VITE_MEDIA_ENDPOINT_URL_ONLINE ||
+        import.meta.env.VITE_API_URL ||
+        import.meta.env.VITE_ENDPOINT_URL_ONLINE;
+  return (url || "").replace(/\/$/, "");
+};
 
 export const uploadFileToServer = async (file, folderName) => {
   const formData = new FormData();
@@ -44,9 +53,18 @@ export const uploadFileToServer = async (file, folderName) => {
   }
 };
 
+/**
+ * Build document/view URL for "View" links.
+ * Correct: baseUrl + filePath → e.g. http://localhost:3000/public/uploads/...
+ * Wrong: baseUrl with trailing slash + filePath with leading slash → //public/... → "Route not found"
+ * Env: set VITE_MEDIA_ENDPOINT_URL or VITE_API_URL with no trailing slash.
+ */
 export const displayMedia = (filePath) => {
-  // Construct the full URL using the MEDIA_URL environment variable
-  return `${MEDIA_URL}/${filePath}`; // Full URL to the file
+  if (!filePath) return "";
+  const baseUrl = getMediaBaseUrl();
+  if (!baseUrl) return String(filePath).startsWith("/") ? filePath : `/${filePath}`;
+  // documentUrl = baseUrl + filePath (filePath usually has leading slash from backend)
+  return baseUrl + (String(filePath).startsWith("/") ? filePath : `/${filePath}`);
 };
 
 export const originalFilename = (filePath) => {

@@ -11,6 +11,7 @@ import Login from "./areas/common/login.component";
 
 import PublicDashboard from "./areas/public/dashboard/PublicDashboard";
 import PublicProfile from "./areas/public/dashboard/PublicProfile.page";
+import CompleteProfile from "./areas/public/dashboard/CompleteProfile.page";
 import PublicSchemes from "./areas/public/dashboard/PublicSchemes.page";
 import PublicApplications from "./areas/public/dashboard/PublicApplications.page";
 import ApplyToScheme from "./areas/public/dashboard/ApplyToScheme.page";
@@ -47,6 +48,7 @@ function App() {
         {/* Public User Dashboard Routes */}
         <Route exact path="/user/dashboard" element={<PublicDashboard />} />
         <Route exact path="/user/profile" element={<PublicProfile />} />
+        <Route exact path="/user/complete-profile" element={<CompleteProfile />} />
         <Route exact path="/user/schemes" element={<PublicSchemes />} />
         <Route exact path="/user/applications" element={<PublicApplications />} />
         <Route exact path="/user/apply-to-scheme" element={<ApplyToScheme />} />

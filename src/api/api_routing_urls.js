@@ -5,6 +5,20 @@ export const APPLICATIONS_APPLY_URL = "/applications/apply";
 export const APPLICATIONS_USER_URL = "/applications/user"; // GET /applications/user/:user_id
 export const APPLICATIONS_USER_SUMMARY_URL = "/applications/user"; // GET /applications/user/:user_id/summary
 
+// Public Auth URLs - Mobile Number + OTP Authentication
+// Note: axios `baseURL` already includes `/api`, so these are relative to that base.
+export const PUBLIC_AUTH_REGISTER_SEND_OTP_URL = "/public-auth/register/send-otp";
+export const PUBLIC_AUTH_REGISTER_VERIFY_OTP_URL = "/public-auth/register/verify-otp";
+export const PUBLIC_AUTH_LOGIN_SEND_OTP_URL = "/public-auth/login/send-otp";
+export const PUBLIC_AUTH_LOGIN_VERIFY_OTP_URL = "/public-auth/login/verify-otp";
+
+// Public Profile URLs - Profile Completion & Document Upload
+export const PUBLIC_PROFILE_GET_URL = "/public-profile"; // GET /api/public-profile
+export const PUBLIC_PROFILE_UPDATE_URL = "/public-profile/update"; // PUT /api/public-profile/update
+export const PUBLIC_PROFILE_SUBMIT_COMPLETE_URL = "/public-profile/submit-complete"; // POST - profile + all documents in one request
+export const PUBLIC_PROFILE_UPLOAD_DOCUMENT_URL = "/public-profile/upload-document"; // POST /api/public-profile/upload-document
+export const PUBLIC_PROFILE_DELETE_DOCUMENT_URL = "/public-profile/delete-document"; // DELETE /api/public-profile/delete-document
+
 //#endregion
 
 //#region System Admin User URLs
