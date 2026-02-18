@@ -130,33 +130,33 @@ export default function PublicApplications() {
                     </tr>
                   ) : (
                     applications.map((app, index) => {
-                      const status = statusConfig[app.status] || statusConfig.Applied;
+                    const status = statusConfig[app.status] || statusConfig.Applied;
                       const dateApplied = app.date_applied 
                         ? formatDateInDDMonYYYY(app.date_applied) 
                         : "N/A";
                       const verificationStage = app.verification_stage_display || app.verification_stage || "N/A";
 
-                      return (
+                    return (
                         <tr key={app._id || app.applicationId || index} className="hover:bg-gray-50">
                           <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900">
                               {app.schemeName || app.scheme_name || "N/A"}
                             </div>
                             {app.applicationId && (
                               <div className="text-xs text-gray-500 mt-1">
                                 ID: {app.applicationId}
-                              </div>
+                          </div>
                             )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${status.bg} ${status.text}`}
-                            >
-                              {status.icon}
-                              {app.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${status.bg} ${status.text}`}
+                          >
+                            {status.icon}
+                            {app.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {verificationStage}
                             {app.current_verifier && (
                               <div className="text-xs text-gray-500 mt-1">
@@ -166,14 +166,14 @@ export default function PublicApplications() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {dateApplied}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <button className="text-blue-600 hover:text-blue-800 font-semibold">
-                              View Details
-                            </button>
-                          </td>
-                        </tr>
-                      );
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button className="text-blue-600 hover:text-blue-800 font-semibold">
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    );
                     })
                   )}
                 </tbody>

@@ -45,7 +45,7 @@ export default function PublicProfile() {
           if (pathError.response?.status === 404) {
             // Try query parameter as fallback
             try {
-              response = await axios.get(`${PROFILE_URL}?user_id=${userId}`);
+          response = await axios.get(`${PROFILE_URL}?user_id=${userId}`);
             } catch (queryError) {
               // Both endpoints failed, use stored user
               if (storedUser) {

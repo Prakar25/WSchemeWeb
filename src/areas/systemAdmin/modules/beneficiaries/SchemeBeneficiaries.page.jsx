@@ -1,17 +1,19 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaArrowLeft, FaSearch } from "react-icons/fa";
+import { FaArrowLeft, FaSearch, FaUpload } from "react-icons/fa";
 
 import axios from "../../../../api/axios";
-import { APPLICATIONS_SCHEME_URL } from "../../../../api/api_routing_urls";
+import { APPLICATIONS_SCHEME_URL, ADMIN_PROFILE_URL, DEPARTMENTS_URL } from "../../../../api/api_routing_urls";
 import Dashboard from "../../../dashboard-components/dashboard.component";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import { formatDateInDDMonYYYY } from "../../../../utils/dateFunctions/formatdate";
+import BulkUploadModal from "../../../../reusable-components/modals/BulkUploadModal.component";
 
 export default function SchemeBeneficiaries() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { scheme_id } = useParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,6 +22,108 @@ export default function SchemeBeneficiaries() {
   const [countByStatus, setCountByStatus] = useState({});
   const [totalApplicants, setTotalApplicants] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [canBulkUpload, setCanBulkUpload] = useState(false);
+  const [adminDepartment, setAdminDepartment] = useState(null);
+  const [adminDepartmentName, setAdminDepartmentName] = useState(null);
+
+  // Get admin credentials
+  const getAdminCredentials = () => {
+    const username = sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username");
+    const password = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
+    return { username, password };
+  };
+
+  // Check if admin has bulk upload access
+  useEffect(() => {
+    // Fetch department name by ID
+    const fetchDepartmentName = async (departmentId) => {
+      try {
+        const response = await axios.get(DEPARTMENTS_URL);
+        if (response.status === 200) {
+          const deptData = response.data?.departments || response.data || [];
+          const department = deptData.find((dept) => dept._id === departmentId);
+          if (department) {
+            setAdminDepartmentName(department.department_name || department.name || "N/A");
+          } else {
+            setAdminDepartmentName("N/A");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching department name:", error);
+        setAdminDepartmentName("N/A");
+      }
+    };
+
+    const checkBulkUploadAccess = async () => {
+      try {
+        const { username, password } = getAdminCredentials();
+        if (!username || !password) {
+          setCanBulkUpload(false);
+          return;
+        }
+
+        const params = new URLSearchParams();
+        params.append("username", username);
+        params.append("password", password);
+
+        const response = await axios.get(`${ADMIN_PROFILE_URL}?${params.toString()}`);
+        if (response.status === 200 && response.data?.user) {
+          const userData = response.data.user;
+          const roleLevel = userData.roleLevel || userData.role_level;
+          const role = userData.role || "";
+
+          // Allow bulk upload for: Department Secretary (level 3), Department Head (level 4), Admin (level 2), Super Admin (level 1)
+          const hasAccess =
+            roleLevel === 1 || // Super Admin
+            roleLevel === 2 || // Admin
+            roleLevel === 3 || // Department Secretary
+            roleLevel === 4 || // Department Head
+            role === "Super Admin" ||
+            role === "Admin" ||
+            role === "Department Secretary" ||
+            role === "Department Head";
+
+          setCanBulkUpload(hasAccess);
+          console.log("Bulk Upload Access Check:", {
+            roleLevel,
+            role,
+            hasAccess,
+            canBulkUpload: hasAccess
+          });
+
+          // Extract department ID and name
+          let deptId = userData.departmentId || userData.department_id;
+          let deptName = userData.departmentName || userData.department_name;
+          
+          if (!deptId && userData.department) {
+            const deptValue = String(userData.department).trim();
+            const isObjectIdFormat = /^[0-9a-fA-F]{24}$/.test(deptValue);
+            if (isObjectIdFormat) {
+              deptId = deptValue;
+            } else {
+              // If department is a name string, use it
+              deptName = deptValue;
+            }
+          }
+          
+          setAdminDepartment(deptId);
+          
+          // If we have department ID but no name, fetch it from departments API
+          if (deptId && !deptName) {
+            fetchDepartmentName(deptId);
+          } else {
+            setAdminDepartmentName(deptName || userData.department || "N/A");
+          }
+        }
+      } catch (error) {
+        console.error("Error checking bulk upload access:", error);
+        setCanBulkUpload(false);
+      }
+    };
+
+    checkBulkUploadAccess();
+  }, []);
 
   // Fetch scheme beneficiaries
   useEffect(() => {
@@ -122,12 +226,29 @@ export default function SchemeBeneficiaries() {
       <div className="p-6 bg-slate-50 min-h-screen">
         {/* Header */}
         <div className="mb-6">
-          <button
-            onClick={() => navigate("/system-admin/dashboard")}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-4"
-          >
-            <FaArrowLeft /> Back to Dashboard
-          </button>
+          <div className="flex justify-between items-start mb-4">
+            <button
+              onClick={() => {
+                // Go back to previous page, or to schemes list if no history
+                if (location.state?.from) {
+                  navigate(location.state.from);
+                } else {
+                  navigate(-1); // Go back in browser history
+                }
+              }}
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            >
+              <FaArrowLeft /> Back
+            </button>
+            {scheme && (
+              <button
+                onClick={() => setShowBulkUpload(true)}
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 font-medium transition-colors"
+              >
+                <FaUpload /> Bulk Upload
+              </button>
+            )}
+          </div>
           <h1 className="text-2xl font-semibold text-gray-800">
             Scheme Beneficiaries
           </h1>
@@ -270,6 +391,18 @@ export default function SchemeBeneficiaries() {
               </div>
             )}
           </>
+        )}
+
+        {/* Bulk Upload Modal */}
+        {scheme && (
+          <BulkUploadModal
+            isOpen={showBulkUpload}
+            onClose={() => setShowBulkUpload(false)}
+            schemeId={scheme._id || scheme_id}
+            schemeName={scheme.scheme_name || "N/A"}
+            adminDepartment={adminDepartment}
+            adminDepartmentName={adminDepartmentName}
+          />
         )}
       </div>
     </Dashboard>

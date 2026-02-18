@@ -36,4 +36,8 @@ export const APPLICATION_FORWARD_URL = "/applications"; // POST /applications/:a
 export const APPLICATION_ASSIGN_URL = "/applications"; // POST /applications/:applicationId/assign - Assign application to admin
 export const APPLICATION_NEXT_STAGE_ADMINS_URL = "/applications"; // GET /applications/:applicationId/next-stage-admins - Get admins for next stage
 
+// Bulk Upload URLs
+export const BULK_UPLOAD_PREVIEW_URL = "/bulk-upload/preview"; // POST /bulk-upload/preview - Upload file and get preview
+export const BULK_UPLOAD_CONFIRM_URL = "/bulk-upload/confirm"; // POST /bulk-upload/confirm - Confirm and save bulk upload
+
 //#endregion

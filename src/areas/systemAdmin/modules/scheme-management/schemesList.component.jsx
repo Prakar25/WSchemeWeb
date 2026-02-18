@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { motion } from "framer-motion";
 
@@ -188,13 +189,16 @@ const SchemesList = ({
     }
   };
 
-  // Handle view applicants click
+  // Handle view applicants click - navigate to scheme beneficiaries page
+  const navigate = useNavigate();
+  const location = useLocation();
   const handleViewApplicants = (schemeObj) => {
     const schemeId = schemeObj._id || schemeObj.scheme_id;
     if (schemeId) {
-      setSelectedScheme(schemeObj);
-      setShowApplicantsModal(true);
-      fetchSchemeApplicants(schemeId);
+      // Pass current location as state so back button knows where to return
+      navigate(`/system-admin/scheme-beneficiaries/${schemeId}`, {
+        state: { from: location.pathname }
+      });
     } else {
       showToast("Scheme ID not found", "error");
     }
@@ -616,7 +620,7 @@ const SchemeCardAdmin = ({
                 {schemeObj.department_head_approval.approved_at && (
                   <span className="ml-1">
                     ({formatDateInDDMonYYYY(schemeObj.department_head_approval.approved_at)})
-                  </span>
+            </span>
                 )}
               </div>
             )}
@@ -639,23 +643,23 @@ const SchemeCardAdmin = ({
         {/* Actions */}
         <div className="flex flex-col gap-2 pt-3 border-t border-gray-200">
           <div className="flex gap-2">
-            <button
-              onClick={() => onClickEdit(schemeObj)}
-              className="flex-1 px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-blue-700 transition-colors duration-200"
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => {
-                setSchemeDeleteId(schemeObj?._id || schemeObj?.scheme_id || null);
-                setSchemeDeleteImagePath(
-                  schemeObj?.scheme_image_file_url || null
-                );
-                setShowDelete(true);
-              }}
-              className="flex-1 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors duration-200"
-            >
-              Delete
+          <button
+            onClick={() => onClickEdit(schemeObj)}
+            className="flex-1 px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-blue-700 transition-colors duration-200"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => {
+              setSchemeDeleteId(schemeObj?._id || schemeObj?.scheme_id || null);
+              setSchemeDeleteImagePath(
+                schemeObj?.scheme_image_file_url || null
+              );
+              setShowDelete(true);
+            }}
+            className="flex-1 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors duration-200"
+          >
+            Delete
             </button>
           </div>
           <button

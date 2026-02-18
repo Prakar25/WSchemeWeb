@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaSearch, FaFilter, FaDownload, FaTimes } from "react-icons/fa";
-import { FiAlertTriangle } from "react-icons/fi";
+import { FaSearch, FaFilter, FaDownload, FaTimes, FaExclamationTriangle } from "react-icons/fa";
+import { FiAlertTriangle, FiX } from "react-icons/fi";
 import axios from "../../../api/axios";
 import {
   DASHBOARD_STATISTICS_URL,
@@ -12,6 +12,7 @@ import {
 } from "../../../api/api_routing_urls";
 
 import Dashboard from "../../dashboard-components/dashboard.component";
+import GenericModal from "../../../reusable-components/modals/GenericModal.component";
 
 export default function SysAdminDashboard() {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ export default function SysAdminDashboard() {
   // Alerts state
   const [alerts, setAlerts] = useState([]);
   const [alertsLoading, setAlertsLoading] = useState(true);
+  const [selectedAlert, setSelectedAlert] = useState(null);
+  const [showAlertModal, setShowAlertModal] = useState(false);
 
   // Get admin credentials from sessionStorage
   const getAdminCredentials = () => {
@@ -371,7 +374,15 @@ export default function SysAdminDashboard() {
                   </div>
                 ) : alerts.length > 0 ? (
                   alerts.map((alert, index) => (
-                    <AlertCard key={alert.alertId || index} alert={alert} index={index} />
+                    <AlertCard 
+                      key={alert.alertId || index} 
+                      alert={alert} 
+                      index={index}
+                      onCardClick={(alert) => {
+                        setSelectedAlert(alert);
+                        setShowAlertModal(true);
+                      }}
+                    />
                   ))
                 ) : (
                   <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-500">
@@ -380,6 +391,33 @@ export default function SysAdminDashboard() {
                 )}
               </div>
             </div>
+
+            {/* Alert Details Modal */}
+            {showAlertModal && selectedAlert && (
+              <GenericModal
+                open={showAlertModal}
+                setOpen={(value) => {
+                  setShowAlertModal(value);
+                  if (!value) {
+                    setSelectedAlert(null);
+                  }
+                }}
+                title={
+                  <div className="flex items-center gap-2">
+                    {selectedAlert.type === "duplicate" ? (
+                      <FiAlertTriangle className="text-yellow-600" size={24} />
+                    ) : (
+                      <FaExclamationTriangle className="text-red-600" size={24} />
+                    )}
+                    <span>
+                      {selectedAlert.title || (selectedAlert.type === "duplicate" ? "Duplicate Application" : "Ineligible Claim")}
+                    </span>
+                  </div>
+                }
+              >
+                <AlertDetailsModal alert={selectedAlert} />
+              </GenericModal>
+            )}
           </div>
         </Dashboard>
       </section>
@@ -473,7 +511,7 @@ function TableRow({ scheme, schemeId, total, approved, pending, rejected, index,
   );
 }
 
-function AlertCard({ alert, index }) {
+function AlertCard({ alert, index, onCardClick }) {
   const isDuplicate = alert.type === "duplicate";
   const bgColor = isDuplicate ? "bg-yellow-50" : "bg-red-50";
   const borderColor = isDuplicate ? "border-yellow-200" : "border-red-200";
@@ -483,15 +521,8 @@ function AlertCard({ alert, index }) {
   const applicantName = alert.applicantName || "";
 
   const handleClick = () => {
-    if (alert.actionUrl) {
-      // TODO: Navigate to action URL
-      console.log("Navigate to:", alert.actionUrl);
-    } else if (alert.applicationId) {
-      // TODO: Handle application review/investigation
-      console.log(
-        isDuplicate ? "Review application" : "Investigate claim",
-        alert.applicationId
-      );
+    if (onCardClick) {
+      onCardClick(alert);
     }
   };
 
@@ -540,5 +571,214 @@ function AlertCard({ alert, index }) {
         </p>
       </div>
     </motion.div>
+  );
+}
+
+function AlertDetailsModal({ alert }) {
+  const navigate = useNavigate();
+  const isDuplicate = alert.type === "duplicate";
+  
+  // Get application ID for navigation
+  const applicationId = 
+    alert.applicationId || 
+    alert.application_id || 
+    alert._id || 
+    alert.id;
+
+  const handleViewApplication = () => {
+    if (applicationId) {
+      navigate("/system-admin/applications", {
+        state: { 
+          applicationId: applicationId,
+          autoOpen: true 
+        }
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Alert Type Badge */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+          isDuplicate 
+            ? "bg-yellow-100 text-yellow-800" 
+            : "bg-red-100 text-red-800"
+        }`}>
+          {isDuplicate ? "Duplicate Detection" : "Fraud/Ineligibility Alert"}
+        </span>
+        {alert.severity && (
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            alert.severity === "high" 
+              ? "bg-red-200 text-red-900" 
+              : alert.severity === "medium"
+              ? "bg-orange-200 text-orange-900"
+              : "bg-yellow-200 text-yellow-900"
+          }`}>
+            {alert.severity.toUpperCase()} Priority
+          </span>
+        )}
+      </div>
+
+      {/* Applicant Information */}
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <h3 className="font-semibold text-gray-800 mb-2">Applicant Information</h3>
+        <div className="space-y-1 text-sm">
+          {/* Name - try multiple field variations */}
+          <p>
+            <span className="font-medium">Name:</span>{" "}
+            {alert.applicantName || 
+             alert.applicant?.fullName || 
+             alert.applicant?.name || 
+             alert.applicant?.full_name ||
+             alert.application?.applicantName ||
+             alert.application?.fullName ||
+             alert.fullName ||
+             alert.name ||
+             "N/A"}
+          </p>
+          
+          {/* Aadhaar - try multiple field variations */}
+          {(alert.aadhaarNumber || 
+            alert.aadhaar_number || 
+            alert.applicant?.aadhaarNumber || 
+            alert.applicant?.aadhaar_number ||
+            alert.applicant?.aadhaar ||
+            alert.application?.aadhaarNumber ||
+            alert.application?.aadhaar_number ||
+            alert.aadhaar) && (
+            <p>
+              <span className="font-medium">Aadhaar:</span>{" "}
+              {alert.aadhaarNumber || 
+               alert.aadhaar_number || 
+               alert.applicant?.aadhaarNumber || 
+               alert.applicant?.aadhaar_number ||
+               alert.applicant?.aadhaar ||
+               alert.application?.aadhaarNumber ||
+               alert.application?.aadhaar_number ||
+               alert.aadhaar}
+            </p>
+          )}
+          
+          {/* Scheme - try multiple field variations */}
+          {(alert.schemeName || 
+            alert.scheme_name || 
+            alert.scheme?.scheme_name || 
+            alert.scheme?.name ||
+            alert.application?.schemeName ||
+            alert.application?.scheme_name) && (
+            <p>
+              <span className="font-medium">Scheme:</span>{" "}
+              {alert.schemeName || 
+               alert.scheme_name || 
+               alert.scheme?.scheme_name || 
+               alert.scheme?.name ||
+               alert.application?.schemeName ||
+               alert.application?.scheme_name}
+            </p>
+          )}
+          
+          {/* Application ID */}
+          {applicationId && (
+            <p><span className="font-medium">Application ID:</span> {applicationId}</p>
+          )}
+          
+          {/* Alert ID */}
+          {alert.alertId && (
+            <p><span className="font-medium">Alert ID:</span> {alert.alertId}</p>
+          )}
+          
+          {/* Show all alert data for debugging if no standard fields found */}
+          {!alert.applicantName && !alert.applicant && !alert.application && (
+            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+              <p className="font-medium text-yellow-800 mb-1">Debug: Available alert fields:</p>
+              <pre className="text-yellow-700 overflow-auto max-h-32">
+                {JSON.stringify(alert, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Alert Reason */}
+      <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+        <h3 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
+          <FaExclamationTriangle className="text-red-600" />
+          Why This Alert Was Triggered
+        </h3>
+        <p className="text-sm text-red-700 whitespace-pre-wrap">
+          {alert.reason || alert.description || alert.message || "No specific reason provided."}
+        </p>
+      </div>
+
+      {/* Additional Details */}
+      {alert.details && (
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+          <h3 className="font-semibold text-blue-800 mb-2">Additional Details</h3>
+          <div className="text-sm text-blue-700 space-y-2">
+            {typeof alert.details === "string" ? (
+              <p className="whitespace-pre-wrap">{alert.details}</p>
+            ) : (
+              <ul className="list-disc list-inside space-y-1">
+                {Object.entries(alert.details).map(([key, value]) => (
+                  <li key={key}>
+                    <span className="font-medium">{key}:</span> {String(value)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Evidence or Evidence Fields */}
+      {alert.evidence && (
+        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+          <h3 className="font-semibold text-yellow-800 mb-2">Evidence</h3>
+          <div className="text-sm text-yellow-700">
+            {typeof alert.evidence === "string" ? (
+              <p className="whitespace-pre-wrap">{alert.evidence}</p>
+            ) : (
+              <ul className="list-disc list-inside space-y-1">
+                {Object.entries(alert.evidence).map(([key, value]) => (
+                  <li key={key}>
+                    <span className="font-medium">{key}:</span> {String(value)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Timestamp */}
+      {alert.createdAt && (
+        <div className="text-sm text-gray-500">
+          <span className="font-medium">Alert Created:</span>{" "}
+          {new Date(alert.createdAt).toLocaleString()}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-4 border-t">
+        {applicationId && (
+          <button
+            onClick={handleViewApplication}
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+          >
+            View Full Application
+          </button>
+        )}
+        <button
+          onClick={() => {
+            // TODO: Implement dismiss/resolve alert functionality
+            console.log("Dismiss alert:", alert.alertId);
+          }}
+          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium"
+        >
+          Dismiss Alert
+        </button>
+      </div>
+    </div>
   );
 }

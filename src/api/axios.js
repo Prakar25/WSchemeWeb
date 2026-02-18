@@ -22,7 +22,7 @@ axiosInstance.interceptors.request.use(
     
     // Check if this is a scheme endpoint that requires headers:
     // - POST /schemes (create scheme) - relative URL
-    // Note: Update, approve/reject endpoints use query parameters (not headers) to avoid CORS issues
+    // Note: Update, approve/reject, and bulk upload endpoints use query parameters (not headers) to avoid CORS issues
     // Note: config.url is relative, so we check for /schemes (not /api/schemes)
     const isSchemeCreate = url.includes('/schemes') && 
                            !url.includes('/update') && 
@@ -30,6 +30,7 @@ axiosInstance.interceptors.request.use(
                            !url.includes('/reject') && 
                            method === 'post';
     
+    // Bulk upload endpoints use query parameters (NOT headers) to avoid CORS issues
     // Scheme update endpoint uses query parameters (NOT headers) to avoid CORS issues
     // Approve/reject endpoints also use query parameters, NOT headers (to avoid CORS)
     const requiresHeaders = isSchemeCreate;

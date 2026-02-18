@@ -18,7 +18,7 @@ export const getDepartmentDisplayName = (departmentId, departmentMap = null) => 
     const dept = departmentMap.get(departmentId);
     if (dept) {
       return dept.department_display_name || dept.department_name || departmentId;
-    }
+        }
   }
   
   // Fallback: return the ID if no map provided
@@ -67,7 +67,7 @@ export const getCategoryDisplayName = (categoryId, categoryMap = null) => {
     const cat = categoryMap.get(categoryId);
     if (cat) {
       return cat.category_display_name || cat.category_name || categoryId;
-    }
+  }
   }
   
   // Fallback: return the ID if no map provided

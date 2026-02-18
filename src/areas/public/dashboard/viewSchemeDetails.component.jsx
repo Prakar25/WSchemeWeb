@@ -176,18 +176,18 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                   </h3>
                   {scheme.isEligible !== false ? (
                     <>
-                      <p className="text-gray-700 mb-4">
-                        You are eligible to apply.
-                      </p>
-                      <button
-                        onClick={() => {
-                          navigate("/user/apply-to-scheme", { state: { scheme } });
-                        }}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                      >
-                        Apply Now
-                        <FaArrowRight />
-                      </button>
+                  <p className="text-gray-700 mb-4">
+                    You are eligible to apply.
+                  </p>
+                  <button
+                    onClick={() => {
+                      navigate("/user/apply-to-scheme", { state: { scheme } });
+                    }}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                  >
+                    Apply Now
+                    <FaArrowRight />
+                  </button>
                     </>
                   ) : (
                     <>

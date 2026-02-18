@@ -90,8 +90,8 @@ export default function UserApplicationTracker() {
             No applications found.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {applications.map((app, index) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {applications.map((app, index) => {
               const status = statusConfig[app.status] || statusConfig["Under Review"];
               const lastUpdated = app.last_updated 
                 ? formatDateInDDMonYYYY(app.last_updated) 
@@ -147,10 +147,10 @@ export default function UserApplicationTracker() {
                   {/* Footer */}
                   <div className="mt-5 flex justify-between items-center text-sm">
                     <div>
-                      <p className="text-slate-600">
-                        <span className="font-medium">Last Updated:</span>{" "}
+                    <p className="text-slate-600">
+                      <span className="font-medium">Last Updated:</span>{" "}
                         {lastUpdated}
-                      </p>
+                    </p>
                       {app.current_verifier && (
                         <p className="text-xs text-slate-500 mt-1">
                           Verifier: {app.current_verifier.name || app.current_verifier.role || "N/A"}
@@ -172,7 +172,7 @@ export default function UserApplicationTracker() {
               </motion.div>
             );
           })}
-          </div>
+        </div>
         )}
       </section>
     </Dashboard>

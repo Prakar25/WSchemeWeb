@@ -193,9 +193,9 @@ const AddSchemeForm = ({
   // Check if editing (must be declared before useEffects that use it)
   const isEdit = Object.keys(editSchemeDetails)?.length > 0;
 
-  // Set default excluded schemes if editing
+          // Set default excluded schemes if editing
   useEffect(() => {
-    if (isEdit && editSchemeDetails?.excluded_schemes && Array.isArray(editSchemeDetails.excluded_schemes)) {
+          if (isEdit && editSchemeDetails?.excluded_schemes && Array.isArray(editSchemeDetails.excluded_schemes)) {
       const excludedIds = editSchemeDetails.excluded_schemes.map((schemeId) => {
         return schemeId._id || schemeId || schemeId;
       });
@@ -224,8 +224,8 @@ const AddSchemeForm = ({
       } else {
         console.warn("Unexpected API response format:", response.data);
         throw new Error("Invalid response format");
-      }
-    } catch (error) {
+        }
+      } catch (error) {
       console.error("Error fetching admin roles from database:", error);
       console.error("Error details:", error.response?.data || error.message);
       showToast("Failed to fetch authorization levels from database. Using default values.", "warning");
@@ -816,68 +816,68 @@ const AddSchemeForm = ({
               classes={`px-3 py-2 text-sm w-full rounded`}
             />
 
-            <Dropdown
+              <Dropdown
               defaultName="department"
-              register={register}
+                register={register}
               labelname="Department"
-              required={true}
-              pattern={false}
-              errors={errors}
+                required={true}
+                pattern={false}
+                errors={errors}
               classes={`rounded-lg text-sm w-full z-50 cursor-pointer`}
-              setError={setError}
-              clearError={clearErrors}
-              onChangeInput={null}
-              control={control}
+                setError={setError}
+                clearError={clearErrors}
+                onChangeInput={null}
+                control={control}
               data={departmentDD}
               defaultValue={defaultValues.department}
-              setValue={setValue}
+                setValue={setValue}
               setSelected={setSelectedDepartment}
               selected={selectedDepartment}
               maxMenuHeight={200}
               placeholder="Select department"
-            />
+              />
 
-            <Dropdown
+              <Dropdown
               defaultName="category"
-              register={register}
-              labelname="Category"
-              required={true}
-              pattern={false}
-              errors={errors}
-              classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
-              setError={setError}
-              clearError={clearErrors}
-              onChangeInput={null}
-              control={control}
-              data={categoryDD}
+                register={register}
+                labelname="Category"
+                required={true}
+                pattern={false}
+                errors={errors}
+                classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
+                setError={setError}
+                clearError={clearErrors}
+                onChangeInput={null}
+                control={control}
+                data={categoryDD}
               defaultValue={defaultValues.category}
-              setValue={setValue}
-              setSelected={setSelectedCategory}
-              selected={selectedCategory}
+                setValue={setValue}
+                setSelected={setSelectedCategory}
+                selected={selectedCategory}
               maxMenuHeight={200}
               placeholder={selectedDepartment ? "Select category" : "Select department first"}
               isDisabled={!selectedDepartment || loadingCategories}
-            />
+              />
 
-            <Dropdown
+              <Dropdown
               defaultName="gender_id"
-              register={register}
+                register={register}
               labelname="Gender"
-              required={true}
-              pattern={false}
-              errors={errors}
-              classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
-              setError={setError}
-              clearError={clearErrors}
-              onChangeInput={null}
-              control={control}
+                required={true}
+                pattern={false}
+                errors={errors}
+                classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
+                setError={setError}
+                clearError={clearErrors}
+                onChangeInput={null}
+                control={control}
               data={genderDD}
               defaultValue={defaultValues.gender_id}
-              setValue={setValue}
+                setValue={setValue}
               setSelected={setSelectedGender}
               selected={selectedGender}
-              maxMenuHeight={120}
-            />
+                maxMenuHeight={120}
+              />
 
             <div className="col-span-2">
               <TextArea
@@ -986,24 +986,24 @@ const AddSchemeForm = ({
                 Authorization Levels <span className="text-red-700">*</span>
               </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Dropdown
+              <Dropdown
                     defaultName="first_auth_level"
-                    register={register}
+                register={register}
                     labelname="First Authorization Level"
                     required={true}
-                    pattern={false}
-                    errors={errors}
+                pattern={false}
+                errors={errors}
                     classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
-                    setError={setError}
-                    clearError={clearErrors}
-                    onChangeInput={null}
-                    control={control}
+                setError={setError}
+                clearError={clearErrors}
+                onChangeInput={null}
+                control={control}
                     data={authLevelOptions}
                     defaultValue={selectedFirstAuthLevel}
-                    setValue={setValue}
+                setValue={setValue}
                     setSelected={setSelectedFirstAuthLevel}
                     selected={selectedFirstAuthLevel}
-                    maxMenuHeight={200}
+                maxMenuHeight={200}
                     placeholder={loadingAuthLevels ? "Loading roles..." : "Select first authorization level"}
                     isDisabled={loadingAuthLevels || authLevelOptions.length === 0}
                   />

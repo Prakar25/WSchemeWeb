@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaSearch, FaFilter, FaEye, FaCheckCircle, FaTimesCircle, FaClock, FaArrowRight, FaArrowLeft, FaUserCheck } from "react-icons/fa";
 import axios from "../../../../api/axios";
@@ -591,6 +592,33 @@ const Applications = () => {
     console.log("selectedApplication changed:", selectedApplication);
   }, [selectedApplication]);
 
+  // Auto-open application modal if navigated from alert card
+  useEffect(() => {
+    if (location.state?.applicationId && location.state?.autoOpen && applications.length > 0 && !selectedApplication) {
+      const applicationId = location.state.applicationId;
+      const app = applications.find(
+        (a) => 
+          a._id === applicationId || 
+          a.application_id === applicationId ||
+          a.id === applicationId
+      );
+      
+      if (app) {
+        setSelectedApplication(app);
+        setDetailedApplication(null);
+        setVerificationRemarks("");
+        setSelectedAction("");
+        setSelectedForwardAdmin("");
+        setNextStageAdmins([]);
+        setStageRequirements(null);
+        fetchApplicationDetail(applicationId);
+        // Clear the state to prevent re-opening on re-render
+        window.history.replaceState({}, document.title);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, applications]);
+
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1074,32 +1102,168 @@ const Applications = () => {
                           </div>
 
                           {/* Applicant Info */}
-                          {app.user_id && (
+                          {(app.user_id || app.user || app.applicant) && (
                             <div>
                               <h3 className="text-lg font-semibold text-gray-900 mb-3">Applicant Information</h3>
                               <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <label className="text-sm font-medium text-gray-500">Name</label>
-                                    <p className="text-gray-900">
-                                      {typeof app.user_id === 'object' 
-                                        ? (app.user_id.fullName || app.user_id.name || "N/A")
-                                        : (app.user_name || app.userName || app.user_id || "N/A")}
-                                    </p>
-                                  </div>
-                                  {typeof app.user_id === 'object' && app.user_id.contactEmail && (
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-500">Email</label>
-                                      <p className="text-gray-900">{app.user_id.contactEmail}</p>
+                                {(() => {
+                                  // Get user data from various possible locations
+                                  const userData = app.user_id || app.user || app.applicant || {};
+                                  const isUserObject = typeof userData === 'object' && userData !== null;
+                                  
+                                  // Get name from various field variations (including nested structures)
+                                  const getName = () => {
+                                    if (!isUserObject) {
+                                      return app.user_name || app.userName || app.applicant_name || app.applicantName || String(userData) || "N/A";
+                                    }
+                                    // Check nested demographics structure first
+                                    if (userData.demographics?.fullName) {
+                                      return userData.demographics.fullName;
+                                    }
+                                    // Check top-level fields
+                                    return userData.fullName || 
+                                           userData.full_name || 
+                                           userData.name || 
+                                           userData.userName ||
+                                           userData.username ||
+                                           app.user_name || 
+                                           app.userName || 
+                                           "N/A";
+                                  };
+                                  
+                                  // Get email from various field variations (including nested structures)
+                                  const getEmail = () => {
+                                    if (!isUserObject) return null;
+                                    // Check nested contact structure first
+                                    if (userData.contact?.email?.value) {
+                                      return userData.contact.email.value;
+                                    }
+                                    // Check top-level fields
+                                    return userData.contactEmail || 
+                                           userData.contact_email || 
+                                           userData.email?.value ||
+                                           userData.email || 
+                                           userData.emailAddress ||
+                                           app.contactEmail ||
+                                           app.email ||
+                                           null;
+                                  };
+                                  
+                                  // Get phone from various field variations (including nested structures)
+                                  const getPhone = () => {
+                                    if (!isUserObject) return null;
+                                    // Check nested contact structure first
+                                    if (userData.contact?.mobile?.value) {
+                                      return userData.contact.mobile.value;
+                                    }
+                                    // Check top-level fields
+                                    return userData.phoneNumber || 
+                                           userData.phone_number || 
+                                           userData.contactNumber || 
+                                           userData.contact_number ||
+                                           userData.mobile?.value ||
+                                           userData.mobile ||
+                                           userData.phone ||
+                                           app.phoneNumber ||
+                                           app.contactNumber ||
+                                           null;
+                                  };
+                                  
+                                  // Get Aadhaar from various field variations
+                                  const getAadhaar = () => {
+                                    if (!isUserObject) return null;
+                                    return userData.aadhaarNumber || 
+                                           userData.aadhaar_number || 
+                                           userData.aadhaar ||
+                                           app.aadhaarNumber ||
+                                           app.aadhaar_number ||
+                                           app.aadhaar ||
+                                           null;
+                                  };
+                                  
+                                  // Get Date of Birth from nested structure
+                                  const getDOB = () => {
+                                    if (!isUserObject) return null;
+                                    if (userData.demographics?.dob?.date) {
+                                      return new Date(userData.demographics.dob.date).toLocaleDateString();
+                                    }
+                                    return userData.dob || userData.dateOfBirth || null;
+                                  };
+                                  
+                                  // Get Gender from nested structure
+                                  const getGender = () => {
+                                    if (!isUserObject) return null;
+                                    if (userData.demographics?.gender) {
+                                      return userData.demographics.gender === 'M' ? 'Male' : 
+                                             userData.demographics.gender === 'F' ? 'Female' : 
+                                             userData.demographics.gender === 'O' ? 'Other' :
+                                             userData.demographics.gender;
+                                    }
+                                    return userData.gender || null;
+                                  };
+                                  
+                                  // Get Address from nested structure
+                                  const getAddress = () => {
+                                    if (!isUserObject) return null;
+                                    if (userData.address) {
+                                      const addr = userData.address;
+                                      const parts = [
+                                        addr.street,
+                                        addr.locality,
+                                        addr.district,
+                                        addr.state,
+                                        addr.pincode
+                                      ].filter(Boolean);
+                                      return parts.length > 0 ? parts.join(", ") : null;
+                                    }
+                                    return null;
+                                  };
+                                  
+                                  return (
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <label className="text-sm font-medium text-gray-500">Name</label>
+                                        <p className="text-gray-900">{getName()}</p>
+                                      </div>
+                                      {getAadhaar() && (
+                                        <div>
+                                          <label className="text-sm font-medium text-gray-500">Aadhaar</label>
+                                          <p className="text-gray-900">{getAadhaar()}</p>
+                                        </div>
+                                      )}
+                                      {getEmail() && (
+                                        <div>
+                                          <label className="text-sm font-medium text-gray-500">Email</label>
+                                          <p className="text-gray-900">{getEmail()}</p>
+                                        </div>
+                                      )}
+                                      {getPhone() && (
+                                        <div>
+                                          <label className="text-sm font-medium text-gray-500">Phone</label>
+                                          <p className="text-gray-900">{getPhone()}</p>
+                                        </div>
+                                      )}
+                                      {getDOB() && (
+                                        <div>
+                                          <label className="text-sm font-medium text-gray-500">Date of Birth</label>
+                                          <p className="text-gray-900">{getDOB()}</p>
+                                        </div>
+                                      )}
+                                      {getGender() && (
+                                        <div>
+                                          <label className="text-sm font-medium text-gray-500">Gender</label>
+                                          <p className="text-gray-900">{getGender()}</p>
+                                        </div>
+                                      )}
+                                      {getAddress() && (
+                                        <div className="col-span-2">
+                                          <label className="text-sm font-medium text-gray-500">Address</label>
+                                          <p className="text-gray-900">{getAddress()}</p>
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
-                                  {typeof app.user_id === 'object' && app.user_id.phoneNumber && (
-                                    <div>
-                                      <label className="text-sm font-medium text-gray-500">Phone</label>
-                                      <p className="text-gray-900">{app.user_id.phoneNumber}</p>
-                                    </div>
-                                  )}
-                                </div>
+                                  );
+                                })()}
                               </div>
                             </div>
                           )}
@@ -1283,13 +1447,13 @@ const Applications = () => {
                                             const departmentName = departmentObj?.department_display_name || departmentObj?.department_name || admin.department || "";
                                             
                                             return (
-                                              <option key={admin._id} value={admin._id}>
-                                                {admin.fullName} 
-                                                {admin.role && ` (${admin.role}`}
-                                                {admin.roleLevel && ` - Level ${admin.roleLevel}`}
-                                                {admin.role && `)`}
+                                          <option key={admin._id} value={admin._id}>
+                                            {admin.fullName} 
+                                            {admin.role && ` (${admin.role}`}
+                                            {admin.roleLevel && ` - Level ${admin.roleLevel}`}
+                                            {admin.role && `)`}
                                                 {departmentName && ` - ${departmentName}`}
-                                              </option>
+                                          </option>
                                             );
                                           })}
                                       </select>
