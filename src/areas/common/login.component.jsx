@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 import axios from "../../api/axios";
 import {
@@ -16,6 +16,7 @@ import Input from "../../reusable-components/inputs/InputTextBox/Input";
 import PasswordInput from "../../reusable-components/inputs/InputTextBox/PasswordInput";
 
 const Login = () => {
+  const location = useLocation();
   const adminUsers = [
     {
       fullName: "Karma Tshering",
@@ -47,7 +48,11 @@ const Login = () => {
     criteriaMode: "all",
   });
 
-  const [activeTab, setActiveTab] = useState("public");
+  const [activeTab, setActiveTab] = useState(location.state?.tab || "public");
+
+  useEffect(() => {
+    if (location.state?.tab) setActiveTab(location.state.tab);
+  }, [location.state?.tab]);
   const [isRegistering, setIsRegistering] = useState(false);
   const [mobileNumber, setMobileNumber] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -321,11 +326,11 @@ const Login = () => {
     } catch (error) {
       console.error("Admin login error:", error);
 
-      // Unauthorized (401 / 403)
+      // Unauthorized (401) or Forbidden (403 - e.g. pending/rejected admin)
       if (error.response?.status === 401 || error.response?.status === 403) {
+        const msg = error.response?.data?.message || error.response?.data?.error;
         setLoginError(
-          "Incorrect credentials entered. Try again." ||
-            error.response.data?.message
+          msg || "Incorrect credentials entered. Try again."
         );
         return;
       }
@@ -635,6 +640,13 @@ const Login = () => {
             >
               {isSubmitting ? "Logging in..." : "Login"}
             </button>
+
+            <p className="mt-4 text-center text-sm text-gray-500">
+              Don&apos;t have an admin account?{" "}
+              <Link to="/admin-register" className="text-blue-600 hover:text-blue-800 font-medium">
+                Register as Admin
+              </Link>
+            </p>
           </form>
         )}
       </div>

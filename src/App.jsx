@@ -8,6 +8,7 @@ import DesktopOnlyRoute from "./areas/DesktopOnlyRoute";
 
 import Home from "./areas/public/pages/home.component";
 import Login from "./areas/common/login.component";
+import AdminRegister from "./areas/common/AdminRegister.page";
 
 import PublicDashboard from "./areas/public/dashboard/PublicDashboard";
 import PublicProfile from "./areas/public/dashboard/PublicProfile.page";
@@ -25,6 +26,7 @@ import Applications from "./areas/systemAdmin/modules/applications/applications.
 import Reports from "./areas/systemAdmin/modules/reports/reports.component";
 import Alerts from "./areas/systemAdmin/modules/alerts/alerts.component";
 import AdminProfile from "./areas/systemAdmin/modules/profile/AdminProfile.page";
+import PendingAdminsVerification from "./areas/systemAdmin/modules/admin-verification/PendingAdminsVerification.page";
 
 function App() {
   const { pathname } = useLocation();
@@ -43,6 +45,7 @@ function App() {
           <Route exact path="/" element={<Home />} />
 
           <Route exact path="/login" element={<Login />} />
+          <Route exact path="/admin-register" element={<AdminRegister />} />
         </Route>
 
         {/* Public User Dashboard Routes */}
@@ -85,6 +88,7 @@ function App() {
           path="/system-admin/applications"
           element={<Applications />}
         />
+        <Route exact path="/system-admin/pending-admins" element={<PendingAdminsVerification />} />
         <Route exact path="/system-admin/reports" element={<Reports />} />
         <Route exact path="/system-admin/alerts" element={<Alerts />} />
         <Route exact path="/system-admin/profile" element={<AdminProfile />} />

@@ -23,6 +23,7 @@ export const PUBLIC_PROFILE_DELETE_DOCUMENT_URL = "/public-profile/delete-docume
 
 //#region System Admin User URLs
 export const ADMIN_LOGIN_URL = "/admin-login";
+export const ADMIN_REGISTER_URL = "/admin-register"; // POST - register admin (pending until Super Admin/Secretary verifies)
 
 export const SCHEMES_CONFIG_URL = "/schemes";
 export const SCHEMES_SIMPLE_URL = "/schemes/simple";
@@ -42,6 +43,8 @@ export const DASHBOARD_STATISTICS_URL = "/admin/dashboard/statistics";
 export const DASHBOARD_SCHEME_BENEFICIARIES_URL = "/admin/dashboard/scheme-beneficiaries";
 export const DASHBOARD_FRAUD_ALERTS_URL = "/admin/dashboard/fraud-alerts";
 export const ADMIN_PROFILE_URL = "/admin/profile";
+export const ADMIN_PENDING_ADMINS_URL = "/admin/pending-admins"; // GET - list pending admins (Super Admin / Secretary only)
+export const ADMIN_VERIFY_ADMIN_URL = "/admin/verify-admin"; // POST - approve/reject pending admin
 export const APPLICATIONS_ADMIN_URL = "/applications"; // Admin endpoint to get all applications
 export const APPLICATIONS_SCHEME_URL = "/applications/scheme"; // GET /applications/scheme/:scheme_id - Get all applicants for a scheme
 export const APPLICATION_DETAIL_URL = "/applications"; // GET /applications/:applicationId - Get application details
