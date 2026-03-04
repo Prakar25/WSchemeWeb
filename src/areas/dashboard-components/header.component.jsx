@@ -72,7 +72,7 @@ function Header({ sidebarOpen, setSidebarOpen }) {
 
           <NavLink end to="/" className="block">
             <div className="flex items-center">
-              <img src={Logo} className="h-12 w-16" />
+              <img src={Logo} className="h-6 w-8" />
               {
                 <p className="text-slate-800 text-sm font-medium">
                   Women &amp; Child Welfare Department, Government of Sikkim

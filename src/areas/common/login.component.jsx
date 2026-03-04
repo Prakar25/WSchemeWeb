@@ -322,7 +322,13 @@ const Login = () => {
       sessionStorage.setItem("admin_username", data.admin_username.trim());
       sessionStorage.setItem("admin_password", data.admin_password);
 
-      navigate("/system-admin/dashboard", { replace: true });
+      // CSDAdmin goes to separate dashboard
+      const role = (user.role || "").trim();
+      if (role === "CSDAdmin") {
+        navigate("/csd-admin/dashboard", { replace: true });
+      } else {
+        navigate("/system-admin/dashboard", { replace: true });
+      }
     } catch (error) {
       console.error("Admin login error:", error);
 

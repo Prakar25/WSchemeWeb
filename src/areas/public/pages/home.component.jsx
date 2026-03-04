@@ -3,8 +3,20 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 import axios from "../../../api/axios";
-import { SCHEMES_CONFIG_URL } from "../../../api/api_routing_urls";
+import { SCHEMES_CONFIG_URL, CATEGORIES_SIMPLE_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
+
+// Static age options (interval of 10, 20–70, then 70+)
+const AGE_OPTIONS = [
+  { value: "", label: "Age Group" },
+  { value: "all", label: "All" },
+  { value: "20-30", label: "20 - 30" },
+  { value: "30-40", label: "30 - 40" },
+  { value: "40-50", label: "40 - 50" },
+  { value: "50-60", label: "50 - 60" },
+  { value: "60-70", label: "60 - 70" },
+  { value: "70_and_above", label: "70 and above" },
+];
 
 // Card Animation Variants
 const cardVariants = {
@@ -29,22 +41,28 @@ const containerVariants = {
 const Home = () => {
   const [schemesList, setSchemesList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [ageGroup, setAgeGroup] = useState("");
+  const [categoryId, setCategoryId] = useState("");
 
   const getSchemesList = async () => {
     try {
-      // Public home page should only show approved schemes
+      setLoading(true);
       const params = new URLSearchParams();
       params.append("approved_only", "true");
       params.append("filter_type", "scheme");
-      
+      if (ageGroup && ageGroup !== "all") params.append("age_group", ageGroup);
+      if (categoryId && categoryId !== "all") params.append("category_id", categoryId);
+
       const url = `${SCHEMES_CONFIG_URL}?${params.toString()}`;
       const response = await axios.get(url);
 
       if (response.status === 200) {
-        const schemes = Array.isArray(response.data) ? response.data : [];
-        // Additional client-side filter to ensure only approved schemes
-        const approvedSchemes = schemes.filter(scheme => 
-          !scheme.approval_status || scheme.approval_status === "approved"
+        const raw = response.data?.data ?? response.data?.schemes ?? response.data;
+        const schemes = Array.isArray(raw) ? raw : [];
+        const approvedSchemes = schemes.filter(
+          (scheme) =>
+            !scheme.approval_status || scheme.approval_status === "approved"
         );
         setSchemesList(approvedSchemes);
       }
@@ -55,9 +73,26 @@ const Home = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(CATEGORIES_SIMPLE_URL);
+      if (response.status === 200) {
+        const data = response.data?.categories ?? response.data ?? [];
+        setCategories(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("fetchCategories", error);
+    }
+  };
+
   useEffect(() => {
     getSchemesList();
+    fetchCategories();
   }, []);
+
+  const handleSearch = () => {
+    getSchemesList();
+  };
 
   return (
     <section className="min-h-screen bg-gray-50">
@@ -89,24 +124,38 @@ const Home = () => {
           transition={{ duration: 1 }}
           className="bg-white shadow-md w-full max-w-3xl mx-auto mt-10 p-6 rounded-lg"
         >
-          <div className="grid md:grid-cols-3 gap-4">
-            <select className="border rounded-md p-2 w-full">
-              <option>Eligibility</option>
-              <option>All</option>
+          <div className="grid md:grid-cols-2 gap-4">
+            <select
+              className="border rounded-md p-2 w-full"
+              value={ageGroup}
+              onChange={(e) => setAgeGroup(e.target.value)}
+            >
+              {AGE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
 
-            <select className="border rounded-md p-2 w-full">
-              <option>Age Group</option>
-              <option>All</option>
-            </select>
-
-            <select className="border rounded-md p-2 w-full">
-              <option>Category</option>
-              <option>All</option>
+            <select
+              className="border rounded-md p-2 w-full"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">Category</option>
+              <option value="all">All</option>
+              {categories.map((cat) => (
+                <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                  {cat.category_name || cat.name || cat.categoryName || cat._id}
+                </option>
+              ))}
             </select>
           </div>
 
-          <button className="mt-5 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">
+          <button
+            onClick={handleSearch}
+            className="mt-5 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition"
+          >
             Search Schemes
           </button>
         </motion.div>
@@ -170,7 +219,7 @@ const SchemeCard = ({ scheme }) => {
         className="h-64 w-full object-cover"
       />
 
-      <div className="p-5">
+      <div className="p-5 text-center">
         <h3 className="font-semibold text-lg text-primary mb-2">
           {scheme_name}
         </h3>

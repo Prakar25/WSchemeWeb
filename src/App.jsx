@@ -7,7 +7,8 @@ import { PublicLayout } from "./areas/public/PublicLayout";
 import DesktopOnlyRoute from "./areas/DesktopOnlyRoute";
 
 import Home from "./areas/public/pages/home.component";
-import Login from "./areas/common/login.component";
+import PublicLogin from "./areas/common/PublicLogin.page";
+import AdminLogin from "./areas/common/AdminLogin.page";
 import AdminRegister from "./areas/common/AdminRegister.page";
 
 import PublicDashboard from "./areas/public/dashboard/PublicDashboard";
@@ -28,6 +29,10 @@ import Alerts from "./areas/systemAdmin/modules/alerts/alerts.component";
 import AdminProfile from "./areas/systemAdmin/modules/profile/AdminProfile.page";
 import PendingAdminsVerification from "./areas/systemAdmin/modules/admin-verification/PendingAdminsVerification.page";
 
+import CSDAdminDashboard from "./areas/csdAdmin/dashboard/CSDAdminDashboard";
+import CSDPendingPublicUsers from "./areas/csdAdmin/modules/CSDPendingPublicUsers.page";
+import CSDPendingApplications from "./areas/csdAdmin/modules/CSDPendingApplications.page";
+
 function App() {
   const { pathname } = useLocation();
 
@@ -44,7 +49,8 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route exact path="/" element={<Home />} />
 
-          <Route exact path="/login" element={<Login />} />
+          <Route exact path="/login" element={<PublicLogin />} />
+          <Route exact path="/admin-login" element={<AdminLogin />} />
           <Route exact path="/admin-register" element={<AdminRegister />} />
         </Route>
 
@@ -92,6 +98,12 @@ function App() {
         <Route exact path="/system-admin/reports" element={<Reports />} />
         <Route exact path="/system-admin/alerts" element={<Alerts />} />
         <Route exact path="/system-admin/profile" element={<AdminProfile />} />
+
+        {/* CSD Admin Dashboard Routes (CSDAdmin role only) */}
+        <Route exact path="/csd-admin/dashboard" element={<CSDAdminDashboard />} />
+        <Route exact path="/csd-admin/pending-registrations" element={<CSDPendingPublicUsers />} />
+        <Route exact path="/csd-admin/pending-applications" element={<CSDPendingApplications />} />
+        <Route exact path="/csd-admin/profile" element={<AdminProfile sidebarType="CSD Admin" />} />
       </Routes>
     </>
   );

@@ -97,7 +97,7 @@ export default function AdminRegister() {
 
       if (response.data?.status === "success") {
         showToast("Registration successful. Your account is pending verification.", "success");
-        navigate("/login", { state: { tab: "admin" }, replace: true });
+        navigate("/admin-login", { replace: true });
       } else {
         throw new Error(response.data?.message || "Registration failed.");
       }
@@ -263,7 +263,7 @@ export default function AdminRegister() {
         </p>
 
         <div className="mt-4 text-center">
-          <Link to="/login" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+          <Link to="/admin-login" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
             ← Back to Login
           </Link>
         </div>

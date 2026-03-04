@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaArrowLeft, FaUpload, FaCheckCircle, FaTimes } from "react-icons/fa";
+import { FaArrowLeft, FaUpload, FaCheckCircle, FaTimes, FaCalendarAlt } from "react-icons/fa";
 
 import axios from "../../../api/axios";
-import { APPLICATIONS_APPLY_URL, DEPARTMENTS_URL, CATEGORIES_URL } from "../../../api/api_routing_urls";
+import { APPLICATIONS_APPLY_URL, DEPARTMENTS_URL, CATEGORIES_URL, SCHEMES_CONFIG_URL } from "../../../api/api_routing_urls";
 import { uploadFileToServer } from "../../../utils/uploadFiles/uploadFileToServerController";
-import { getStoredUser, isProfileComplete, getVerificationStatus, getAccountStatusMessage } from "../../../utils/user.utils";
+import { getStoredUser, isProfileComplete, getVerificationStatus, getAccountStatusMessage, calculateAge, formatDobForAge } from "../../../utils/user.utils";
 import showToast from "../../../utils/notification/NotificationModal";
 import { PUBLIC_PROFILE_GET_URL } from "../../../api/api_routing_urls";
 import PublicHeader from "../components/PublicHeader.component";
@@ -17,7 +17,8 @@ import Spinner from "../../../reusable-components/spinner/spinner.component";
 export default function ApplyToScheme() {
   const navigate = useNavigate();
   const location = useLocation();
-  const scheme = location.state?.scheme;
+  const [scheme, setScheme] = useState(location.state?.scheme ?? null);
+  const [loadingScheme, setLoadingScheme] = useState(false);
 
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({});
@@ -34,6 +35,90 @@ export default function ApplyToScheme() {
     (Array.isArray(scheme?.scheme_required_documents)
       ? scheme.scheme_required_documents.map((doc) => doc.document_type || doc)
       : []);
+
+  // Get custom form fields from scheme (defined by admin when creating/editing scheme)
+  const customFormFields = Array.isArray(scheme?.custom_form_fields) ? scheme.custom_form_fields : [];
+
+  // Common beneficiary fields - always shown, pre-filled from profile
+  const getProfileValue = (profile, keys) => {
+    if (!profile) return "";
+    for (const k of keys) {
+      const parts = k.split(".");
+      let val = profile;
+      for (const p of parts) val = val?.[p];
+      if (val != null && val !== "") return String(val).trim();
+    }
+    return "";
+  };
+  const getAgeFromProfile = (profile) => {
+    const dobRaw = profile?.dob ?? profile?.demographics?.dob ?? profile?.dateOfBirth;
+    if (!dobRaw) return "";
+    const dateStr = typeof dobRaw === "string"
+      ? (dobRaw.includes("-") && dobRaw.length >= 10 ? formatDobForAge(dobRaw) : dobRaw)
+      : dobRaw?.date ? formatDobForAge(dobRaw.date) : "";
+    if (!dateStr || !/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) return "";
+    try {
+      return String(calculateAge(dateStr));
+    } catch {
+      return "";
+    }
+  };
+  const getGenderDisplay = (profile) => {
+    const g = getProfileValue(profile, ["gender", "demographics.gender"]);
+    if (!g) return "";
+    if (g === "M" || g === "Male") return "Male";
+    if (g === "F" || g === "Female") return "Female";
+    if (g === "O" || g === "Other") return "Other";
+    return g;
+  };
+  const getDobForInput = (profile) => {
+    const dobRaw = profile?.dob ?? profile?.demographics?.dob?.date ?? profile?.dateOfBirth;
+    if (!dobRaw) return "";
+    try {
+      const d = typeof dobRaw === "string" ? new Date(dobRaw) : new Date(dobRaw?.date || dobRaw);
+      return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
+    } catch {
+      return "";
+    }
+  };
+
+  const COMMON_FIELDS = [
+    { key: "beneficiary_name", label: "Beneficiary Name", type: "text", profileKeys: ["fullName", "full_name", "name", "demographics.fullName"] },
+    { key: "father_husband_name", label: "Father/Husband Name", type: "text", profileKeys: ["fatherName", "father_name", "husbandName", "husband_name", "demographics.fatherName", "demographics.father_name"] },
+    { key: "age", label: "Age", type: "number", profileKeys: ["age"], getFromProfile: getAgeFromProfile },
+    { key: "dob", label: "D.O.B", type: "date", profileKeys: ["dob"], getFromProfile: getDobForInput },
+    { key: "gender", label: "Gender", type: "text", profileKeys: ["gender"], getFromProfile: getGenderDisplay },
+    { key: "caste", label: "Caste", type: "text", profileKeys: ["caste", "cast", "demographics.caste", "demographics.cast"] },
+    { key: "constituency", label: "Constituency", type: "text", profileKeys: ["constituency", "demographics.constituency", "address.constituency"] },
+    { key: "gpu", label: "GPU", type: "text", profileKeys: ["gpu", "demographics.gpu", "address.gpu"] },
+    { key: "ward", label: "Ward", type: "text", profileKeys: ["ward", "demographics.ward", "address.ward"] },
+    { key: "uid_no", label: "UID No.", type: "text", profileKeys: ["aadhaarNumber", "aadhaar_number", "uid", "uid_no", "demographics.aadhaarNumber"] },
+  ];
+
+  // Fetch full scheme by ID to ensure we have custom_form_fields (list may omit them)
+  useEffect(() => {
+    const schemeFromState = location.state?.scheme;
+    const schemeId = schemeFromState?._id || schemeFromState?.scheme_id;
+    const hasCustomFields = Array.isArray(schemeFromState?.custom_form_fields);
+    if (!schemeId || hasCustomFields) return;
+
+    const fetchFullScheme = async () => {
+      try {
+        setLoadingScheme(true);
+        const res = await axios.get(`${SCHEMES_CONFIG_URL}/${schemeId}`);
+        if (res.status === 200 && res.data) {
+          const fullScheme = res.data?.scheme ?? res.data;
+          if (fullScheme) setScheme(fullScheme);
+        }
+      } catch (err) {
+        console.warn("Could not fetch full scheme, using cached:", err);
+      } finally {
+        setLoadingScheme(false);
+      }
+    };
+
+    fetchFullScheme();
+  }, [location.state?.scheme]);
 
   // Fetch departments and categories for lookup maps
   useEffect(() => {
@@ -164,6 +249,25 @@ export default function ApplyToScheme() {
     setDocuments(initialDocs);
   }, [scheme, navigate, requiredDocuments]);
 
+  // Pre-fill common fields from profile when user loads (only for empty fields)
+  useEffect(() => {
+    if (!user) return;
+    setFormData((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      COMMON_FIELDS.forEach((f) => {
+        if (prev[f.key] == null || prev[f.key] === "") {
+          const val = f.getFromProfile ? f.getFromProfile(user) : getProfileValue(user, f.profileKeys);
+          if (val) {
+            next[f.key] = val;
+            changed = true;
+          }
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [user]);
+
   // Handle form field changes
   const handleFieldChange = (fieldName, value) => {
     setFormData((prev) => ({
@@ -250,6 +354,13 @@ export default function ApplyToScheme() {
       return;
     }
 
+    const beneficiaryName = formData.beneficiary_name || getProfileValue(user, ["fullName", "full_name", "name"]);
+    if (!beneficiaryName?.trim()) {
+      setErrors((prev) => ({ ...prev, beneficiary_name: "Beneficiary name is required" }));
+      showToast("Please enter beneficiary name.", "error");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
@@ -272,12 +383,26 @@ export default function ApplyToScheme() {
         }
       });
 
-      // Prepare request payload
-      // Ensure form_data is not empty object if no data provided
+      // Build form_data: common fields + custom form fields (backend ignores unknown keys)
+      const commonKeys = COMMON_FIELDS.map((f) => f.key);
+      const customKeys = customFormFields.map((f) => f.field_key);
+      const filteredFormData = {};
+      [...commonKeys, ...customKeys].forEach((key) => {
+        const val = formData[key];
+        if (val !== undefined && val !== "" && val !== null) {
+          filteredFormData[key] = val;
+        }
+      });
+      // Fallback beneficiary_name from profile if empty
+      if (!filteredFormData.beneficiary_name) {
+        const bn = getProfileValue(user, ["fullName", "full_name", "name"]);
+        if (bn) filteredFormData.beneficiary_name = bn;
+      }
+
       const payload = {
         user_id: user._id || user.userId,
         scheme_id: scheme._id || scheme.scheme_id,
-        form_data: Object.keys(formData).length > 0 ? formData : {},
+        form_data: Object.keys(filteredFormData).length > 0 ? filteredFormData : {},
         documents_submitted: documentsSubmitted.length > 0 ? documentsSubmitted : [],
       };
 
@@ -311,6 +436,17 @@ export default function ApplyToScheme() {
           errorMessage = data.message;
         } else if (data.error) {
           errorMessage = data.error;
+        }
+      } else if (status === 422) {
+        // Field-level validation errors from backend
+        const errList = data?.errors;
+        if (Array.isArray(errList) && errList.length > 0) {
+          const fieldErrors = {};
+          errList.forEach((err) => {
+            if (err?.field) fieldErrors[err.field] = err.message || "Invalid value";
+          });
+          setErrors(fieldErrors);
+          errorMessage = errList.map((e) => e.message).join(". ") || data?.message || errorMessage;
         }
       } else if (status === 400) {
         errorMessage = "Invalid request. Please check your input and try again.";
@@ -405,87 +541,185 @@ export default function ApplyToScheme() {
               Application Information
             </h2>
 
-            {/* Dynamic Form Fields */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Annual Income
-                </label>
-                <input
-                  type="number"
-                  value={formData.income || ""}
-                  onChange={(e) => handleFieldChange("income", e.target.value)}
-                  placeholder="Enter annual income"
-                  className="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
+            {/* Common Beneficiary Fields - always shown; pre-populated from profile are read-only */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {COMMON_FIELDS.map((f) => {
+                const fromProfile = f.getFromProfile ? f.getFromProfile(user) : getProfileValue(user, f.profileKeys);
+                const isPrePopulated = !!fromProfile;
+                const val = formData[f.key] ?? fromProfile ?? "";
+                const isRequired = f.key === "beneficiary_name";
+                const inputClass = `w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-primary ${
+                  errors[f.key] ? "border-red-500" : "border-gray-300"
+                } ${isPrePopulated ? "bg-gray-50 cursor-not-allowed" : ""}`;
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Number of Family Members
-                </label>
-                <input
-                  type="number"
-                  value={formData.family_members || ""}
-                  onChange={(e) => handleFieldChange("family_members", e.target.value)}
-                  placeholder="Enter number of family members"
-                  className="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Household Type
-                </label>
-                <select
-                  value={formData.household_type || ""}
-                  onChange={(e) => handleFieldChange("household_type", e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">Select household type</option>
-                  <option value="Nuclear">Nuclear</option>
-                  <option value="Joint">Joint</option>
-                  <option value="Extended">Extended</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Education Level
-                </label>
-                <select
-                  value={formData.education_level || ""}
-                  onChange={(e) => handleFieldChange("education_level", e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">Select education level</option>
-                  <option value="Illiterate">Illiterate</option>
-                  <option value="Primary">Primary</option>
-                  <option value="Secondary">Secondary</option>
-                  <option value="Higher Secondary">Higher Secondary</option>
-                  <option value="Graduate">Graduate</option>
-                  <option value="Post Graduate">Post Graduate</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Employment Status
-                </label>
-                <select
-                  value={formData.employment_status || ""}
-                  onChange={(e) => handleFieldChange("employment_status", e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">Select employment status</option>
-                  <option value="Employed">Employed</option>
-                  <option value="Unemployed">Unemployed</option>
-                  <option value="Self Employed">Self Employed</option>
-                  <option value="Student">Student</option>
-                  <option value="Retired">Retired</option>
-                </select>
-              </div>
+                return (
+                  <div key={f.key}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {f.label} {isRequired && <span className="text-red-500">*</span>}
+                    </label>
+                    {f.type === "text" && (
+                      <input
+                        type="text"
+                        value={val ?? ""}
+                        readOnly={isPrePopulated}
+                        onChange={!isPrePopulated ? (e) => handleFieldChange(f.key, e.target.value) : undefined}
+                        placeholder={`Enter ${f.label}`}
+                        className={inputClass}
+                      />
+                    )}
+                    {f.type === "number" && (
+                      <input
+                        type="number"
+                        value={val ?? ""}
+                        readOnly={isPrePopulated}
+                        onChange={!isPrePopulated ? (e) => handleFieldChange(f.key, e.target.value) : undefined}
+                        placeholder={`Enter ${f.label}`}
+                        className={inputClass}
+                      />
+                    )}
+                    {f.type === "date" && (
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={val ?? ""}
+                          readOnly={isPrePopulated}
+                          onChange={!isPrePopulated ? (e) => handleFieldChange(f.key, e.target.value) : undefined}
+                          onClick={!isPrePopulated ? (e) => e.target.showPicker?.() : undefined}
+                          className={`${inputClass} ${!isPrePopulated ? "pr-10 cursor-pointer" : ""}`}
+                          style={{ colorScheme: "light" }}
+                        />
+                        {!isPrePopulated && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              const input = e.target.closest(".relative")?.querySelector('input[type="date"]');
+                              input?.showPicker?.();
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-primary focus:outline-none cursor-pointer"
+                            aria-label="Open date picker"
+                          >
+                            <FaCalendarAlt className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {errors[f.key] && (
+                      <p className="mt-1 text-sm text-red-600">{errors[f.key]}</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+
+            {/* Dynamic Form Fields - from scheme.custom_form_fields (defined by admin) */}
+            {customFormFields.length > 0 ? (
+              <div className="space-y-4">
+                {customFormFields.map((field) => {
+                  const key = field.field_key;
+                  const label = field.label || key;
+                  const isRequired = !!field.required;
+                  const fieldType = field.type || field.field_type || "text";
+                  const inputClass = `w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-primary ${
+                    errors[key] ? "border-red-500" : "border-gray-300"
+                  }`;
+
+                  return (
+                    <div key={key}>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {label} {isRequired && <span className="text-red-500">*</span>}
+                      </label>
+
+                      {fieldType === "text" && (
+                        <input
+                          type="text"
+                          value={formData[key] ?? ""}
+                          onChange={(e) => handleFieldChange(key, e.target.value)}
+                          placeholder={`Enter ${label}`}
+                          className={inputClass}
+                        />
+                      )}
+
+                      {fieldType === "number" && (
+                        <input
+                          type="number"
+                          value={formData[key] ?? ""}
+                          onChange={(e) => handleFieldChange(key, e.target.value)}
+                          placeholder={`Enter ${label}`}
+                          className={inputClass}
+                        />
+                      )}
+
+                      {fieldType === "select" && (
+                        <select
+                          value={formData[key] ?? ""}
+                          onChange={(e) => handleFieldChange(key, e.target.value)}
+                          className={inputClass}
+                        >
+                          <option value="">Select {label}</option>
+                          {(Array.isArray(field.options)
+                            ? field.options
+                            : (field.options || "").split(",").map((o) => o.trim()).filter(Boolean)
+                          ).map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+
+                      {fieldType === "date" && (
+                        <div className="relative">
+                          <input
+                            type="date"
+                            value={formData[key] ?? ""}
+                            onChange={(e) => handleFieldChange(key, e.target.value)}
+                            onClick={(e) => e.target.showPicker?.()}
+                            className={`${inputClass} pr-10 cursor-pointer`}
+                            style={{ colorScheme: "light" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              const input = e.target.closest(".relative")?.querySelector('input[type="date"]');
+                              input?.showPicker?.();
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-primary focus:outline-none cursor-pointer"
+                            aria-label="Open date picker"
+                          >
+                            <FaCalendarAlt className="w-5 h-5" />
+                          </button>
+                        </div>
+                      )}
+
+                      {fieldType === "textarea" && (
+                        <textarea
+                          value={formData[key] ?? ""}
+                          onChange={(e) => handleFieldChange(key, e.target.value)}
+                          placeholder={`Enter ${label}`}
+                          rows={4}
+                          className={inputClass}
+                        />
+                      )}
+
+                      {fieldType === "checkbox" && (
+                        <input
+                          type="checkbox"
+                          checked={!!formData[key]}
+                          onChange={(e) => handleFieldChange(key, e.target.checked)}
+                          className="rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                      )}
+
+                      {errors[key] && (
+                        <p className="mt-1 text-sm text-red-600">{errors[key]}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No additional information required for this scheme.</p>
+            )}
           </motion.div>
 
           {/* Documents Section (Optional) */}

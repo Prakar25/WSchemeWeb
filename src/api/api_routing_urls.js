@@ -58,3 +58,9 @@ export const BULK_UPLOAD_PREVIEW_URL = "/bulk-upload/preview"; // POST /bulk-upl
 export const BULK_UPLOAD_CONFIRM_URL = "/bulk-upload/confirm"; // POST /bulk-upload/confirm - Confirm and save bulk upload
 
 //#endregion
+
+//#region CSD Admin URLs (CSDAdmin role only)
+export const CSD_PENDING_PUBLIC_USERS_URL = "/csd/pending-public-users";
+export const CSD_VERIFY_PUBLIC_USER_URL = "/csd/verify-public-user";
+export const CSD_PENDING_APPLICATIONS_URL = "/csd/pending-applications"; // Applications with verification_level 9, status !== "Rejected"
+//#endregion

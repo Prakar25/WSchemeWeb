@@ -103,7 +103,7 @@ export default function PublicHeader() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/user/dashboard" className="flex items-center gap-3">
-            <img src={skGovtLogo} alt="Logo" className="h-12 w-12 object-contain" />
+            <img src={skGovtLogo} alt="Logo" className="h-6 w-6 object-contain" />
             <span className="text-xl font-bold text-green-600">
               WelfareConnect
             </span>

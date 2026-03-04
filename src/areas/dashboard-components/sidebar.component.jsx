@@ -6,6 +6,7 @@ import { ADMIN_PROFILE_URL } from "../../api/api_routing_urls";
 
 import PublicSidebar from "../public/dashboard/PublicSidebar";
 import SysAdminSidebar from "../systemAdmin/dashboard/SysAdminSidebar";
+import CSDAdminSidebar from "../csdAdmin/dashboard/CSDAdminSidebar";
 
 function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
   const [user, setUser] = useState(null);
@@ -21,9 +22,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
     };
   };
 
-  // Fetch admin profile for System Admin
+  // Fetch admin profile for System Admin or CSD Admin
   useEffect(() => {
-    if (sidebarType === "System Admin") {
+    if (sidebarType === "System Admin" || sidebarType === "CSD Admin") {
       const fetchAdminProfile = async () => {
         try {
           const credentials = getAdminCredentials();
@@ -177,7 +178,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
             </svg>
           </button>
 
-          {sidebarType === "System Admin" ? (
+          {sidebarType === "System Admin" || sidebarType === "CSD Admin" ? (
             <NavLink end to="#" className="block w-full">
               {sidebarExpanded && (
                 <div className="flex items-center gap-3">
@@ -276,6 +277,14 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
 
         {sidebarType === "System Admin" && (
           <SysAdminSidebar
+            pathname={pathname}
+            sidebarExpanded={sidebarExpanded}
+            setSidebarExpanded={setSidebarExpanded}
+          />
+        )}
+
+        {sidebarType === "CSD Admin" && (
+          <CSDAdminSidebar
             pathname={pathname}
             sidebarExpanded={sidebarExpanded}
             setSidebarExpanded={setSidebarExpanded}

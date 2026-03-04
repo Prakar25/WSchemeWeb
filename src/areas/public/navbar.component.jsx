@@ -1,53 +1,73 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import skGovtLogo from "../../assets/sikkim_gov.png";
+import RotatingText from "../../reusable-components/RotatingText/RotatingText";
 
 const Navbar = () => {
+  const { pathname } = useLocation();
+  const isAuthPage = pathname === "/login" || pathname === "/admin-login" || pathname === "/admin-register";
+  const isHome = pathname === "/";
   return (
-    <section>
-      <nav className="w-full shadow-sm bg-white">
-        <div className="w-full mx-auto flex items-center justify-between py-4 px-10">
-          {/* Logo + Title */}
-          <div className="flex items-center gap-3">
+    <header className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo + Brand (same as PublicHeader) */}
+          <Link to="/" className="flex items-center gap-3">
             <img
               src={skGovtLogo}
               alt="Sikkim Gov Logo"
-              className="w-28 h-28 object-cover"
+              className="h-6 w-6 object-contain"
             />
-            <div>
-              <h1 className="font-semibold text-gray-900">
-                Women and Child Welfare Department
-              </h1>
-              <p className="text-xs text-gray-600">Government of Sikkim</p>
-            </div>
-          </div>
+            <span className="text-xl font-bold text-green-600">
+              WelfareConnect
+            </span>
+          </Link>
 
           {/* Nav Links */}
-          <div className="hidden md:flex items-center gap-8">
-            <a href="/" className="text-gray-700 hover:text-blue-600">
+          <nav className="hidden md:flex items-center gap-6">
+            <Link
+              to="/"
+              className={`font-medium transition-colors ${isHome ? "text-green-600 font-semibold" : "text-gray-700 hover:text-green-600"}`}
+            >
               Home
-            </a>
-            <a href="#" className="text-gray-700 hover:text-blue-600">
+            </Link>
+            <a href="#" className="font-medium text-gray-700 hover:text-green-600 transition-colors">
               About
             </a>
-            <a href="#" className="text-gray-700 hover:text-blue-600">
+            <a href="#" className="font-medium text-gray-700 hover:text-green-600 transition-colors">
               Schemes
             </a>
-            <a href="#" className="text-gray-700 hover:text-blue-600">
+            <a href="#" className="font-medium text-gray-700 hover:text-green-600 transition-colors">
               Contact
             </a>
-          </div>
+          </nav>
 
-          <Link to="/login">
-            <button className="bg-yellow-400 px-4 py-2 rounded-md font-medium hover:bg-yellow-500 cursor-pointer transition-all ease-in-out duration-500">
-              Login / Register
-            </button>
-          </Link>
+          {/* Right side: Login button or spacer to keep nav centered */}
+          {!isAuthPage ? (
+            <Link to="/login">
+              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center min-w-[7.5rem]">
+                <RotatingText
+                  texts={["Login", "Register"]}
+                  mainClassName="overflow-hidden"
+                  staggerFrom="last"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "-120%" }}
+                  staggerDuration={0.025}
+                  splitLevelClassName="overflow-hidden"
+                  transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                  rotationInterval={2000}
+                />
+              </button>
+            </Link>
+          ) : (
+            <div className="min-w-[7.5rem]" aria-hidden="true" />
+          )}
         </div>
-      </nav>
-    </section>
+      </div>
+    </header>
   );
 };
 

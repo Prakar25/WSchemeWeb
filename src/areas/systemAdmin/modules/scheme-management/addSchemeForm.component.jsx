@@ -12,8 +12,8 @@ import axios from "../../../../api/axios";
 import { 
   SCHEMES_CONFIG_URL,
   DEPARTMENTS_URL,
-  DEPARTMENTS_SIMPLE_URL,
-  CATEGORIES_SIMPLE_URL,
+  CATEGORIES_URL,
+  ADMIN_ROLES_URL,
   ADMIN_ROLES_FOR_AUTHORIZATION_URL
 } from "../../../../api/api_routing_urls";
 
@@ -26,6 +26,8 @@ import GenericModal from "../../../../reusable-components/modals/GenericModal.co
 import DocDropzone from "../../../../reusable-components/FileUploader/PDFImageDropZoneUploader/PDFImageDropZoneUploader.component";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import ExcludedSchemesSelector from "../../../../reusable-components/ExcludedSchemesSelector/ExcludedSchemesSelector";
+import DynamicAuthLevelsSelector from "../../../../reusable-components/DynamicAuthLevelsSelector/DynamicAuthLevelsSelector";
+import CustomFormFieldsSelector from "../../../../reusable-components/CustomFormFieldsSelector/CustomFormFieldsSelector";
 
 import RichTextArea from "../../../../reusable-components/richtexteditor/RichTextArea";
 import ArrayInput from "../../../../reusable-components/inputs/ArrayInput/ArrayInput";
@@ -55,7 +57,6 @@ const AddSchemeForm = ({
   const [showSchemeDz, setShowSchemeDz] = useState(false);
   const [docScheme, setDocScheme] = useState(null);
 
-  const [genderDD, setGenderDD] = useState([]);
   const [departmentDD, setDepartmentDD] = useState([]);
   const [categoryDD, setCategoryDD] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -65,34 +66,20 @@ const AddSchemeForm = ({
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedExcludedSchemeIds, setSelectedExcludedSchemeIds] = useState([]);
 
-  // Authorization levels state
-  const [selectedFirstAuthLevel, setSelectedFirstAuthLevel] = useState(null);
-  const [selectedSecondAuthLevel, setSelectedSecondAuthLevel] = useState(null);
-  const [selectedThirdAuthLevel, setSelectedThirdAuthLevel] = useState(null);
-  const [selectedFourthAuthLevel, setSelectedFourthAuthLevel] = useState(null);
-  
-  // Authorization level options (fetched from API)
+  // Dynamic authorization levels: [{ level: 1 }, { level: 3 }, ...]
+  const [authLevels, setAuthLevels] = useState([]);
   const [authLevelOptions, setAuthLevelOptions] = useState([]);
   const [loadingAuthLevels, setLoadingAuthLevels] = useState(false);
 
-  // Master Data
-  let genderList = [
-    { gender_name: "Male", gender_id: 1 },
-    { gender_name: "Female", gender_id: 2 },
-    { gender_name: "Others", gender_id: 3 },
-    { gender_name: "All", gender_id: 4 },
-  ];
+  // Per-scheme custom form fields: [{ field_key, label, type, required, options }]
+  const [customFormFields, setCustomFormFields] = useState([]);
 
-  const prepareGenderList = () => {
-    let genderDD = [];
-    genderList?.map((genderObj) => {
-      genderDD.push({
-        label: genderObj?.gender_name,
-        value: genderObj?.gender_id,
-      });
-    });
-    setGenderDD(genderDD);
-  };
+  // Fixed gender options per spec: All, Male, Female
+  const GENDER_OPTIONS = [
+    { label: "All", value: "All" },
+    { label: "Male", value: "Male" },
+    { label: "Female", value: "Female" },
+  ];
 
   // Fetch departments from API
   const fetchDepartments = async () => {
@@ -146,45 +133,25 @@ const AddSchemeForm = ({
     }
   };
 
-  // Fetch categories for selected department (using department ObjectId)
-  const fetchCategoriesForDepartment = async (departmentId) => {
-    if (!departmentId) {
-      setCategoryDD([]);
-      setSelectedCategory(null);
-      return;
-    }
-
+  // Fetch all categories from GET /api/categories (flat list, not department-dependent)
+  const fetchCategories = async () => {
     try {
       setLoadingCategories(true);
-      // Find department name from departmentDD to use in API call
-      const department = departmentDD.find(d => d.value === departmentId);
-      if (!department) {
-        console.error("Department not found in dropdown list");
-        setCategoryDD([]);
-        setSelectedCategory(null);
-        return;
-      }
-
-      const departmentName = department.department_name;
-      const response = await axios.get(`${DEPARTMENTS_SIMPLE_URL.replace('/simple', '')}/${encodeURIComponent(departmentName)}/categories`);
-      if (response.status === 200 && response.data?.categories) {
-        const categoriesDD = response.data.categories.map((cat) => ({
-          label: cat.category_display_name || cat.category_name,
-          value: cat._id,
-          category_name: cat.category_name,
-          category_display_name: cat.category_display_name,
-        }));
+      const response = await axios.get(CATEGORIES_URL);
+      if (response.status === 200) {
+        const catData = Array.isArray(response.data) ? response.data : response.data?.categories || response.data?.data || [];
+        const categoriesDD = (catData || [])
+          .filter((cat) => cat._id)
+          .map((cat) => ({
+            label: cat.category_display_name || cat.category_name || "Unknown",
+            value: cat._id,
+          }));
         setCategoryDD(categoriesDD);
-        // Clear selected category when department changes (unless editing)
-        if (!isEdit) {
-          setSelectedCategory(null);
-        }
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
-      showToast("Failed to fetch categories for selected department.", "error");
+      showToast("Failed to fetch categories.", "error");
       setCategoryDD([]);
-      setSelectedCategory(null);
     } finally {
       setLoadingCategories(false);
     }
@@ -203,33 +170,45 @@ const AddSchemeForm = ({
     }
   }, [isEdit, editSchemeDetails]);
 
-  // Fetch admin roles for authorization levels from database
+  // Fetch admin roles from GET /api/admin-roles or /api/admin-roles/for-authorization
   const fetchAdminRoles = async () => {
     try {
       setLoadingAuthLevels(true);
-      console.log("Fetching admin roles from API:", ADMIN_ROLES_FOR_AUTHORIZATION_URL);
-      const response = await axios.get(ADMIN_ROLES_FOR_AUTHORIZATION_URL);
-      console.log("Admin roles API response:", response.data);
-      
-      if (response.status === 200 && response.data?.roles) {
-        // Convert API response to dropdown format
-        const options = response.data.roles.map((role) => ({
-          label: `${role.displayName} (Level ${role.level})`,
+      let roles = [];
+      try {
+        const res = await axios.get(ADMIN_ROLES_URL);
+        if (res.status === 200) {
+          roles = res.data?.roles || res.data || [];
+        }
+      } catch (_) {
+        const res = await axios.get(ADMIN_ROLES_FOR_AUTHORIZATION_URL);
+        if (res.status === 200) roles = res.data?.roles || [];
+      }
+      const options = (Array.isArray(roles) ? roles : [])
+        .filter((r) => r.level >= 1 && r.level <= 8)
+        .map((role) => ({
+          label: `${role.displayName || role.role || "Role"} (Level ${role.level})`,
           value: role.level,
           role: role.role,
-          displayName: role.displayName,
+          displayName: role.displayName || role.role,
         }));
-        console.log("Processed authorization level options from database:", options);
-        setAuthLevelOptions(options);
+      if (options.length === 0) {
+        setAuthLevelOptions([
+          { label: "Super Admin (Level 1)", value: 1 },
+          { label: "Admin (Level 2)", value: 2 },
+          { label: "Department Secretary (Level 3)", value: 3 },
+          { label: "Department Head (Level 4)", value: 4 },
+          { label: "DistrictHQ Head (Level 5)", value: 5 },
+          { label: "Department User (Level 6)", value: 6 },
+          { label: "District Overlookers (Level 7)", value: 7 },
+          { label: "Post Operator (Level 8)", value: 8 },
+        ]);
       } else {
-        console.warn("Unexpected API response format:", response.data);
-        throw new Error("Invalid response format");
-        }
-      } catch (error) {
-      console.error("Error fetching admin roles from database:", error);
-      console.error("Error details:", error.response?.data || error.message);
-      showToast("Failed to fetch authorization levels from database. Using default values.", "warning");
-      // Fallback to default options if API fails
+        setAuthLevelOptions(options);
+      }
+    } catch (error) {
+      console.error("Error fetching admin roles:", error);
+      showToast("Failed to fetch authorization levels. Using defaults.", "warning");
       setAuthLevelOptions([
         { label: "Super Admin (Level 1)", value: 1 },
         { label: "Admin (Level 2)", value: 2 },
@@ -246,108 +225,58 @@ const AddSchemeForm = ({
   };
 
   useEffect(() => {
-    prepareGenderList();
     fetchDepartments();
+    fetchCategories();
     fetchAdminRoles();
   }, []);
 
-  // Fetch categories when department is selected
-  useEffect(() => {
-    if (selectedDepartment?.value) {
-      fetchCategoriesForDepartment(selectedDepartment.value);
-    } else {
-      setCategoryDD([]);
-      if (!isEdit) {
-        setSelectedCategory(null);
-      }
-    }
-  }, [selectedDepartment]);
-
   // Set default department and category when editing
   useEffect(() => {
-    if (isEdit && editSchemeDetails) {
-      // Set department if it exists
-      if (editSchemeDetails.department) {
-        const dept = typeof editSchemeDetails.department === "object"
-          ? editSchemeDetails.department
-          : null;
-        
-        if (dept && departmentDD.length > 0) {
-          const matchingDept = departmentDD.find(
-            d => d.value === dept._id || d.department_name === dept.department_name
-          );
-          if (matchingDept) {
-            setSelectedDepartment(matchingDept);
-          }
-        }
-      }
-
-      // Set category if it exists (after department is set)
-      if (editSchemeDetails.category && categoryDD.length > 0) {
-        const cat = typeof editSchemeDetails.category === "object"
-          ? editSchemeDetails.category
-          : null;
-        
-        if (cat) {
-          const matchingCat = categoryDD.find(
-            c => c.value === cat._id || c.category_name === cat.category_name
-          );
-          if (matchingCat) {
-            setSelectedCategory(matchingCat);
-          }
-        }
+    if (isEdit && editSchemeDetails && departmentDD.length > 0) {
+      const deptId = typeof editSchemeDetails.department === "object"
+        ? editSchemeDetails.department?._id
+        : editSchemeDetails.department;
+      if (deptId) {
+        const matchingDept = departmentDD.find((d) => d.value === deptId);
+        if (matchingDept) setSelectedDepartment(matchingDept);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (isEdit && editSchemeDetails && categoryDD.length > 0) {
+      const catId = typeof editSchemeDetails.category === "object"
+        ? editSchemeDetails.category?._id
+        : editSchemeDetails.category;
+      if (catId) {
+        const matchingCat = categoryDD.find((c) => c.value === catId);
+        if (matchingCat) setSelectedCategory(matchingCat);
+      }
+    }
   }, [isEdit, editSchemeDetails, departmentDD, categoryDD]);
 
-  // Set default authorization levels (after roles are fetched)
+  // Set default authorization levels (dynamic)
   useEffect(() => {
-    if (authLevelOptions.length === 0) return; // Wait for roles to load
-    
+    if (authLevelOptions.length === 0) return;
     if (isEdit && editSchemeDetails?.authorization_levels && Array.isArray(editSchemeDetails.authorization_levels)) {
-      const authLevels = editSchemeDetails.authorization_levels;
-      
-      // Set first level
-      if (authLevels[0] !== undefined) {
-        const firstOption = authLevelOptions.find(opt => opt.value === authLevels[0]);
-        if (firstOption) setSelectedFirstAuthLevel(firstOption);
-      }
-      
-      // Set second level
-      if (authLevels[1] !== undefined) {
-        const secondOption = authLevelOptions.find(opt => opt.value === authLevels[1]);
-        if (secondOption) setSelectedSecondAuthLevel(secondOption);
-      }
-      
-      // Set third level
-      if (authLevels[2] !== undefined) {
-        const thirdOption = authLevelOptions.find(opt => opt.value === authLevels[2]);
-        if (thirdOption) setSelectedThirdAuthLevel(thirdOption);
-      }
-      
-      // Set fourth level
-      if (authLevels[3] !== undefined) {
-        const fourthOption = authLevelOptions.find(opt => opt.value === authLevels[3]);
-        if (fourthOption) setSelectedFourthAuthLevel(fourthOption);
-      }
-    } else if (!isEdit) {
-      // Set default values for new schemes (use first 4 roles from API, or fallback)
-      if (authLevelOptions.length >= 4) {
-        setSelectedFirstAuthLevel(authLevelOptions[0]); // First role (usually highest authority)
-        setSelectedSecondAuthLevel(authLevelOptions[1]); // Second role
-        setSelectedThirdAuthLevel(authLevelOptions[2]); // Third role
-        setSelectedFourthAuthLevel(authLevelOptions[3]); // Fourth role
-      } else if (authLevelOptions.length > 0) {
-        // Fallback if less than 4 roles available
-        setSelectedFirstAuthLevel(authLevelOptions[0]);
-        if (authLevelOptions.length > 1) setSelectedSecondAuthLevel(authLevelOptions[1]);
-        if (authLevelOptions.length > 2) setSelectedThirdAuthLevel(authLevelOptions[2]);
-        if (authLevelOptions.length > 3) setSelectedFourthAuthLevel(authLevelOptions[3]);
-      }
+      const levels = editSchemeDetails.authorization_levels
+        .filter((l) => l >= 1 && l <= 8)
+        .map((level) => ({ level }));
+      setAuthLevels(levels);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEdit, editSchemeDetails, authLevelOptions]);
+    // For new schemes: start with empty (user can add levels or use "Start with 1 level")
+  }, [isEdit, editSchemeDetails?.authorization_levels, authLevelOptions.length]);
+
+  // Set default custom form fields when editing
+  useEffect(() => {
+    if (isEdit && editSchemeDetails?.custom_form_fields && Array.isArray(editSchemeDetails.custom_form_fields)) {
+      const fields = editSchemeDetails.custom_form_fields.map((f) => ({
+        field_key: f.field_key || "",
+        label: f.label || "",
+        type: f.type || "text",
+        required: !!f.required,
+        options: f.options || "",
+      }));
+      setCustomFormFields(fields);
+    }
+  }, [isEdit, editSchemeDetails?.custom_form_fields]);
 
   // Helper function to convert array to HTML string for RichTextArea
   const arrayToHtmlString = (arr) => {
@@ -370,19 +299,6 @@ const AddSchemeForm = ({
     return items.length > 0 ? items : [];
   };
 
-  // Helper function to find gender_id from gender string
-  const getGenderIdFromName = (genderName) => {
-    const gender = genderList.find((g) => g.gender_name === genderName);
-    return gender ? gender.gender_id : null;
-  };
-
-  // Helper function to get gender string from gender_id
-  const getGenderNameFromId = (genderId) => {
-    const gender = genderList.find((g) => g.gender_id === genderId);
-    return gender ? gender.gender_name : "All";
-  };
-
-
   const defaultValues = {
     scheme_id: !isEdit ? "" : editSchemeDetails?._id || editSchemeDetails?.scheme_id,
     scheme_name: !isEdit ? "" : editSchemeDetails?.scheme_name,
@@ -391,12 +307,7 @@ const AddSchemeForm = ({
       : formatDateForInput(editSchemeDetails?.scheme_date),
     gender_id: !isEdit
       ? ""
-      : {
-          label: editSchemeDetails?.gender || editSchemeDetails?.gender_name,
-          value:
-            getGenderIdFromName(editSchemeDetails?.gender) ||
-            editSchemeDetails?.gender_id,
-        },
+      : (GENDER_OPTIONS.find((g) => g.value === (editSchemeDetails?.gender || editSchemeDetails?.gender_name)) || { label: "All", value: "All" }),
     department: !isEdit
       ? ""
       : editSchemeDetails?.department
@@ -459,11 +370,20 @@ const AddSchemeForm = ({
     defaultValues: defaultValues,
   });
 
+  // Set default gender when editing
+  useEffect(() => {
+    if (isEdit && editSchemeDetails?.gender && GENDER_OPTIONS.length > 0) {
+      const genderVal = editSchemeDetails.gender || editSchemeDetails.gender_name || "All";
+      const match = GENDER_OPTIONS.find((g) => g.value === genderVal);
+      if (match) setSelectedGender(match);
+    }
+  }, [isEdit, editSchemeDetails?.gender]);
+
   // Set default department and category when editing (must be after useForm)
   useEffect(() => {
     if (isEdit && editSchemeDetails?.department && departmentDD.length > 0) {
-      // Find department in dropdown by ObjectId
-      const deptOption = departmentDD.find(d => d.value === editSchemeDetails.department);
+      const deptId = typeof editSchemeDetails.department === "object" ? editSchemeDetails.department?._id : editSchemeDetails.department;
+      const deptOption = departmentDD.find(d => d.value === deptId);
       if (deptOption) {
         setSelectedDepartment(deptOption);
         setValue("department", deptOption);
@@ -474,8 +394,8 @@ const AddSchemeForm = ({
   // Set default category when editing and categories are loaded (must be after useForm)
   useEffect(() => {
     if (isEdit && editSchemeDetails?.category && categoryDD.length > 0) {
-      // Find category in dropdown by ObjectId
-      const catOption = categoryDD.find(c => c.value === editSchemeDetails.category);
+      const catId = typeof editSchemeDetails.category === "object" ? editSchemeDetails.category?._id : editSchemeDetails.category;
+      const catOption = categoryDD.find(c => c.value === catId);
       if (catOption) {
         setSelectedCategory(catOption);
         setValue("category", catOption);
@@ -486,13 +406,6 @@ const AddSchemeForm = ({
   const onSubmit = async (data) => {
     try {
       setIsFormSubmitting(true);
-      
-      // Validate authorization levels (for both new and edit)
-      if (!selectedFirstAuthLevel || !selectedSecondAuthLevel || !selectedThirdAuthLevel || !selectedFourthAuthLevel) {
-        showToast("Please select all authorization levels.", "error");
-        setIsFormSubmitting(false);
-        return;
-      }
       
       let fileURL = null;
 
@@ -522,13 +435,10 @@ const AddSchemeForm = ({
         ? selectedExcludedSchemeIds
         : [];
 
-      // Build authorization_levels array (for both new and edit)
-      const authorization_levels = [
-        selectedFirstAuthLevel?.value || 7,
-        selectedSecondAuthLevel?.value || 6,
-        selectedThirdAuthLevel?.value || 4,
-        selectedFourthAuthLevel?.value || 3,
-      ];
+      // Build authorization_levels from dynamic list ([] allowed for default workflow)
+      const authorization_levels = authLevels
+        .map((item) => (item?.level != null && !isNaN(item.level) ? item.level : null))
+        .filter((l) => l !== null && l >= 1 && l <= 8);
 
       // Validate department and category for new schemes
       if (!isEdit) {
@@ -549,8 +459,8 @@ const AddSchemeForm = ({
       const departmentValue = selectedDepartment?.value || editSchemeDetails?.department;
       const categoryValue = selectedCategory?.value || editSchemeDetails?.category;
 
-      // Convert gender_id to gender string
-      const genderString = selectedGender?.label || getGenderNameFromId(selectedGender?.value) || "All";
+      // Gender: All, Male, or Female
+      const genderString = selectedGender?.value || selectedGender?.label || "All";
 
       // Get arrays directly from form data (ArrayInput already provides arrays)
       const scheme_objectives = Array.isArray(data?.scheme_objectives) 
@@ -599,6 +509,17 @@ const AddSchemeForm = ({
         }
       }
 
+      // Build custom_form_fields from UI state (filter empty, format for API)
+      const custom_form_fields = (customFormFields || [])
+        .filter((f) => f && f.field_key && f.label)
+        .map((f) => ({
+          field_key: (f.field_key || "").trim().toLowerCase().replace(/\s+/g, "_"),
+          label: (f.label || "").trim(),
+          type: f.type || "text",
+          required: !!f.required,
+          ...((f.type === "select" && f.options) ? { options: String(f.options).trim() } : {}),
+        }));
+
       let sendDataObj = {
         scheme_name: data?.scheme_name,
         ...(schemeDateISO && { scheme_date: schemeDateISO }),
@@ -616,6 +537,7 @@ const AddSchemeForm = ({
         scheme_required_documents: [], // Empty array (documents uploaded separately)
         excluded_schemes: excludedSchemeIds, // Array of ObjectId strings
         authorization_levels, // Array of numbers (max 4) - included for both new and edit
+        custom_form_fields, // Per-scheme form field definitions
         ...(!isEdit && { 
           approval_status: "pending_department_head_approval" // For new schemes only
         }),
@@ -628,7 +550,16 @@ const AddSchemeForm = ({
       if (!isEdit) {
         sendDataObj.scheme_image_file_url = updatedFileURL || null;
 
-        response = await axios.post(SCHEMES_CONFIG_URL, sendDataObj);
+        // Use query parameters for authentication (to avoid CORS preflight issues with custom headers)
+        const adminUsername = sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username");
+        const adminPassword = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
+        const params = new URLSearchParams();
+        if (adminUsername) params.append("username", adminUsername);
+        if (adminPassword) params.append("password", adminPassword);
+        const queryString = params.toString();
+        const createUrl = queryString ? `${SCHEMES_CONFIG_URL}?${queryString}` : SCHEMES_CONFIG_URL;
+
+        response = await axios.post(createUrl, sendDataObj);
       } else {
         sendDataObj.scheme_image_file_url =
           editSchemeDeleteImagePath || updatedFileURL;
@@ -685,13 +616,10 @@ const AddSchemeForm = ({
 
         return;
       }
-      // Reset form including excluded schemes and authorization levels
       setSelectedExcludedSchemeIds([]);
-      if (!isEdit && authLevelOptions.length >= 4) {
-        setSelectedFirstAuthLevel(authLevelOptions[0]);
-        setSelectedSecondAuthLevel(authLevelOptions[1]);
-        setSelectedThirdAuthLevel(authLevelOptions[2]);
-        setSelectedFourthAuthLevel(authLevelOptions[3]);
+      if (!isEdit) {
+        setAuthLevels([]);
+        setCustomFormFields([]);
       }
       reset();
     } catch (error) {
@@ -781,8 +709,16 @@ const AddSchemeForm = ({
       />
 
       <div>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 gap-y-5">
+        <form
+          onSubmit={handleSubmit(onSubmit, (err) => {
+            const first = Object.values(err)[0];
+            showToast(first?.message || "Please fix the form errors before submitting.", "error");
+          })}
+        >
+          {/* Section: Basic Info */}
+          <div className="mb-6 pb-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Info</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 gap-y-5">
             <Input
               defaultName="scheme_name"
               register={register}
@@ -855,27 +791,27 @@ const AddSchemeForm = ({
                 setSelected={setSelectedCategory}
                 selected={selectedCategory}
               maxMenuHeight={200}
-              placeholder={selectedDepartment ? "Select category" : "Select department first"}
-              isDisabled={!selectedDepartment || loadingCategories}
+              placeholder={loadingCategories ? "Loading..." : "Select category"}
+              isDisabled={loadingCategories}
               />
 
               <Dropdown
-              defaultName="gender_id"
+                defaultName="gender_id"
                 register={register}
-              labelname="Gender"
+                labelname="Gender"
                 required={true}
                 pattern={false}
                 errors={errors}
-                classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
+                classes="rounded-lg text-sm w-full z-40 cursor-pointer"
                 setError={setError}
                 clearError={clearErrors}
                 onChangeInput={null}
                 control={control}
-              data={genderDD}
-              defaultValue={defaultValues.gender_id}
+                data={GENDER_OPTIONS}
+                defaultValue={defaultValues.gender_id}
                 setValue={setValue}
-              setSelected={setSelectedGender}
-              selected={selectedGender}
+                setSelected={setSelectedGender}
+                selected={selectedGender}
                 maxMenuHeight={120}
               />
 
@@ -895,11 +831,16 @@ const AddSchemeForm = ({
                 classes={`rounded px-3 py-2 text-sm w-full resize-y min-h-40`}
                 onChangeInput={null}
                 defaultValue={defaultValues.scheme_description}
-                setValue={setValue}
-              />
+              setValue={setValue}
+            />
             </div>
+          </div>
 
+          {/* Section: Objectives & Benefits */}
+          <div className="mb-6 pb-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Objectives & Benefits</h2>
             <div className="col-span-2">
+              <p className="text-xs text-gray-600 mb-1">Add at least one objective. Use Add button to add more.</p>
               <ArrayInput
                 defaultName="scheme_objectives"
                 register={register}
@@ -915,6 +856,7 @@ const AddSchemeForm = ({
             </div>
 
             <div className="col-span-2">
+              <p className="text-xs text-gray-600 mb-1">Add at least one benefit. Use Add button to add more.</p>
               <ArrayInput
                 defaultName="scheme_benefits"
                 register={register}
@@ -928,7 +870,12 @@ const AddSchemeForm = ({
                 placeholder="Enter benefit"
               />
             </div>
+          </div>
 
+          {/* Section: Eligibility */}
+          <div className="mb-6 pb-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Eligibility</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 gap-y-5">
             <Input
               defaultName="scheme_eligibility_lower_age_limit"
               register={register}
@@ -964,7 +911,41 @@ const AddSchemeForm = ({
               defaultValue={defaultValues.scheme_eligibility_upper_age_limit}
               setValue={setValue}
             />
+            </div>
+          </div>
 
+          {/* Section: Required Documents */}
+          <div className="mb-6 pb-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Required Documents</h2>
+            <div className="col-span-2">
+              <p className="text-xs text-gray-600 mb-1">Add at least one document type (e.g. Aadhaar Card). Use Add button to add more.</p>
+              <ArrayInput
+                defaultName="scheme_required_document_types"
+                register={register}
+                name="Required Document Types"
+                required={true}
+                errors={errors}
+                setValue={setValue}
+                data={!isEdit ? [] : (Array.isArray(editSchemeDetails?.scheme_required_document_types)
+                  ? editSchemeDetails.scheme_required_document_types
+                  : [])}
+                placeholder="Enter document type (e.g., Aadhaar Card)"
+              />
+            </div>
+          </div>
+
+          {/* Section: Custom Form Fields */}
+          <div className="mb-6 pb-4 border-b border-gray-200">
+            <CustomFormFieldsSelector
+              fields={customFormFields}
+              onChange={setCustomFormFields}
+              disabled={isFormSubmitting}
+            />
+          </div>
+
+          {/* Section: Optional */}
+          <div className="mb-6 pb-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Optional</h2>
             <div className="col-span-2">
               <label className="font-medium text-left text-gray-900 pl-1 pb-3 text-xs md:text-sm lg:text-base block">
                 Excluded Schemes
@@ -980,120 +961,26 @@ const AddSchemeForm = ({
               />
             </div>
 
-            {/* Authorization Levels Section - Show for both new and edit */}
+            {/* Dynamic Authorization Levels */}
             <div className="col-span-2 border-t pt-5 mt-2">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Authorization Levels <span className="text-red-700">*</span>
-              </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Dropdown
-                    defaultName="first_auth_level"
-                register={register}
-                    labelname="First Authorization Level"
-                    required={true}
-                pattern={false}
-                errors={errors}
-                    classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
-                setError={setError}
-                clearError={clearErrors}
-                onChangeInput={null}
-                control={control}
-                    data={authLevelOptions}
-                    defaultValue={selectedFirstAuthLevel}
-                setValue={setValue}
-                    setSelected={setSelectedFirstAuthLevel}
-                    selected={selectedFirstAuthLevel}
-                maxMenuHeight={200}
-                    placeholder={loadingAuthLevels ? "Loading roles..." : "Select first authorization level"}
-                    isDisabled={loadingAuthLevels || authLevelOptions.length === 0}
-                  />
-
-                  <Dropdown
-                    defaultName="second_auth_level"
-                    register={register}
-                    labelname="Second Authorization Level"
-                    required={true}
-                    pattern={false}
-                    errors={errors}
-                    classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
-                    setError={setError}
-                    clearError={clearErrors}
-                    onChangeInput={null}
-                    control={control}
-                    data={authLevelOptions}
-                    defaultValue={selectedSecondAuthLevel}
-                    setValue={setValue}
-                    setSelected={setSelectedSecondAuthLevel}
-                    selected={selectedSecondAuthLevel}
-                    maxMenuHeight={200}
-                    placeholder={loadingAuthLevels ? "Loading roles..." : "Select second authorization level"}
-                    isDisabled={loadingAuthLevels || authLevelOptions.length === 0}
-                  />
-
-                  <Dropdown
-                    defaultName="third_auth_level"
-                    register={register}
-                    labelname="Third Authorization Level"
-                    required={true}
-                    pattern={false}
-                    errors={errors}
-                    classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
-                    setError={setError}
-                    clearError={clearErrors}
-                    onChangeInput={null}
-                    control={control}
-                    data={authLevelOptions}
-                    defaultValue={selectedThirdAuthLevel}
-                    setValue={setValue}
-                    setSelected={setSelectedThirdAuthLevel}
-                    selected={selectedThirdAuthLevel}
-                    maxMenuHeight={200}
-                    placeholder={loadingAuthLevels ? "Loading roles..." : "Select third authorization level"}
-                    isDisabled={loadingAuthLevels || authLevelOptions.length === 0}
-                  />
-
-                  <Dropdown
-                    defaultName="fourth_auth_level"
-                    register={register}
-                    labelname="Fourth Authorization Level"
-                    required={true}
-                    pattern={false}
-                    errors={errors}
-                    classes={`rounded-lg text-sm w-full z-40 cursor-pointer`}
-                    setError={setError}
-                    clearError={clearErrors}
-                    onChangeInput={null}
-                    control={control}
-                    data={authLevelOptions}
-                    defaultValue={selectedFourthAuthLevel}
-                    setValue={setValue}
-                    setSelected={setSelectedFourthAuthLevel}
-                    selected={selectedFourthAuthLevel}
-                    maxMenuHeight={200}
-                    placeholder={loadingAuthLevels ? "Loading roles..." : "Select fourth authorization level"}
-                    isDisabled={loadingAuthLevels || authLevelOptions.length === 0}
-                  />
-                </div>
-              <p className="mt-2 text-xs text-gray-600">
-                Authorization levels define who can authorize applications at each stage of the workflow.
-              </p>
-            </div>
-
-            <div className="col-span-2">
-              <ArrayInput
-                defaultName="scheme_required_document_types"
-                register={register}
-                name="Required Document Types"
-                required={true}
-                errors={errors}
-                setValue={setValue}
-                data={!isEdit ? [] : (Array.isArray(editSchemeDetails?.scheme_required_document_types) 
-                  ? editSchemeDetails.scheme_required_document_types 
-                  : [])}
-                placeholder="Enter document type (e.g., Aadhaar Card)"
+              <DynamicAuthLevelsSelector
+                levels={authLevels}
+                options={authLevelOptions}
+                onChange={setAuthLevels}
+                onAddLevel={() => setAuthLevels([...authLevels, { level: null }])}
+                onRemoveLevel={(index) => setAuthLevels(authLevels.filter((_, i) => i !== index))}
+                onClearAll={() => setAuthLevels([])}
+                onStartWithDefault={() => {
+                  const first = authLevelOptions[0];
+                  if (first) setAuthLevels([{ level: first.value }]);
+                }}
+                loading={loadingAuthLevels}
+                disabled={isFormSubmitting}
+                showPreview={true}
               />
             </div>
 
+            <div className="col-span-2">
             <div className="flex flex-col justify-start mt-3 items-start">
               <div className="mb-4 font-semibold">
                 Scheme Image <span className="text-red-700">*</span>
@@ -1194,6 +1081,7 @@ const AddSchemeForm = ({
                 </>
               )}
             </div>
+            </div>
           </div>
 
           {showSchemeDz && (
@@ -1244,6 +1132,7 @@ const AddSchemeForm = ({
             >
               Cancel
             </div>
+          </div>
           </div>
         </form>
       </div>

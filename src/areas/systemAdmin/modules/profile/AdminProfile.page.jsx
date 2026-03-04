@@ -4,7 +4,7 @@ import axios from "../../../../api/axios";
 import { ADMIN_PROFILE_URL } from "../../../../api/api_routing_urls";
 import Dashboard from "../../../dashboard-components/dashboard.component";
 
-function AdminProfile() {
+function AdminProfile({ sidebarType = "System Admin" }) {
   const navigate = useNavigate();
   const [adminProfile, setAdminProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -99,7 +99,7 @@ function AdminProfile() {
   };
 
   return (
-    <Dashboard sidebarType="System Admin">
+    <Dashboard sidebarType={sidebarType}>
       <div className="p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Admin Profile</h1>

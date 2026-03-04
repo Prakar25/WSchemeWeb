@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import Stepper, { Step } from "../../../reusable-components/Stepper/Stepper";
 import axios from "../../../api/axios";
 import {
   PUBLIC_PROFILE_GET_URL,
@@ -29,6 +30,8 @@ export default function CompleteProfile() {
     birthCertificate: false,
     certificateOfIdentification: false,
   });
+
+  const formRef = useRef(null);
 
   const {
     register,
@@ -265,11 +268,20 @@ export default function CompleteProfile() {
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Complete Your Profile</h1>
-          {user?.kycLevel && (
-            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getKycLevelColor(user.kycLevel)}`}>
-              KYC Level: {user.kycLevel}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {user?.kycLevel && (
+              <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getKycLevelColor(user.kycLevel)}`}>
+                KYC Level: {user.kycLevel}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => navigate("/user/profile")}
+              className="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
 
         {user?.kycLevel === "FULL" && (
@@ -280,10 +292,24 @@ export default function CompleteProfile() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Demographics Section */}
-          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
+        {loading && (
+          <div className="fixed inset-0 bg-white/70 z-50 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <Spinner />
+              <p className="text-gray-600 font-medium">Saving profile & documents...</p>
+            </div>
+          </div>
+        )}
+        <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
+          <Stepper
+            onFinalStepCompleted={() => formRef.current?.requestSubmit()}
+            nextButtonText="Next"
+            backButtonText="Previous"
+            completeButtonText={loading || isSubmitting ? "Saving..." : "Save Profile"}
+            nextButtonProps={{ disabled: loading || isSubmitting }}
+          >
+            <Step>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
@@ -368,11 +394,10 @@ export default function CompleteProfile() {
                 setValue={setValue}
               />
             </div>
-          </div>
+            </Step>
 
-          {/* Address Section */}
-          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Address</h2>
+            <Step>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Address</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
@@ -511,13 +536,11 @@ export default function CompleteProfile() {
                 setValue={setValue}
               />
             </div>
-          </div>
+            </Step>
 
-          {/* Documents Section */}
-          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Documents</h2>
-            
-            <p className="text-sm text-gray-600 mb-4">
+            <Step>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Documents</h2>
+              <p className="text-sm text-gray-600 mb-4">
               Select documents below. They will be saved when you press Submit at the bottom.
             </p>
             <div className="space-y-4">
@@ -549,31 +572,8 @@ export default function CompleteProfile() {
                 onDelete={() => deleteDocument("certificateOfIdentification")}
               />
             </div>
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => navigate("/user/profile")}
-              className="flex-1 bg-gray-300 text-gray-700 py-3 px-6 rounded-md hover:bg-gray-400 font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || isSubmitting}
-              className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Spinner /> Saving profile & documents...
-                </>
-              ) : (
-                "Submit"
-              )}
-            </button>
-          </div>
+            </Step>
+          </Stepper>
         </form>
       </main>
 

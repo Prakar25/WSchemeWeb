@@ -27,6 +27,18 @@ export default function PublicDashboard() {
   const [applications, setApplications] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [ageGroupFilter, setAgeGroupFilter] = useState("");
+
+  const AGE_OPTIONS = [
+    { value: "", label: "Age Group" },
+    { value: "all", label: "All" },
+    { value: "20-30", label: "20-30" },
+    { value: "30-40", label: "30-40" },
+    { value: "40-50", label: "40-50" },
+    { value: "50-60", label: "50-60" },
+    { value: "60-70", label: "60-70" },
+    { value: "70_and_above", label: "70+" },
+  ];
   const [selectedScheme, setSelectedScheme] = useState(null);
   const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
   const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
@@ -165,7 +177,9 @@ export default function PublicDashboard() {
         const userId = user?._id || user?.userId || storedUser?._id || storedUser?.userId;
         const params = new URLSearchParams();
         params.append("approved_only", "true");
-        
+        if (ageGroupFilter && ageGroupFilter !== "all") {
+          params.append("age_group", ageGroupFilter);
+        }
         if (userId) {
           params.append("user_id", userId);
           params.append("filter_type", "applicant"); // Use applicant filter when user_id is provided
@@ -224,7 +238,7 @@ export default function PublicDashboard() {
     if (user || storedUser) {
       fetchApplications();
     }
-  }, [user]);
+  }, [user, ageGroupFilter]);
 
   // Mask Aadhaar number for display
   const maskAadhaar = (aadhaar) => {
@@ -302,7 +316,7 @@ export default function PublicDashboard() {
   // If a scheme is selected, show the detail view
   if (selectedScheme) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 flex flex-col">
         <PublicHeader />
         <ViewSchemeDetails
           scheme={selectedScheme}
@@ -314,42 +328,63 @@ export default function PublicDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 flex flex-col">
       <PublicHeader />
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        {/* Dashboard Title */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Public User Dashboard
-        </h1>
+        {/* Hero & Dashboard Title */}
+        <div className="mb-8 text-center">
+          <p className="text-slate-500 text-sm font-medium font-montserrat tracking-wide uppercase mb-1">
+            Welcome to WelfareConnect
+          </p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 font-montserrat">
+            Welcome, {user?.fullName?.split(" ")[0] || "there"}!
+          </h1>
+          <p className="text-slate-600 mt-1">
+            Here are schemes you can apply for and your application status.
+          </p>
+        </div>
 
         {/* Verification status message (when not verified) */}
         {user?.accountStatusMessage && (
-          <div className="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-lg shadow-md" role="alert">
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-amber-50/90 backdrop-blur border border-amber-200 p-4 rounded-xl shadow-sm"
+            role="alert"
+          >
             <div className="flex items-start gap-3">
-              <FiAlertCircle className="text-amber-600 text-xl mt-0.5 flex-shrink-0" />
-              <p className="text-amber-800 text-sm font-medium">{user.accountStatusMessage}</p>
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                <FiAlertCircle className="text-amber-600 text-xl" />
+              </div>
+              <p className="text-amber-800 text-sm font-medium pt-1.5">{user.accountStatusMessage}</p>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Profile Completion Prompt */}
         {showProfilePrompt && (
-          <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow-md">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3 flex-1">
-                <FiAlertCircle className="text-yellow-600 text-2xl mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-1">
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 p-5 rounded-2xl shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4 flex-1">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <FiAlertCircle className="text-amber-600 text-2xl" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-semibold text-amber-900 mb-1 font-montserrat">
                     Complete Your Profile
                   </h3>
-                  <p className="text-yellow-700 text-sm mb-3">
-                    Your profile is incomplete. Please complete your profile to apply for schemes and access all features.
+                  <p className="text-amber-800/90 text-sm mb-4">
+                    Your profile is incomplete. Complete it to apply for schemes and access all features.
                   </p>
                   <button
                     onClick={() => navigate("/user/complete-profile")}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white font-medium px-6 py-2 rounded-md transition-colors"
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all hover:shadow-md active:scale-[0.98]"
                   >
                     Complete Profile Now
                   </button>
@@ -357,81 +392,120 @@ export default function PublicDashboard() {
               </div>
               <button
                 onClick={() => setShowProfilePrompt(false)}
-                className="text-yellow-600 hover:text-yellow-800 ml-4"
+                className="flex-shrink-0 text-amber-600 hover:text-amber-800 hover:bg-amber-100 rounded-lg p-2 transition-colors"
                 aria-label="Dismiss"
               >
                 <FiX size={20} />
               </button>
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {/* User Profile Summary */}
+        {/* User Profile Summary Card */}
         {user && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8 border border-gray-200">
-            <div className="flex items-center gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-10 bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 overflow-hidden"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
               {/* Profile Picture */}
-              <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                {user.photo?.url ? (
-                  <img
-                    src={displayMedia(user.photo.url)}
-                    alt={user.fullName || "User"}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-400 to-green-400 flex items-center justify-center text-white text-2xl font-bold">
-                    {(user.fullName || "U").charAt(0).toUpperCase()}
-                  </div>
-                )}
+              <div className="relative">
+                <div className="w-20 h-20 rounded-2xl overflow-hidden ring-2 ring-white shadow-lg">
+                  {user.photo?.url ? (
+                    <img
+                      src={displayMedia(user.photo.url)}
+                      alt={user.fullName || "User"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 flex items-center justify-center text-white text-2xl font-bold font-montserrat">
+                      {(user.fullName || "U").charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white" />
               </div>
 
               {/* User Info */}
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-montserrat">
                   {user.fullName || "User Name"}
                 </h2>
-                <p className="text-gray-600 mt-1">
+                <p className="text-slate-500 text-sm mt-1 font-medium">
                   Aadhaar: {maskAadhaar(user.aadhaarNumber)}
                 </p>
-                <span className="inline-block mt-2 px-4 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   Eligible: {getEligibilityStatus(user)}
                 </span>
               </div>
+
+              <button
+                onClick={() => navigate("/user/profile")}
+                className="hidden sm:flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors"
+              >
+                View Profile
+                <span className="text-slate-400">→</span>
+              </button>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Available Schemes Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Available Schemes
-          </h2>
+        <div className="mb-14">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-montserrat">
+              Available Schemes
+            </h2>
+            <button
+              onClick={() => navigate("/user/schemes")}
+              className="text-emerald-600 hover:text-emerald-700 font-semibold text-sm flex items-center gap-1"
+            >
+              View all schemes
+              <span>→</span>
+            </button>
+          </div>
 
           {/* Filters and Search */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Category Filter */}
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="All">Category</option>
+          <div className="w-1/2 min-w-[320px] max-w-xl mx-auto">
+            <div className="bg-white rounded-xl shadow-md shadow-slate-200/50 p-4 sm:p-5 mb-6 border border-slate-100">
+              <div className="flex flex-col sm:flex-row gap-3">
+                {/* Search Bar */}
+                <div className="flex-1 relative">
+                  <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search schemes by name or description..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+                  />
+                </div>
+                {/* Age Group Filter */}
+                <select
+                  value={ageGroupFilter}
+                  onChange={(e) => setAgeGroupFilter(e.target.value)}
+                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 bg-white min-w-[160px]"
+                >
+                  {AGE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                {/* Category Filter */}
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 bg-white min-w-[160px]"
+                >
+                <option value="All">All Categories</option>
                 <option value="Pension">Pension</option>
                 <option value="Education">Education</option>
                 <option value="Health">Health</option>
               </select>
-
-              {/* Search Bar */}
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search for schemes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
               </div>
             </div>
           </div>
@@ -452,94 +526,82 @@ export default function PublicDashboard() {
                   key={scheme._id || scheme.scheme_id || index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className={`bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden transition-all cursor-pointer ${
-                    isEligible 
-                      ? "hover:shadow-lg" 
-                      : "opacity-60 grayscale hover:opacity-70"
+                  transition={{ duration: 0.35, delay: index * 0.08 }}
+                  className={`group bg-white rounded-2xl shadow-md shadow-slate-200/50 border border-slate-100 overflow-hidden cursor-pointer transition-all duration-300 ${
+                    isEligible
+                      ? "hover:shadow-xl hover:shadow-emerald-100/50 hover:-translate-y-1 hover:border-emerald-200/60"
+                      : "opacity-65 grayscale-[0.3] hover:opacity-75"
                   }`}
                   onClick={() => handleSchemeClick(scheme)}
                 >
                   {/* Scheme Image */}
-                  {scheme.scheme_image_file_url && (
-                    <div className="h-48 w-full overflow-hidden">
+                  <div className="h-40 w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+                    {scheme.scheme_image_file_url ? (
                       <img
                         src={displayMedia(scheme.scheme_image_file_url)}
                         alt={scheme.scheme_name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                    </div>
-                  )}
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-slate-400/60 text-5xl font-bold font-montserrat">
+                          {(scheme.scheme_name || "S").charAt(0)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="p-5">
-                    {/* Scheme Type Badge and Title */}
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start justify-between gap-2 mb-3">
                       <span
-                        className={`px-3 py-1 rounded text-xs font-semibold ${
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
                           schemeType === "STATE"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-orange-100 text-orange-700"
+                            ? "bg-blue-50 text-blue-700"
+                            : "bg-orange-50 text-orange-700"
                         }`}
                       >
-                        {schemeType} SCHEME
+                        {schemeType}
                       </span>
                       {!isEligible && (
-                        <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                        <span className="px-2.5 py-1 bg-red-50 text-red-700 rounded-lg text-xs font-semibold">
                           Not Eligible
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">
+                    <h3 className="text-lg font-bold text-slate-900 mb-3 font-montserrat line-clamp-2 group-hover:text-emerald-700 transition-colors">
                       {scheme.scheme_name}
                     </h3>
 
-                    {/* Eligibility */}
-                    <div className="mb-3">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">
-                        Eligibility:
-                      </p>
-                      <p className="text-sm text-gray-700">
+                    <div className="mb-4 space-y-2">
+                      <p className="text-xs text-slate-500">
                         {scheme.scheme_eligibility
-                          ? `Age: ${scheme.scheme_eligibility.lower_age_limit || "N/A"} - ${scheme.scheme_eligibility.upper_age_limit || "N/A"} years`
-                          : "Check scheme details"}
+                          ? `Age ${scheme.scheme_eligibility.lower_age_limit || "N/A"}–${scheme.scheme_eligibility.upper_age_limit || "N/A"} yrs`
+                          : "See details"}
                       </p>
                       {!isEligible && eligibilityReason && (
-                        <p className="text-xs text-red-600 mt-1 italic">
-                          {eligibilityReason}
-                        </p>
+                        <p className="text-xs text-red-600 italic">{eligibilityReason}</p>
                       )}
-                    </div>
-
-                    {/* Benefits */}
-                    <div className="mb-4">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">
-                        Benefits:
-                      </p>
-                      <p className="text-sm text-gray-700 line-clamp-2">
-                        {Array.isArray(scheme.scheme_benefits) &&
-                        scheme.scheme_benefits.length > 0
+                      <p className="text-sm text-slate-600 line-clamp-2">
+                        {Array.isArray(scheme.scheme_benefits) && scheme.scheme_benefits.length > 0
                           ? scheme.scheme_benefits[0]
-                          : "See scheme details"}
+                          : "Check scheme for benefits"}
                       </p>
                     </div>
 
-                    {/* Apply Now Button */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleSchemeClick(scheme);
                       }}
                       disabled={!isEligible}
-                      className={`w-full py-3 rounded-md font-semibold text-sm transition-colors ${
+                      className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${
                         isEligible
-                          ? schemeType === "STATE"
-                            ? "bg-blue-600 hover:bg-blue-700 text-white"
-                            : "bg-orange-600 hover:bg-orange-700 text-white"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-md active:scale-[0.98]"
+                          : "bg-slate-100 text-slate-400 cursor-not-allowed"
                       }`}
                     >
-                      Apply Now
+                      {isEligible ? "Apply Now" : "View Details"}
                     </button>
                   </div>
                 </motion.div>
@@ -548,81 +610,115 @@ export default function PublicDashboard() {
           </div>
 
           {filteredSchemes.length === 0 && (
-            <p className="text-center text-gray-500 py-8">
-              No schemes found matching your criteria.
-            </p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-16 px-6 bg-slate-50/80 rounded-2xl border border-slate-100"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-200/60 flex items-center justify-center">
+                <FaSearch className="text-slate-400 text-2xl" />
+              </div>
+              <p className="text-slate-600 font-medium">No schemes found</p>
+              <p className="text-slate-500 text-sm mt-1">Try adjusting your search or category filter.</p>
+            </motion.div>
           )}
         </div>
 
         {/* Application Status Tracker */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Application Status Tracker
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-montserrat">
+              Application Status
+            </h2>
+            <button
+              onClick={() => navigate("/user/applications")}
+              className="text-emerald-600 hover:text-emerald-700 font-semibold text-sm flex items-center gap-1"
+            >
+              View all applications
+              <span>→</span>
+            </button>
+          </div>
 
-          <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-md shadow-slate-200/50 border border-slate-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      SCHEME
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-100">
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Scheme
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      STATUS
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Status
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      DATE APPLIED
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Date Applied
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      ACTION
+                    <th className="px-5 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      Action
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-slate-100">
                   {applications.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
-                        No applications found.
+                      <td colSpan="4" className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center">
+                            <FaFileAlt className="text-slate-400 text-xl" />
+                          </div>
+                          <div>
+                            <p className="text-slate-600 font-medium">No applications yet</p>
+                            <p className="text-slate-500 text-sm mt-0.5">Apply for schemes to track your status here.</p>
+                          </div>
+                          <button
+                            onClick={() => navigate("/user/schemes")}
+                            className="text-emerald-600 hover:text-emerald-700 font-semibold text-sm"
+                          >
+                            Browse schemes →
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ) : (
                     applications.map((app, index) => {
-                    const status = statusConfig[app.status] || statusConfig.Applied;
-                      const dateApplied = app.date_applied 
-                        ? formatDateInDDMonYYYY(app.date_applied) 
+                      const status = statusConfig[app.status] || statusConfig.Applied;
+                      const dateApplied = app.date_applied
+                        ? formatDateInDDMonYYYY(app.date_applied)
                         : "N/A";
 
-                    return (
-                        <tr key={app._id || app.applicationId || index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                      return (
+                        <tr key={app._id || app.applicationId || index} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-5 py-4">
+                            <div className="text-sm font-semibold text-slate-900">
                               {app.schemeName || app.scheme_name || "N/A"}
                             </div>
                             {app.verification_stage_display && (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-slate-500 mt-0.5">
                                 {app.verification_stage_display}
-                          </div>
+                              </div>
                             )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${status.bg} ${status.text}`}
-                          >
-                            {status.icon}
-                            {app.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          </td>
+                          <td className="px-5 py-4">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold ${status.bg} ${status.text}`}
+                            >
+                              {status.icon}
+                              {app.status}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-sm text-slate-600">
                             {dateApplied}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button className="text-blue-600 hover:text-blue-800 font-semibold">
-                            View Details
-                          </button>
-                        </td>
-                      </tr>
-                    );
+                          </td>
+                          <td className="px-5 py-4 text-right">
+                            <button
+                              onClick={() => navigate("/user/applications")}
+                              className="text-emerald-600 hover:text-emerald-700 font-semibold text-sm"
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      );
                     })
                   )}
                 </tbody>

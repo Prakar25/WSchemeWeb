@@ -33,7 +33,7 @@ axiosInstance.interceptors.request.use(
     // Bulk upload endpoints use query parameters (NOT headers) to avoid CORS issues
     // Scheme update endpoint uses query parameters (NOT headers) to avoid CORS issues
     // Approve/reject endpoints also use query parameters, NOT headers (to avoid CORS)
-    const requiresHeaders = isSchemeCreate;
+    const requiresHeaders = false; // Use query params instead - custom headers cause CORS preflight to fail
     
     // Only add headers for endpoints that require them
     if (requiresHeaders) {
