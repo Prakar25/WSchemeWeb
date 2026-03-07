@@ -11,28 +11,13 @@ function AdminProfile({ sidebarType = "System Admin" }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Get admin credentials helper
-  const getAdminCredentials = () => {
-    return {
-      username: sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username"),
-      password: sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password"),
-    };
-  };
-
-  // Fetch admin profile
+  // Fetch admin profile (JWT sent via axios interceptor)
   useEffect(() => {
     const fetchAdminProfile = async () => {
       try {
         setLoading(true);
         setError(null);
-        const credentials = getAdminCredentials();
-        const params = new URLSearchParams();
-        if (credentials.username) params.append("username", credentials.username);
-        if (credentials.password) params.append("password", credentials.password);
-
-        const response = await axios.get(
-          `${ADMIN_PROFILE_URL}?${params.toString()}`
-        );
+        const response = await axios.get(ADMIN_PROFILE_URL);
         console.log("Admin profile API response (profile page):", response.data);
         if (response.data.status === "success" && response.data.user) {
           const userData = response.data.user;

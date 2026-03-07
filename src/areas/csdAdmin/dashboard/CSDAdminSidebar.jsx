@@ -35,12 +35,13 @@ export default function CSDAdminSidebar({
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    localStorage.removeItem("adminToken");
     localStorage.removeItem("user");
     localStorage.removeItem("role");
     localStorage.removeItem("sidebar-expanded");
     sessionStorage.removeItem("admin_username");
     sessionStorage.removeItem("admin_password");
-    navigate("/login");
+    navigate("/admin-login");
   };
 
   return (

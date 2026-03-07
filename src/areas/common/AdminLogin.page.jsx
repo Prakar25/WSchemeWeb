@@ -26,19 +26,20 @@ export default function AdminLogin() {
         password: data.admin_password,
       });
 
-      const { status, user, message } = response.data;
+      const { status, token, user, message } = response.data;
 
       if (status !== "success" || !user) {
         setLoginError(message || "Incorrect credentials. Try again.");
         return;
       }
 
+      if (token) {
+        localStorage.setItem("adminToken", token);
+      }
       const roleLevel = user.roleLevel || user.role_level || null;
       const userToStore = { ...user, role: user.role || "System Admin", roleLevel };
       localStorage.setItem("user", JSON.stringify(userToStore));
       localStorage.setItem("role", user.role || "System Admin");
-      sessionStorage.setItem("admin_username", data.admin_username.trim());
-      sessionStorage.setItem("admin_password", data.admin_password);
 
       const role = (user.role || "").trim();
       if (role === "CSDAdmin") {

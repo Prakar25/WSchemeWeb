@@ -32,13 +32,6 @@ const Applications = () => {
   const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
   const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
 
-  // Get admin credentials
-  const getAdminCredentials = () => {
-    const username = sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username");
-    const password = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
-    return { username, password };
-  };
-
   // Fetch departments and categories for lookup maps
   useEffect(() => {
     const fetchLookups = async () => {
@@ -72,17 +65,10 @@ const Applications = () => {
     fetchLookups();
   }, []);
 
-  // Fetch admin profile to check role level
+  // Fetch admin profile to check role level (JWT sent via axios interceptor)
   const fetchAdminProfile = async () => {
     try {
-      const { username, password } = getAdminCredentials();
-      if (!username || !password) return;
-
-      const params = new URLSearchParams();
-      params.append("username", username);
-      params.append("password", password);
-
-      const response = await axios.get(`${ADMIN_PROFILE_URL}?${params.toString()}`);
+      const response = await axios.get(ADMIN_PROFILE_URL);
       if (response.status === 200 && response.data?.user) {
         const userData = response.data.user;
         const roleLevel = userData.roleLevel || userData.role_level;
@@ -128,24 +114,11 @@ const Applications = () => {
     }
   };
 
-  // Fetch detailed application data
+  // Fetch detailed application data (JWT sent via axios interceptor)
   const fetchApplicationDetail = async (applicationId) => {
     try {
       setLoadingDetail(true);
-      const { username, password } = getAdminCredentials();
-      
-      if (!username || !password) {
-        console.error("Admin credentials not found");
-        showToast("Admin credentials not found. Please login again.", "error");
-        setLoadingDetail(false);
-        return;
-      }
-      
-      const params = new URLSearchParams();
-      params.append("username", username);
-      params.append("password", password);
-
-      const response = await axios.get(`${APPLICATION_DETAIL_URL}/${applicationId}?${params.toString()}`);
+      const response = await axios.get(`${APPLICATION_DETAIL_URL}/${applicationId}`);
       
       if (response.status === 200 && response.data) {
         const appData = response.data.data || response.data.application || response.data;
@@ -182,16 +155,7 @@ const Applications = () => {
   const fetchNextStageAdmins = async (applicationId) => {
     try {
       setLoadingNextStageAdmins(true);
-      const { username, password } = getAdminCredentials();
-      
-      if (!username || !password) return;
-
-      const params = new URLSearchParams();
-      params.append("username", username);
-      params.append("password", password);
-
-      console.log("Fetching higher authority admins for application:", applicationId);
-      const response = await axios.get(`${APPLICATION_NEXT_STAGE_ADMINS_URL}/${applicationId}/next-stage-admins?${params.toString()}`);
+      const response = await axios.get(`${APPLICATION_NEXT_STAGE_ADMINS_URL}/${applicationId}/next-stage-admins`);
       
       console.log("Higher authority admins response:", response.data);
       if (response.status === 200 && response.data) {
@@ -239,15 +203,10 @@ const Applications = () => {
     
     try {
       setProcessingAction(true);
-      const { username, password } = getAdminCredentials();
       const applicationId = selectedApplication._id || selectedApplication.application_id;
 
-      const params = new URLSearchParams();
-      if (username) params.append("username", username);
-      if (password) params.append("password", password);
-
       const response = await axios.post(
-        `${APPLICATION_FORWARD_URL}/${applicationId}/forward?${params.toString()}`,
+        `${APPLICATION_FORWARD_URL}/${applicationId}/forward`,
         {
           forward_to_admin_id: selectedForwardAdmin,
           remarks: verificationRemarks || ""
@@ -430,39 +389,18 @@ const Applications = () => {
     try {
       setProcessingAction(true);
       setSelectedAction(action);
-      const { username, password } = getAdminCredentials();
       const applicationId = selectedApplication._id || selectedApplication.application_id;
 
-      const params = new URLSearchParams();
-      if (username) params.append("username", username);
-      if (password) params.append("password", password);
-
-      // Build request body
       const requestBody = {
-        action: action, // "Verified" | "Forwarded" | "Rejected" | "Returned"
+        action: action,
         remarks: verificationRemarks || ""
       };
-
-      // Add forward_to_admin_id if provided and action is Verified/Forwarded
       if ((action === "Verified" || action === "Forwarded") && selectedForwardAdmin) {
         requestBody.forward_to_admin_id = selectedForwardAdmin;
       }
 
-      console.log("Verification request:", {
-        action,
-        applicationId,
-        currentStage: selectedApplication.verification_stage,
-        currentLevel: selectedApplication.verification_level,
-        authorizationLevels: selectedApplication.authorization_levels,
-        authorizationLevelIndex: selectedApplication.authorization_level_index,
-        requiredRoleLevels: selectedApplication.required_role_levels,
-        adminRoleLevel,
-        username,
-        requestBody
-      });
-
       const response = await axios.post(
-        `${APPLICATION_VERIFY_URL}/${applicationId}/verify?${params.toString()}`,
+        `${APPLICATION_VERIFY_URL}/${applicationId}/verify`,
         requestBody
       );
 
@@ -519,17 +457,12 @@ const Applications = () => {
       setLoading(true);
       setError(null);
       
-      const { username, password } = getAdminCredentials();
-      
-      // Build query parameters
-      // Note: Backend automatically applies department-based filtering:
+      // Build query parameters (JWT sent via axios interceptor)
       // - Secretary (level 3) and above: can view all departments
       // - Below Secretary (level > 3): can only view applications from their own department
       // All admins can view applications (verification level filtering removed)
       // Department comparison uses ObjectId strings (direct string match)
       const params = new URLSearchParams();
-      if (username) params.append("username", username);
-      if (password) params.append("password", password);
       if (searchText) params.append("search", searchText);
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (stageFilter !== "all") params.append("verification_stage", stageFilter);

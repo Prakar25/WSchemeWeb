@@ -27,13 +27,6 @@ export default function SchemeBeneficiaries() {
   const [adminDepartment, setAdminDepartment] = useState(null);
   const [adminDepartmentName, setAdminDepartmentName] = useState(null);
 
-  // Get admin credentials
-  const getAdminCredentials = () => {
-    const username = sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username");
-    const password = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
-    return { username, password };
-  };
-
   // Check if admin has bulk upload access
   useEffect(() => {
     // Fetch department name by ID
@@ -57,17 +50,7 @@ export default function SchemeBeneficiaries() {
 
     const checkBulkUploadAccess = async () => {
       try {
-        const { username, password } = getAdminCredentials();
-        if (!username || !password) {
-          setCanBulkUpload(false);
-          return;
-        }
-
-        const params = new URLSearchParams();
-        params.append("username", username);
-        params.append("password", password);
-
-        const response = await axios.get(`${ADMIN_PROFILE_URL}?${params.toString()}`);
+        const response = await axios.get(ADMIN_PROFILE_URL);
         if (response.status === 200 && response.data?.user) {
           const userData = response.data.user;
           const roleLevel = userData.roleLevel || userData.role_level;

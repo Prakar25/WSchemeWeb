@@ -343,10 +343,10 @@ export default function PublicDashboard() {
         {/* Hero & Dashboard Title */}
         <div className="mb-8 text-center">
           <p className="text-black text-sm font-medium font-montserrat tracking-wide uppercase mb-1">
-            <SplitText text="Welcome to WelfareConnect" className="inline-block" splitType="chars" delay={30} />
+            <SplitText text="Welcome to WelfareConnect" tag="span" className="inline-block" splitType="chars" delay={30} />
           </p>
           <h1 className="text-3xl sm:text-4xl font-bold text-black font-montserrat">
-            <SplitText text={`Welcome, ${user?.fullName?.split(" ")[0] || "there"}!`} className="inline-block" splitType="chars" delay={40} />
+            <SplitText text={`Welcome, ${user?.fullName?.split(" ")[0] || "there"}!`} tag="span" className="inline-block" splitType="chars" delay={40} />
           </h1>
           <p className="text-black mt-1">
             Here are schemes you can apply for and your application status.

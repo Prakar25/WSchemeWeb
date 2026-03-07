@@ -134,16 +134,7 @@ const PendingApprovals = () => {
     try {
       setProcessingId(schemeId);
       
-      // Use query parameters for authentication (same as all other admin endpoints)
-      const username = sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username");
-      const password = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
-      
-      const params = new URLSearchParams();
-      if (username) params.append("username", username);
-      if (password) params.append("password", password);
-      
-      const url = `${SCHEMES_CONFIG_URL}/${schemeId}/approve?${params.toString()}`;
-      const response = await axios.put(url);
+      const response = await axios.put(`${SCHEMES_CONFIG_URL}/${schemeId}/approve`);
       
       if (response.status === 200) {
         showToast("Scheme approved successfully.", "success");
@@ -164,18 +155,8 @@ const PendingApprovals = () => {
     try {
       setProcessingId(selectedScheme._id || selectedScheme.scheme_id);
       
-      // Use query parameters for authentication (same as all other admin endpoints)
-      const username = sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username");
-      const password = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
-      
-      const params = new URLSearchParams();
-      if (username) params.append("username", username);
-      if (password) params.append("password", password);
-      
       const schemeId = selectedScheme._id || selectedScheme.scheme_id;
-      const url = `${SCHEMES_CONFIG_URL}/${schemeId}/reject?${params.toString()}`;
-      
-      const response = await axios.put(url, {
+      const response = await axios.put(`${SCHEMES_CONFIG_URL}/${schemeId}/reject`, {
         rejection_reason: rejectionReason || undefined,
       });
       

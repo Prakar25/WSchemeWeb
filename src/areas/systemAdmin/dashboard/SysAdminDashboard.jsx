@@ -39,34 +39,11 @@ export default function SysAdminDashboard() {
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [showAlertModal, setShowAlertModal] = useState(false);
 
-  // Get admin credentials from sessionStorage
-  const getAdminCredentials = () => {
-    const username = sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username");
-    const password = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
-    
-    // Debug: Check if credentials exist
-    if (!username || !password) {
-      console.warn("Missing credentials:", { username: !!username, password: !!password });
-    }
-    
-    return {
-      username,
-      password,
-    };
-  };
-
-  // Fetch dashboard statistics
+  // Fetch dashboard statistics (JWT sent via axios interceptor)
   const fetchStatistics = async () => {
     try {
       setLoading(true);
-      const credentials = getAdminCredentials();
-      const params = new URLSearchParams();
-      if (credentials.username) params.append("username", credentials.username);
-      if (credentials.password) params.append("password", credentials.password);
-
-      const response = await axios.get(
-        `${DASHBOARD_STATISTICS_URL}?${params.toString()}`
-      );
+      const response = await axios.get(DASHBOARD_STATISTICS_URL);
 
       if (response.data.status === "success" && response.data.data) {
         setStatistics({
@@ -92,10 +69,7 @@ export default function SysAdminDashboard() {
   const fetchSchemeBeneficiaries = async (searchQuery = "") => {
     try {
       setSchemesLoading(true);
-      const credentials = getAdminCredentials();
       const params = new URLSearchParams();
-      if (credentials.username) params.append("username", credentials.username);
-      if (credentials.password) params.append("password", credentials.password);
       if (searchQuery) params.append("search", searchQuery);
       params.append("limit", "50");
       params.append("skip", "0");
@@ -133,10 +107,7 @@ export default function SysAdminDashboard() {
   const fetchFraudAlerts = async () => {
     try {
       setAlertsLoading(true);
-      const credentials = getAdminCredentials();
       const params = new URLSearchParams();
-      if (credentials.username) params.append("username", credentials.username);
-      if (credentials.password) params.append("password", credentials.password);
       params.append("limit", "10");
       params.append("type", "all");
       params.append("status", "active");

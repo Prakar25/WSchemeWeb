@@ -550,16 +550,7 @@ const AddSchemeForm = ({
       if (!isEdit) {
         sendDataObj.scheme_image_file_url = updatedFileURL || null;
 
-        // Use query parameters for authentication (to avoid CORS preflight issues with custom headers)
-        const adminUsername = sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username");
-        const adminPassword = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
-        const params = new URLSearchParams();
-        if (adminUsername) params.append("username", adminUsername);
-        if (adminPassword) params.append("password", adminPassword);
-        const queryString = params.toString();
-        const createUrl = queryString ? `${SCHEMES_CONFIG_URL}?${queryString}` : SCHEMES_CONFIG_URL;
-
-        response = await axios.post(createUrl, sendDataObj);
+        response = await axios.post(SCHEMES_CONFIG_URL, sendDataObj);
       } else {
         sendDataObj.scheme_image_file_url =
           editSchemeDeleteImagePath || updatedFileURL;
@@ -577,13 +568,6 @@ const AddSchemeForm = ({
         // Also keep scheme_id for backward compatibility if needed
         sendDataObj.scheme_id = schemeId;
 
-        // Use query parameters for authentication (to avoid CORS issues)
-        const adminUsername = sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username");
-        const adminPassword = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
-        const params = new URLSearchParams();
-        if (adminUsername) params.append("username", adminUsername);
-        if (adminPassword) params.append("password", adminPassword);
-
         console.log("Updating scheme with data:", {
           _id: sendDataObj._id,
           scheme_id: sendDataObj.scheme_id,
@@ -591,10 +575,7 @@ const AddSchemeForm = ({
           authorization_levels: sendDataObj.authorization_levels,
         });
 
-        response = await axios.post(
-          `${SCHEMES_CONFIG_URL}/update?${params.toString()}`,
-          sendDataObj
-        );
+        response = await axios.post(`${SCHEMES_CONFIG_URL}/update`, sendDataObj);
       }
 
       // console.log("Schemes Config Post Call Response", response);

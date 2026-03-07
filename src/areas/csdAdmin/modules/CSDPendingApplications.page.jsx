@@ -27,23 +27,11 @@ export default function CSDPendingApplications() {
   const [processingAction, setProcessingAction] = useState(false);
   const [verificationRemarks, setVerificationRemarks] = useState("");
 
-  const getCredentials = () => ({
-    username: sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username"),
-    password: sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password"),
-  });
-
   const fetchPendingApplications = async () => {
     try {
       setLoading(true);
       setError(null);
-      const creds = getCredentials();
-      const params = new URLSearchParams();
-      if (creds.username) params.append("username", creds.username);
-      if (creds.password) params.append("password", creds.password);
-
-      const response = await axios.get(
-        `${CSD_PENDING_APPLICATIONS_URL}?${params.toString()}`
-      );
+      const response = await axios.get(CSD_PENDING_APPLICATIONS_URL);
 
       if (response.status === 200 && response.data) {
         let apps = [];
@@ -77,15 +65,12 @@ export default function CSDPendingApplications() {
   const checkAccess = async () => {
     try {
       setCheckingAccess(true);
-      const creds = getCredentials();
-      if (!creds.username || !creds.password) {
+      const token = localStorage.getItem("adminToken");
+      if (!token) {
         setCanAccess(false);
         return;
       }
-      const params = new URLSearchParams();
-      params.append("username", creds.username);
-      params.append("password", creds.password);
-      const response = await axios.get(`${ADMIN_PROFILE_URL}?${params.toString()}`);
+      const response = await axios.get(ADMIN_PROFILE_URL);
       if (response.status === 200 && response.data?.user) {
         const user = response.data.user;
         const role = (user.role || "").trim();
@@ -103,14 +88,7 @@ export default function CSDPendingApplications() {
   const fetchApplicationDetail = async (applicationId) => {
     try {
       setDetailLoading(true);
-      const creds = getCredentials();
-      const params = new URLSearchParams();
-      if (creds.username) params.append("username", creds.username);
-      if (creds.password) params.append("password", creds.password);
-
-      const response = await axios.get(
-        `${APPLICATION_DETAIL_URL}/${applicationId}?${params.toString()}`
-      );
+      const response = await axios.get(`${APPLICATION_DETAIL_URL}/${applicationId}`);
       if (response.status === 200 && response.data) {
         const appData =
           response.data?.data ??
@@ -133,13 +111,8 @@ export default function CSDPendingApplications() {
 
     try {
       setProcessingAction(true);
-      const creds = getCredentials();
-      const params = new URLSearchParams();
-      if (creds.username) params.append("username", creds.username);
-      if (creds.password) params.append("password", creds.password);
-
       const response = await axios.post(
-        `${APPLICATION_VERIFY_URL}/${applicationId}/verify?${params.toString()}`,
+        `${APPLICATION_VERIFY_URL}/${applicationId}/verify`,
         { action, remarks: verificationRemarks || "" }
       );
 

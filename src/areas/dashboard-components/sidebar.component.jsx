@@ -14,27 +14,12 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
   const [adminProfile, setAdminProfile] = useState(null);
   const navigate = useNavigate();
 
-  // Get admin credentials helper
-  const getAdminCredentials = () => {
-    return {
-      username: sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username"),
-      password: sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password"),
-    };
-  };
-
-  // Fetch admin profile for System Admin or CSD Admin
+  // Fetch admin profile for System Admin or CSD Admin (JWT sent via axios interceptor)
   useEffect(() => {
     if (sidebarType === "System Admin" || sidebarType === "CSD Admin") {
       const fetchAdminProfile = async () => {
         try {
-          const credentials = getAdminCredentials();
-          const params = new URLSearchParams();
-          if (credentials.username) params.append("username", credentials.username);
-          if (credentials.password) params.append("password", credentials.password);
-
-          const response = await axios.get(
-            `${ADMIN_PROFILE_URL}?${params.toString()}`
-          );
+          const response = await axios.get(ADMIN_PROFILE_URL);
           console.log("Admin profile API response:", response.data);
           if (response.data.status === "success" && response.data.user) {
             const userData = response.data.user;
@@ -83,9 +68,10 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
   }, []);
 
   const logout = () => {
+    localStorage.removeItem("adminToken");
     localStorage.removeItem("user");
     localStorage.removeItem("role");
-    navigate("/login");
+    navigate("/admin-login");
   };
 
   const location = useLocation();

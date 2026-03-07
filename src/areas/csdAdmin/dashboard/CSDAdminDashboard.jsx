@@ -22,26 +22,18 @@ export default function CSDAdminDashboard() {
   const [canAccess, setCanAccess] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
 
-  const getCredentials = () => ({
-    username: sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username"),
-    password: sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password"),
-  });
-
   useEffect(() => {
     const checkAccess = async () => {
       try {
         setCheckingAccess(true);
-        const creds = getCredentials();
-        if (!creds.username || !creds.password) {
+        const token = localStorage.getItem("adminToken");
+        if (!token) {
           setCanAccess(false);
-          navigate("/login", { replace: true });
+          navigate("/admin-login", { replace: true });
           setCheckingAccess(false);
           return;
         }
-        const params = new URLSearchParams();
-        params.append("username", creds.username);
-        params.append("password", creds.password);
-        const response = await axios.get(`${ADMIN_PROFILE_URL}?${params.toString()}`);
+        const response = await axios.get(ADMIN_PROFILE_URL);
         if (response.status === 200 && response.data?.user) {
           const user = response.data.user;
           const role = (user.role || "").trim();
@@ -52,16 +44,16 @@ export default function CSDAdminDashboard() {
             if (storedRole === "System Admin") {
               navigate("/system-admin/dashboard", { replace: true });
             } else {
-              navigate("/login", { replace: true });
+              navigate("/admin-login", { replace: true });
             }
           }
         } else {
           setCanAccess(false);
-          navigate("/login", { replace: true });
+          navigate("/admin-login", { replace: true });
         }
       } catch (err) {
         setCanAccess(false);
-        navigate("/login", { replace: true });
+        navigate("/admin-login", { replace: true });
       } finally {
         setCheckingAccess(false);
       }
@@ -75,10 +67,7 @@ export default function CSDAdminDashboard() {
       try {
         setLoading(true);
         setError(null);
-        const creds = getCredentials();
         const params = new URLSearchParams();
-        if (creds.username) params.append("username", creds.username);
-        if (creds.password) params.append("password", creds.password);
 
         // Fetch pending public users (registrations)
         try {

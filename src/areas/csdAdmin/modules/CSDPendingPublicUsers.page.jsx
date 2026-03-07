@@ -26,22 +26,10 @@ export default function CSDPendingPublicUsers() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [processingId, setProcessingId] = useState(null);
 
-  const getCredentials = () => ({
-    username: sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username"),
-    password: sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password"),
-  });
-
   const fetchPendingUsers = async () => {
     try {
       setLoading(true);
-      const creds = getCredentials();
-      const params = new URLSearchParams();
-      if (creds.username) params.append("username", creds.username);
-      if (creds.password) params.append("password", creds.password);
-
-      const response = await axios.get(
-        `${CSD_PENDING_PUBLIC_USERS_URL}?${params.toString()}`
-      );
+      const response = await axios.get(CSD_PENDING_PUBLIC_USERS_URL);
 
       if (response.status === 200) {
         const data =
@@ -69,15 +57,12 @@ export default function CSDPendingPublicUsers() {
   const checkAccess = async () => {
     try {
       setCheckingAccess(true);
-      const creds = getCredentials();
-      if (!creds.username || !creds.password) {
+      const token = localStorage.getItem("adminToken");
+      if (!token) {
         setCanAccess(false);
         return;
       }
-      const params = new URLSearchParams();
-      params.append("username", creds.username);
-      params.append("password", creds.password);
-      const response = await axios.get(`${ADMIN_PROFILE_URL}?${params.toString()}`);
+      const response = await axios.get(ADMIN_PROFILE_URL);
       if (response.status === 200 && response.data?.user) {
         const user = response.data.user;
         const role = (user.role || "").trim();
@@ -104,16 +89,7 @@ export default function CSDPendingPublicUsers() {
   const handleApprove = async (userId) => {
     try {
       setProcessingId(userId);
-      const creds = getCredentials();
-      const params = new URLSearchParams();
-      if (creds.username) params.append("username", creds.username);
-      if (creds.password) params.append("password", creds.password);
-      const url =
-        params.toString()
-          ? `${CSD_VERIFY_PUBLIC_USER_URL}?${params.toString()}`
-          : CSD_VERIFY_PUBLIC_USER_URL;
-
-      const response = await axios.post(url, {
+      const response = await axios.post(CSD_VERIFY_PUBLIC_USER_URL, {
         userId,
         action: "approve",
       });
@@ -138,16 +114,7 @@ export default function CSDPendingPublicUsers() {
     const userId = selectedUser._id || selectedUser.id;
     try {
       setProcessingId(userId);
-      const creds = getCredentials();
-      const params = new URLSearchParams();
-      if (creds.username) params.append("username", creds.username);
-      if (creds.password) params.append("password", creds.password);
-      const url =
-        params.toString()
-          ? `${CSD_VERIFY_PUBLIC_USER_URL}?${params.toString()}`
-          : CSD_VERIFY_PUBLIC_USER_URL;
-
-      const response = await axios.post(url, {
+      const response = await axios.post(CSD_VERIFY_PUBLIC_USER_URL, {
         userId,
         action: "reject",
         rejectionReason: rejectionReason?.trim() || undefined,

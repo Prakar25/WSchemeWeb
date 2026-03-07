@@ -13,13 +13,6 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
   const [saveResults, setSaveResults] = useState(null);
   const [error, setError] = useState(null);
 
-  // Get admin credentials
-  const getAdminCredentials = () => {
-    const username = sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username");
-    const password = sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password");
-    return { username, password };
-  };
-
   // File selection handler
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -64,12 +57,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
         formData.append("department", adminDepartment);
       }
 
-      const credentials = getAdminCredentials();
-
-      // Add credentials as query parameters to avoid CORS issues
-      const url = `${BULK_UPLOAD_PREVIEW_URL}?username=${encodeURIComponent(credentials.username)}&password=${encodeURIComponent(credentials.password)}`;
-
-      const response = await axios.post(url, formData, {
+      const response = await axios.post(BULK_UPLOAD_PREVIEW_URL, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -108,13 +96,8 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
     setError(null);
 
     try {
-      const credentials = getAdminCredentials();
-
-      // Add credentials as query parameters to avoid CORS issues
-      const url = `${BULK_UPLOAD_CONFIRM_URL}?username=${encodeURIComponent(credentials.username)}&password=${encodeURIComponent(credentials.password)}`;
-
       const response = await axios.post(
-        url,
+        BULK_UPLOAD_CONFIRM_URL,
         {
           file_path: previewData.file_path,
           scheme_id: schemeId,

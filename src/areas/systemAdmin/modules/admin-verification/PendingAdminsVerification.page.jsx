@@ -39,20 +39,10 @@ export default function PendingAdminsVerification() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [processingId, setProcessingId] = useState(null);
 
-  const getCredentials = () => ({
-    username: sessionStorage.getItem("admin_username") || localStorage.getItem("admin_username"),
-    password: sessionStorage.getItem("admin_password") || localStorage.getItem("admin_password"),
-  });
-
   const fetchPendingAdmins = async () => {
     try {
       setLoading(true);
-      const creds = getCredentials();
-      const params = new URLSearchParams();
-      if (creds.username) params.append("username", creds.username);
-      if (creds.password) params.append("password", creds.password);
-
-      const response = await axios.get(`${ADMIN_PENDING_ADMINS_URL}?${params.toString()}`);
+      const response = await axios.get(ADMIN_PENDING_ADMINS_URL);
 
       if (response.status === 200) {
         const data = response.data?.pendingAdmins ?? response.data?.data ?? response.data;
@@ -73,15 +63,12 @@ export default function PendingAdminsVerification() {
   const checkAccess = async () => {
     try {
       setCheckingAccess(true);
-      const creds = getCredentials();
-      if (!creds.username || !creds.password) {
+      const token = localStorage.getItem("adminToken");
+      if (!token) {
         setCanAccess(false);
         return;
       }
-      const params = new URLSearchParams();
-      params.append("username", creds.username);
-      params.append("password", creds.password);
-      const response = await axios.get(`${ADMIN_PROFILE_URL}?${params.toString()}`);
+      const response = await axios.get(ADMIN_PROFILE_URL);
       if (response.status === 200 && response.data?.user) {
         const user = response.data.user;
         const roleLevel = user.roleLevel ?? user.role_level;
@@ -128,12 +115,7 @@ export default function PendingAdminsVerification() {
   const handleApprove = async (adminId) => {
     try {
       setProcessingId(adminId);
-      const creds = getCredentials();
-      const params = new URLSearchParams();
-      if (creds.username) params.append("username", creds.username);
-      if (creds.password) params.append("password", creds.password);
-      const url = params.toString() ? `${ADMIN_VERIFY_ADMIN_URL}?${params.toString()}` : ADMIN_VERIFY_ADMIN_URL;
-      const response = await axios.post(url, {
+      const response = await axios.post(ADMIN_VERIFY_ADMIN_URL, {
         adminId,
         action: "approve",
       });
@@ -155,12 +137,7 @@ export default function PendingAdminsVerification() {
     const adminId = selectedAdmin._id || selectedAdmin.id;
     try {
       setProcessingId(adminId);
-      const creds = getCredentials();
-      const params = new URLSearchParams();
-      if (creds.username) params.append("username", creds.username);
-      if (creds.password) params.append("password", creds.password);
-      const url = params.toString() ? `${ADMIN_VERIFY_ADMIN_URL}?${params.toString()}` : ADMIN_VERIFY_ADMIN_URL;
-      const response = await axios.post(url, {
+      const response = await axios.post(ADMIN_VERIFY_ADMIN_URL, {
         adminId,
         action: "reject",
         rejectionReason: rejectionReason?.trim() || undefined,
