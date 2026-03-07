@@ -19,7 +19,7 @@ const statusConfig = {
     bg: "from-green-400 to-emerald-500",
     text: "text-black",
     badge: "bg-[#c2edda]/30",
-    icon: <FaCheckCircle className="text-[#f43a09] text-xl" />,
+    icon: <FaCheckCircle className="text-[#d85a30] text-xl" />,
   },
   "Under Review": {
     bg: "from-yellow-400 to-orange-400",
@@ -161,7 +161,7 @@ export default function UserApplicationTracker() {
                     <motion.button
                       whileHover={{ x: 4 }}
                       transition={{ ease: "easeOut", duration: 0.2 }}
-                      className="flex items-center gap-2 text-[#f43a09]
+                      className="flex items-center gap-2 text-[#d85a30]
                                  font-semibold hover:text-[#ffb766]"
                     >
                       View Details

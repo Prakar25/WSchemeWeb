@@ -9,6 +9,7 @@ import { SCHEMES_CONFIG_URL, DEPARTMENTS_URL, CATEGORIES_URL } from "../../../ap
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 import ViewSchemeDetails from "./viewSchemeDetails.component";
 import Footer from "../footer.component";
+import SplitText from "../../../reusable-components/SplitText/SplitText";
 import PublicHeader from "../components/PublicHeader.component";
 
 export default function PublicSchemes() {
@@ -128,7 +129,7 @@ export default function PublicSchemes() {
   // If a scheme is selected, show the detail view
   if (selectedScheme) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen flex flex-col relative">
         <PublicHeader />
         <ViewSchemeDetails
           scheme={selectedScheme}
@@ -140,13 +141,15 @@ export default function PublicSchemes() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
       <PublicHeader />
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Title */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Schemes</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          <SplitText text="Schemes" splitType="chars" delay={40} className="inline-block" />
+        </h1>
 
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8 border border-gray-200">
@@ -155,7 +158,7 @@ export default function PublicSchemes() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09]"
+              className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30]"
             >
               <option value="All">Category</option>
               <option value="Pension">Pension</option>
@@ -171,7 +174,7 @@ export default function PublicSchemes() {
                 placeholder="Search for schemes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09]"
+                className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30]"
               />
             </div>
           </div>
@@ -277,8 +280,8 @@ export default function PublicSchemes() {
                     className={`w-full py-3 rounded-md font-semibold text-sm transition-colors ${
                       isEligible
                         ? schemeType === "STATE"
-                          ? "bg-[#f43a09] hover:bg-[#ffb766] text-white"
-                          : "bg-[#f43a09] hover:bg-[#ffb766] text-white"
+                          ? "bg-[#d85a30] hover:bg-[#ffb766] text-white"
+                          : "bg-[#d85a30] hover:bg-[#ffb766] text-white"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                   >

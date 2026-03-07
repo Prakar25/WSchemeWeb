@@ -151,7 +151,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
       <div
         id="sidebar"
         ref={sidebar}
-        className={`bg-[#f43a09] flex flex-col hide-sidebar-scrollbar absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto  
+        className={`bg-[#d85a30] flex flex-col hide-sidebar-scrollbar absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto  
         lg:translate-x-0 transform h-screen overflow-y-scroll lg:overflow-y-auto no-scrollbar w-[16rem]
         lg:sidebar-expanded:!w-[16rem] shrink-0  pb-32  p-4 transition-all duration-200 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-44"

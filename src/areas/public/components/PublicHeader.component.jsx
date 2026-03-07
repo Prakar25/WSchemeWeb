@@ -104,7 +104,7 @@ export default function PublicHeader() {
           {/* Logo */}
           <Link to="/user/dashboard" className="flex items-center gap-3">
             <img src={skGovtLogo} alt="Logo" className="h-6 w-6 object-contain" />
-            <span className="text-xl font-bold text-[#f43a09]">
+            <span className="text-xl font-bold text-[#d85a30]">
               WelfareConnect
             </span>
           </Link>
@@ -115,8 +115,8 @@ export default function PublicHeader() {
               onClick={() => navigate("/user/dashboard")}
               className={`font-medium transition-colors ${
                 isActive("/user/dashboard")
-                  ? "text-[#f43a09] font-semibold"
-                  : "text-black hover:text-[#f43a09]"
+                  ? "text-[#d85a30] font-semibold"
+                  : "text-black hover:text-[#d85a30]"
               }`}
             >
               Home
@@ -125,8 +125,8 @@ export default function PublicHeader() {
               onClick={() => navigate("/user/schemes")}
               className={`font-medium transition-colors ${
                 isActive("/user/schemes")
-                  ? "text-[#f43a09] font-semibold"
-                  : "text-black hover:text-[#f43a09]"
+                  ? "text-[#d85a30] font-semibold"
+                  : "text-black hover:text-[#d85a30]"
               }`}
             >
               Schemes
@@ -135,8 +135,8 @@ export default function PublicHeader() {
               onClick={() => navigate("/user/applications")}
               className={`font-medium transition-colors ${
                 isActive("/user/applications")
-                  ? "text-[#f43a09] font-semibold"
-                  : "text-black hover:text-[#f43a09]"
+                  ? "text-[#d85a30] font-semibold"
+                  : "text-black hover:text-[#d85a30]"
               }`}
             >
               My Applications
@@ -157,7 +157,7 @@ export default function PublicHeader() {
             {user && (
               <button
                 onClick={() => navigate("/user/profile")}
-                className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#f43a09] focus:ring-offset-2"
+                className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#d85a30] focus:ring-offset-2"
               >
                 {user.photo?.url ? (
                   <img
@@ -166,7 +166,7 @@ export default function PublicHeader() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#c2edda] to-[#f43a09] flex items-center justify-center text-white font-bold">
+                  <div className="w-full h-full bg-gradient-to-br from-[#c2edda] to-[#d85a30] flex items-center justify-center text-white font-bold">
                     {(user.fullName || "U").charAt(0).toUpperCase()}
                   </div>
                 )}

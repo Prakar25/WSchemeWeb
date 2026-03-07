@@ -65,7 +65,7 @@ function Header({ sidebarOpen, setSidebarOpen }) {
   };
 
   return (
-    <header className="sticky top-0 bg-white border-b border-[#f43a09]/30 z-20">
+    <header className="sticky top-0 bg-white border-b border-[#d85a30]/30 z-20">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-2">
           {/* Header: Left side */}

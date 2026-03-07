@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
 
+import AuroraBackground from "./reusable-components/Aurora/AuroraBackground";
 import { PublicLayout } from "./areas/public/PublicLayout";
 import DesktopOnlyRoute from "./areas/DesktopOnlyRoute";
 
@@ -28,6 +29,7 @@ import Reports from "./areas/systemAdmin/modules/reports/reports.component";
 import Alerts from "./areas/systemAdmin/modules/alerts/alerts.component";
 import AdminProfile from "./areas/systemAdmin/modules/profile/AdminProfile.page";
 import PendingAdminsVerification from "./areas/systemAdmin/modules/admin-verification/PendingAdminsVerification.page";
+import AdvertisementPage from "./areas/systemAdmin/modules/advertisement/Advertisement.page";
 
 import CSDAdminDashboard from "./areas/csdAdmin/dashboard/CSDAdminDashboard";
 import CSDPendingPublicUsers from "./areas/csdAdmin/modules/CSDPendingPublicUsers.page";
@@ -45,6 +47,7 @@ function App() {
 
   return (
     <>
+      <AuroraBackground />
       <Routes>
         <Route element={<PublicLayout />}>
           <Route exact path="/" element={<Home />} />
@@ -95,6 +98,7 @@ function App() {
           element={<Applications />}
         />
         <Route exact path="/system-admin/pending-admins" element={<PendingAdminsVerification />} />
+        <Route exact path="/system-admin/advertisement" element={<AdvertisementPage />} />
         <Route exact path="/system-admin/reports" element={<Reports />} />
         <Route exact path="/system-admin/alerts" element={<Alerts />} />
         <Route exact path="/system-admin/profile" element={<AdminProfile />} />

@@ -12,6 +12,7 @@ import {
 } from "../../../api/api_routing_urls";
 
 import Dashboard from "../../dashboard-components/dashboard.component";
+import SplitText from "../../../reusable-components/SplitText/SplitText";
 import GenericModal from "../../../reusable-components/modals/GenericModal.component";
 
 export default function SysAdminDashboard() {
@@ -203,7 +204,9 @@ export default function SysAdminDashboard() {
           <div className="p-6 bg-slate-50 min-h-screen">
             {/* Dashboard Header */}
             <div className="flex justify-between items-center mb-8">
-              <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
+              <h1 className="text-2xl font-semibold text-gray-800">
+                <SplitText text="Dashboard" splitType="chars" delay={40} className="inline-block" />
+              </h1>
               <div className="flex gap-3">
                 <motion.button
                   onClick={handleExportExcel}
@@ -298,13 +301,13 @@ export default function SysAdminDashboard() {
                     placeholder="Search by name or scheme"
                     value={searchText}
                     onChange={handleSearchChange}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
                   />
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#f43a09] text-white rounded-md text-sm font-medium hover:bg-[#ffb766] hover:shadow-md transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#d85a30] text-white rounded-md text-sm font-medium hover:bg-[#ffb766] hover:shadow-md transition-all duration-200"
                 >
                   <FaFilter size={14} />
                   Filter
@@ -329,7 +332,7 @@ export default function SysAdminDashboard() {
                       <tr>
                         <td colSpan="5" className="py-8 text-center">
                           <div className="flex justify-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f43a09]"></div>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#d85a30]"></div>
                           </div>
                         </td>
                       </tr>
@@ -370,7 +373,7 @@ export default function SysAdminDashboard() {
               <div className="space-y-3">
                 {alertsLoading ? (
                   <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f43a09]"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#d85a30]"></div>
                   </div>
                 ) : alerts.length > 0 ? (
                   alerts.map((alert, index) => (
@@ -713,7 +716,7 @@ function AlertDetailsModal({ alert }) {
 
       {/* Additional Details */}
       {alert.details && (
-        <div className="bg-[#c2edda]/20 border border-[#f43a09]/30 p-4 rounded-lg">
+        <div className="bg-[#c2edda]/20 border border-[#d85a30]/30 p-4 rounded-lg">
           <h3 className="font-semibold text-black mb-2">Additional Details</h3>
           <div className="text-sm text-black space-y-2">
             {typeof alert.details === "string" ? (
@@ -764,7 +767,7 @@ function AlertDetailsModal({ alert }) {
         {applicationId && (
           <button
             onClick={handleViewApplication}
-            className="flex-1 px-4 py-2 bg-[#f43a09] text-white rounded-md hover:bg-[#ffb766] transition-colors font-medium"
+            className="flex-1 px-4 py-2 bg-[#d85a30] text-white rounded-md hover:bg-[#ffb766] transition-colors font-medium"
           >
             View Full Application
           </button>

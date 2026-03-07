@@ -16,6 +16,8 @@ import { getStoredUser, isProfileComplete } from "../../../utils/user.utils";
 import { formatDateInDDMonYYYY } from "../../../utils/dateFunctions/formatdate";
 import ViewSchemeDetails from "./viewSchemeDetails.component";
 import Footer from "../footer.component";
+import SplitText from "../../../reusable-components/SplitText/SplitText";
+import AdsSection from "../../../reusable-components/FlowingMenu/AdsSection";
 import PublicHeader from "../components/PublicHeader.component";
 import { useNavigate } from "react-router-dom";
 import { FiAlertCircle, FiX } from "react-icons/fi";
@@ -280,7 +282,7 @@ export default function PublicDashboard() {
     Approved: {
       bg: "bg-[#c2edda]/30",
       text: "text-black",
-      icon: <FaCheckCircle className="text-[#f43a09]" />,
+      icon: <FaCheckCircle className="text-[#d85a30]" />,
     },
     "Under Review": {
       bg: "bg-[#68d388]/25",
@@ -290,7 +292,7 @@ export default function PublicDashboard() {
     Applied: {
       bg: "bg-[#c2edda]/30",
       text: "text-black",
-      icon: <FaFileAlt className="text-[#f43a09]" />,
+      icon: <FaFileAlt className="text-[#d85a30]" />,
     },
     Rejected: {
       bg: "bg-red-100",
@@ -316,7 +318,7 @@ export default function PublicDashboard() {
   // If a scheme is selected, show the detail view
   if (selectedScheme) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#68d388]/20 via-white to-[#c2edda]/20 flex flex-col">
+      <div className="min-h-screen flex flex-col relative">
         <PublicHeader />
         <ViewSchemeDetails
           scheme={selectedScheme}
@@ -328,18 +330,23 @@ export default function PublicDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#68d388]/20 via-white to-[#c2edda]/20 flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
       <PublicHeader />
+
+      {/* Ads – full width, half viewport height, just below top bar */}
+      <div className="w-full overflow-hidden flex-shrink-0" style={{ height: "4.375vh", minHeight: "35px" }}>
+        <AdsSection className="w-full h-full" height="100%" />
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero & Dashboard Title */}
         <div className="mb-8 text-center">
           <p className="text-black text-sm font-medium font-montserrat tracking-wide uppercase mb-1">
-            Welcome to WelfareConnect
+            <SplitText text="Welcome to WelfareConnect" className="inline-block" splitType="chars" delay={30} />
           </p>
           <h1 className="text-3xl sm:text-4xl font-bold text-black font-montserrat">
-            Welcome, {user?.fullName?.split(" ")[0] || "there"}!
+            <SplitText text={`Welcome, ${user?.fullName?.split(" ")[0] || "there"}!`} className="inline-block" splitType="chars" delay={40} />
           </h1>
           <p className="text-black mt-1">
             Here are schemes you can apply for and your application status.
@@ -351,12 +358,12 @@ export default function PublicDashboard() {
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 bg-[#c2edda]/20/90 backdrop-blur border border-[#f43a09]/30 p-4 rounded-xl shadow-sm"
+            className="mb-6 bg-[#c2edda]/20/90 backdrop-blur border border-[#d85a30]/30 p-4 rounded-xl shadow-sm"
             role="alert"
           >
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#c2edda] flex items-center justify-center">
-                <FiAlertCircle className="text-[#f43a09] text-xl" />
+                <FiAlertCircle className="text-[#d85a30] text-xl" />
               </div>
               <p className="text-black text-sm font-medium pt-1.5">{user.accountStatusMessage}</p>
             </div>
@@ -368,12 +375,12 @@ export default function PublicDashboard() {
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 bg-gradient-to-r from-[#c2edda]/20 to-[#68d388]/20 border border-[#f43a09]/30 p-5 rounded-2xl shadow-sm"
+            className="mb-8 bg-gradient-to-r from-[#c2edda]/20 to-[#68d388]/20 border border-[#d85a30]/30 p-5 rounded-2xl shadow-sm"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-4 flex-1">
                 <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#c2edda] flex items-center justify-center">
-                  <FiAlertCircle className="text-[#f43a09] text-2xl" />
+                  <FiAlertCircle className="text-[#d85a30] text-2xl" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-black mb-1 font-montserrat">
@@ -384,7 +391,7 @@ export default function PublicDashboard() {
                   </p>
                   <button
                     onClick={() => navigate("/user/complete-profile")}
-                    className="bg-[#f43a09] hover:bg-[#ffb766] text-white font-semibold px-5 py-2.5 rounded-xl transition-all hover:shadow-md active:scale-[0.98]"
+                    className="bg-[#d85a30] hover:bg-[#ffb766] text-white font-semibold px-5 py-2.5 rounded-xl transition-all hover:shadow-md active:scale-[0.98]"
                   >
                     Complete Profile Now
                   </button>
@@ -392,7 +399,7 @@ export default function PublicDashboard() {
               </div>
               <button
                 onClick={() => setShowProfilePrompt(false)}
-                className="flex-shrink-0 text-[#f43a09] hover:text-black hover:bg-[#c2edda] rounded-lg p-2 transition-colors"
+                className="flex-shrink-0 text-[#d85a30] hover:text-black hover:bg-[#c2edda] rounded-lg p-2 transition-colors"
                 aria-label="Dismiss"
               >
                 <FiX size={20} />
@@ -420,12 +427,12 @@ export default function PublicDashboard() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#68d388] via-[#f43a09] to-[#c2edda] flex items-center justify-center text-white text-2xl font-bold font-montserrat">
+                    <div className="w-full h-full bg-gradient-to-br from-[#68d388] via-[#d85a30] to-[#c2edda] flex items-center justify-center text-white text-2xl font-bold font-montserrat">
                       {(user.fullName || "U").charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
-                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#f43a09] border-2 border-white" />
+                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#d85a30] border-2 border-white" />
               </div>
 
               {/* User Info */}
@@ -437,7 +444,7 @@ export default function PublicDashboard() {
                   Aadhaar: {maskAadhaar(user.aadhaarNumber)}
                 </p>
                 <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 bg-[#c2edda]/50 text-black rounded-xl text-sm font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-[#f43a09] animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-[#d85a30] animate-pulse" />
                   Eligible: {getEligibilityStatus(user)}
                 </span>
               </div>
@@ -461,7 +468,7 @@ export default function PublicDashboard() {
             </h2>
             <button
               onClick={() => navigate("/user/schemes")}
-              className="text-[#f43a09] hover:text-[#c2edda] font-semibold text-sm flex items-center gap-1"
+              className="text-[#d85a30] hover:text-[#c2edda] font-semibold text-sm flex items-center gap-1"
             >
               View all schemes
               <span>→</span>
@@ -480,14 +487,14 @@ export default function PublicDashboard() {
                     placeholder="Search schemes by name or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09]/50 focus:border-[#f43a09] transition-all"
+                    className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30]/50 focus:border-[#d85a30] transition-all"
                   />
                 </div>
                 {/* Age Group Filter */}
                 <select
                   value={ageGroupFilter}
                   onChange={(e) => setAgeGroupFilter(e.target.value)}
-                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09]/50 focus:border-[#f43a09] bg-white min-w-[160px]"
+                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30]/50 focus:border-[#d85a30] bg-white min-w-[160px]"
                 >
                   {AGE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -499,7 +506,7 @@ export default function PublicDashboard() {
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09]/50 focus:border-[#f43a09] bg-white min-w-[160px]"
+                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30]/50 focus:border-[#d85a30] bg-white min-w-[160px]"
                 >
                 <option value="All">All Categories</option>
                 <option value="Pension">Pension</option>
@@ -597,7 +604,7 @@ export default function PublicDashboard() {
                       disabled={!isEligible}
                       className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${
                         isEligible
-                          ? "bg-[#f43a09] hover:bg-[#68d388] text-white shadow-sm hover:shadow-md active:scale-[0.98]"
+                          ? "bg-[#d85a30] hover:bg-[#68d388] text-white shadow-sm hover:shadow-md active:scale-[0.98]"
                           : "bg-slate-100 text-slate-400 cursor-not-allowed"
                       }`}
                     >
@@ -632,7 +639,7 @@ export default function PublicDashboard() {
             </h2>
             <button
               onClick={() => navigate("/user/applications")}
-              className="text-[#f43a09] hover:text-[#c2edda] font-semibold text-sm flex items-center gap-1"
+              className="text-[#d85a30] hover:text-[#c2edda] font-semibold text-sm flex items-center gap-1"
             >
               View all applications
               <span>→</span>
@@ -672,7 +679,7 @@ export default function PublicDashboard() {
                           </div>
                           <button
                             onClick={() => navigate("/user/schemes")}
-                            className="text-[#f43a09] hover:text-[#c2edda] font-semibold text-sm"
+                            className="text-[#d85a30] hover:text-[#c2edda] font-semibold text-sm"
                           >
                             Browse schemes →
                           </button>
@@ -712,7 +719,7 @@ export default function PublicDashboard() {
                           <td className="px-5 py-4 text-right">
                             <button
                               onClick={() => navigate("/user/applications")}
-                              className="text-[#f43a09] hover:text-[#c2edda] font-semibold text-sm"
+                              className="text-[#d85a30] hover:text-[#c2edda] font-semibold text-sm"
                             >
                               View
                             </button>

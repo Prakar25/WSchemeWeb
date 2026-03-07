@@ -29,11 +29,11 @@
 
 @theme {
   /* Primary palette - UI only (text stays black) */
-  --color-primary: #f43a09;
+  --color-primary: #d85a30;
   --color-secondary: #ffb766;
   --color-ternary: #c2edda;
   --color-quaternary: #68d388;
-  --color-bright-orange: #f43a09;
+  --color-bright-orange: #d85a30;
   --color-grandpa-orange: #ffb766;
   --color-grey-blue-green: #c2edda;
   --color-live-green: #68d388;

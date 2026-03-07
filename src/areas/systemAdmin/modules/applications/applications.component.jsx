@@ -6,6 +6,7 @@ import { FaSearch, FaFilter, FaEye, FaCheckCircle, FaTimesCircle, FaClock, FaArr
 import axios from "../../../../api/axios";
 import { APPLICATIONS_ADMIN_URL, APPLICATION_DETAIL_URL, APPLICATION_VERIFY_URL, APPLICATION_FORWARD_URL, APPLICATION_NEXT_STAGE_ADMINS_URL, ADMIN_PROFILE_URL, DEPARTMENTS_URL, CATEGORIES_URL } from "../../../../api/api_routing_urls";
 import Dashboard from "../../../dashboard-components/dashboard.component";
+import SplitText from "../../../../reusable-components/SplitText/SplitText";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import showToast from "../../../../utils/notification/NotificationModal";
 
@@ -638,7 +639,7 @@ const Applications = () => {
     if (statusLower === "approved") {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#c2edda]/30 text-black">
-          <FaCheckCircle className="text-[#f43a09]" />
+          <FaCheckCircle className="text-[#d85a30]" />
           Approved
         </span>
       );
@@ -713,7 +714,9 @@ const Applications = () => {
       <div className="p-6 bg-gray-50 min-h-screen">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Applications</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <SplitText text="Applications" splitType="chars" delay={35} className="inline-block" />
+          </h1>
           <p className="text-gray-600">View and manage all scheme applications</p>
         </div>
 
@@ -882,7 +885,7 @@ const Applications = () => {
                             console.log("View button clicked for app:", app);
                             handleViewApplication(app);
                           }}
-                          className="text-[#f43a09] hover:text-[#ffb766] font-medium flex items-center gap-1 cursor-pointer hover:underline"
+                          className="text-[#d85a30] hover:text-[#ffb766] font-medium flex items-center gap-1 cursor-pointer hover:underline"
                         >
                           <FaEye /> View Details
                         </button>
@@ -1028,7 +1031,7 @@ const Applications = () => {
                                           }`}>
                                             {isCompleted ? "✓" : index + 1}
                                           </div>
-                                          <span className={`text-xs ${isCurrent ? "font-semibold text-[#f43a09]" : isCompleted ? "text-[#f43a09]" : "text-gray-500"}`}>
+                                          <span className={`text-xs ${isCurrent ? "font-semibold text-[#d85a30]" : isCompleted ? "text-[#d85a30]" : "text-gray-500"}`}>
                                             {getRoleLevelName(level)}
                                           </span>
                                           {index < app.authorization_levels.length - 1 && (
@@ -1311,7 +1314,7 @@ const Applications = () => {
                                         href={`${import.meta.env.VITE_ENDPOINT_URL || "http://localhost:3000"}/${doc.file_url}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-[#f43a09] hover:text-[#ffb766] text-sm mt-1 inline-block"
+                                        className="text-[#d85a30] hover:text-[#ffb766] text-sm mt-1 inline-block"
                                       >
                                         View Document
                                       </a>
@@ -1328,7 +1331,7 @@ const Applications = () => {
                               <h3 className="text-lg font-semibold text-gray-900 mb-3">Verification History</h3>
                               <div className="bg-gray-50 rounded-lg p-4 space-y-4">
                                 {app.verification_history.map((history, index) => (
-                                  <div key={index} className="border-l-4 border-[#f43a09] pl-4 pb-4 last:pb-0">
+                                  <div key={index} className="border-l-4 border-[#d85a30] pl-4 pb-4 last:pb-0">
                                     <div className="flex items-start justify-between">
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
@@ -1373,7 +1376,7 @@ const Applications = () => {
                               <div className="space-y-4">
                                 {/* Stage Requirements Info */}
                                 {stageRequirements && (
-                                  <div className="bg-[#c2edda]/20 border border-[#f43a09]/30 rounded-lg p-4">
+                                  <div className="bg-[#c2edda]/20 border border-[#d85a30]/30 rounded-lg p-4">
                                     <div className="space-y-2">
                                       {stageRequirements.current && (
                                         <div>
@@ -1457,7 +1460,7 @@ const Applications = () => {
                                             );
                                           })}
                                       </select>
-                                      <p className="text-xs text-[#f43a09] mt-2">
+                                      <p className="text-xs text-[#d85a30] mt-2">
                                         {nextStageAdmins.length} admin(s) with higher authority available (Level {nextStageAdmins.map(a => a.roleLevel).filter((v, i, a) => a.indexOf(v) === i).sort().join(", ")})
                                       </p>
                                     </>
@@ -1478,7 +1481,7 @@ const Applications = () => {
                                   <button
                                     onClick={() => handleVerify("Verified")}
                                     disabled={processingAction}
-                                    className="flex items-center justify-center gap-2 px-6 py-4 bg-[#f43a09] text-white rounded-lg hover:bg-[#ffb766] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold text-base shadow-lg hover:shadow-xl"
+                                    className="flex items-center justify-center gap-2 px-6 py-4 bg-[#d85a30] text-white rounded-lg hover:bg-[#ffb766] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold text-base shadow-lg hover:shadow-xl"
                                   >
                                     {processingAction && selectedAction === "Verified" ? (
                                       <>
@@ -1516,7 +1519,7 @@ const Applications = () => {
                                     <br />
                                     <strong>Reject:</strong> Rejects the application and completes the workflow. Application will not proceed to next stage.
                                     <br />
-                                    <span className="text-[#f43a09] font-medium">Note:</span> The dropdown shows admins with higher authority (lower level number) than you. For example, if you're Level 6, you'll see Level 1-5 admins.
+                                    <span className="text-[#d85a30] font-medium">Note:</span> The dropdown shows admins with higher authority (lower level number) than you. For example, if you're Level 6, you'll see Level 1-5 admins.
                                   </p>
                                 </div>
                               </div>

@@ -232,7 +232,7 @@ export default function CompleteProfile() {
 
   if (loadingProfile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen flex flex-col relative">
         <PublicHeader />
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center h-64">
@@ -262,7 +262,7 @@ export default function CompleteProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-[#c2edda]/10 flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
       <PublicHeader />
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
@@ -351,7 +351,7 @@ export default function CompleteProfile() {
                 </label>
                 <select
                   {...register("gender")}
-                  className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#f43a09]"
+                  className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#d85a30]"
                 >
                   <option value="">Select Gender</option>
                   <option value="M">Male</option>
@@ -665,7 +665,7 @@ function DocumentUpload({
                 href={existingDocUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-[#f43a09] hover:text-[#68d388] font-medium"
+                className="text-sm text-[#d85a30] hover:text-[#68d388] font-medium"
               >
                 View
               </a>
@@ -687,7 +687,7 @@ function DocumentUpload({
       )}
 
       {file && (
-        <div className="mb-3 p-3 bg-[#68d388]/30 border border-[#f43a09]/50 rounded-md">
+        <div className="mb-3 p-3 bg-[#68d388]/30 border border-[#d85a30]/50 rounded-md">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               {isImageFile && previewUrl && (
@@ -725,7 +725,7 @@ function DocumentUpload({
           onChange={(e) => onFileChange(e.target.files[0] || null)}
           className="hidden"
         />
-        <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-[#f43a09] transition-colors">
+        <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-[#d85a30] transition-colors">
           <FiUpload className="mx-auto mb-2 text-gray-400" />
           <span className="text-sm text-black">
             {file ? "Change File" : "Choose File"}

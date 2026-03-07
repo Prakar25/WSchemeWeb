@@ -242,9 +242,9 @@ const PendingApprovals = () => {
           </div>
         ) : pendingSchemes.length === 0 ? (
           <div className="bg-[#c2edda]/20 border border-[#c2edda]/50 rounded-lg p-8 text-center mt-6">
-            <MdCheckCircle className="mx-auto text-[#f43a09] text-5xl mb-4" />
+            <MdCheckCircle className="mx-auto text-[#d85a30] text-5xl mb-4" />
             <h3 className="text-xl font-semibold text-black mb-2">All Clear!</h3>
-            <p className="text-[#f43a09]">There are no pending scheme approvals at the moment.</p>
+            <p className="text-[#d85a30]">There are no pending scheme approvals at the moment.</p>
           </div>
         ) : (
           <div className="mt-6 space-y-6">
@@ -364,7 +364,7 @@ const PendingApprovals = () => {
                           <button
                             onClick={() => handleApprove(schemeId)}
                             disabled={isProcessing}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#f43a09] text-white rounded-md hover:bg-[#ffb766] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#d85a30] text-white rounded-md hover:bg-[#ffb766] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                           >
                             {isProcessing ? (
                               <>

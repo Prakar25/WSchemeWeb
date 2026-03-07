@@ -1,3 +1,12 @@
+//#region Advertisements (public display + Super Admin management)
+export const ADS_PUBLIC_URL = "/ads/public"; // GET – list active ads for display
+export const ADS_ADMIN_LIST_URL = "/ads"; // GET – list all ads (Super Admin)
+export const ADS_ADMIN_CREATE_URL = "/ads"; // POST – create ad
+export const ADS_ADMIN_UPDATE_URL = "/ads"; // PUT /ads/:id – update ad
+export const ADS_ADMIN_DELETE_URL = "/ads"; // DELETE /ads/:id – delete ad
+export const ADS_ADMIN_REORDER_URL = "/ads/reorder"; // POST – reorder ads
+//#endregion
+
 //#region Public User URLs
 export const CHECK_AADHAAR_URL = "/public-users";
 export const PROFILE_URL = "/profile";

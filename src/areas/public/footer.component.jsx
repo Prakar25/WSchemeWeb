@@ -8,7 +8,7 @@ const Footer = () => {
 
   return (
     <section>
-      <footer className="bg-[#f43a09] text-white py-12">
+      <footer className="bg-[#d85a30] text-white py-12">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10 px-6">
           {/* Quick Links */}
           <div>

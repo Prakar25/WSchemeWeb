@@ -24,7 +24,7 @@ export default function PublicSidebar({
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/dashboard")
-                  ? "bg-white text-[#f43a09] font-semibold rounded-e-full"
+                  ? "bg-white text-[#d85a30] font-semibold rounded-e-full"
                   : "text-[#c2edda] font-normal"
               }`}
             >
@@ -41,7 +41,7 @@ export default function PublicSidebar({
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/profile") && !pathname.includes("/user/complete-profile")
-                  ? "bg-white text-[#f43a09] font-semibold rounded-e-full"
+                  ? "bg-white text-[#d85a30] font-semibold rounded-e-full"
                   : "text-[#c2edda] font-normal"
               }`}
             >
@@ -58,7 +58,7 @@ export default function PublicSidebar({
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/complete-profile")
-                  ? "bg-white text-[#f43a09] font-semibold rounded-e-full"
+                  ? "bg-white text-[#d85a30] font-semibold rounded-e-full"
                   : "text-[#c2edda] font-normal"
               }`}
             >
@@ -75,7 +75,7 @@ export default function PublicSidebar({
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/schemes")
-                  ? "bg-white text-[#f43a09] font-semibold rounded-e-full"
+                  ? "bg-white text-[#d85a30] font-semibold rounded-e-full"
                   : "text-[#c2edda] font-normal"
               }`}
             >
@@ -92,7 +92,7 @@ export default function PublicSidebar({
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/application-status")
-                  ? "bg-white text-[#f43a09] font-semibold rounded-e-full"
+                  ? "bg-white text-[#d85a30] font-semibold rounded-e-full"
                   : "text-[#c2edda] font-normal"
               }`}
             >

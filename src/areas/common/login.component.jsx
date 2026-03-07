@@ -13,6 +13,7 @@ import {
 } from "../../api/api_routing_urls";
 
 import Input from "../../reusable-components/inputs/InputTextBox/Input";
+import SplitText from "../../reusable-components/SplitText/SplitText";
 import PasswordInput from "../../reusable-components/inputs/InputTextBox/PasswordInput";
 
 const Login = () => {
@@ -369,7 +370,9 @@ const Login = () => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 px-4">
       <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-8">
-        <h1 className="text-center text-2xl font-bold">Welcome</h1>
+        <h1 className="text-center text-2xl font-bold">
+          <SplitText text="Welcome" splitType="chars" delay={40} className="inline-block" />
+        </h1>
         <p className="text-center text-gray-500 mb-10 text-xs font-medium">
           Please login or register to continue
         </p>
@@ -380,7 +383,7 @@ const Login = () => {
             onClick={() => handleTabChange("public")}
             className={`cursor-pointer w-1/2 pb-2 text-center font-medium ${
               activeTab === "public"
-                ? "text-[#f43a09] border-b-2 border-[#f43a09]"
+                ? "text-[#d85a30] border-b-2 border-[#d85a30]"
                 : "text-gray-500"
             }`}
           >
@@ -391,7 +394,7 @@ const Login = () => {
             onClick={() => handleTabChange("admin")}
             className={`cursor-pointer w-1/2 pb-2 text-center font-medium ${
               activeTab === "admin"
-                ? "text-[#f43a09] border-b-2 border-[#f43a09]"
+                ? "text-[#d85a30] border-b-2 border-[#d85a30]"
                 : "text-gray-500"
             }`}
           >
@@ -418,7 +421,7 @@ const Login = () => {
                     type="button"
                     className={`cursor-pointer w-1/2 pb-2 text-center text-sm font-medium ${
                       !isRegistering
-                        ? "text-[#f43a09] border-b-2 border-[#f43a09]"
+                        ? "text-[#d85a30] border-b-2 border-[#d85a30]"
                         : "text-gray-500"
                     }`}
                   >
@@ -429,7 +432,7 @@ const Login = () => {
                     type="button"
                     className={`cursor-pointer w-1/2 pb-2 text-center text-sm font-medium ${
                       isRegistering
-                        ? "text-[#f43a09] border-b-2 border-[#f43a09]"
+                        ? "text-[#d85a30] border-b-2 border-[#d85a30]"
                         : "text-gray-500"
                     }`}
                   >
@@ -462,7 +465,7 @@ const Login = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="mt-8 w-full bg-[#f43a09] text-white rounded-md py-2 hover:bg-[#ffb766] cursor-pointer transition-all ease-in-out duration-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="mt-8 w-full bg-[#d85a30] text-white rounded-md py-2 hover:bg-[#ffb766] cursor-pointer transition-all ease-in-out duration-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? "Sending..." : "Send OTP"}
                   </button>
@@ -557,7 +560,7 @@ const Login = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="mt-4 w-full bg-[#f43a09] text-white rounded-md py-2 hover:bg-[#ffb766] cursor-pointer transition-all ease-in-out duration-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="mt-4 w-full bg-[#d85a30] text-white rounded-md py-2 hover:bg-[#ffb766] cursor-pointer transition-all ease-in-out duration-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     {isSubmitting
                       ? "Verifying..."
@@ -577,7 +580,7 @@ const Login = () => {
                         type="button"
                         onClick={handleResendOtp}
                         disabled={isResendingOtp}
-                        className="text-xs text-[#f43a09] hover:text-[#ffb766] disabled:text-gray-400 disabled:cursor-not-allowed"
+                        className="text-xs text-[#d85a30] hover:text-[#ffb766] disabled:text-gray-400 disabled:cursor-not-allowed"
                       >
                         {isResendingOtp ? "Resending..." : "Resend OTP"}
                       </button>
@@ -642,14 +645,14 @@ const Login = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-8 w-full bg-[#f43a09] text-white rounded-md py-2 hover:bg-[#ffb766] cursor-pointer transition-all ease-in-out duration-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="mt-8 w-full bg-[#d85a30] text-white rounded-md py-2 hover:bg-[#ffb766] cursor-pointer transition-all ease-in-out duration-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Logging in..." : "Login"}
             </button>
 
             <p className="mt-4 text-center text-sm text-gray-500">
               Don&apos;t have an admin account?{" "}
-              <Link to="/admin-register" className="text-[#f43a09] hover:text-[#ffb766] font-medium">
+              <Link to="/admin-register" className="text-[#d85a30] hover:text-[#ffb766] font-medium">
                 Register as Admin
               </Link>
             </p>

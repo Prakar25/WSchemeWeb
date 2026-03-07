@@ -20,7 +20,7 @@ const Navbar = () => {
               alt="Sikkim Gov Logo"
               className="h-6 w-6 object-contain"
             />
-            <span className="text-xl font-bold text-[#f43a09]">
+            <span className="text-xl font-bold text-[#d85a30]">
               WelfareConnect
             </span>
           </Link>
@@ -29,17 +29,17 @@ const Navbar = () => {
           <nav className="hidden md:flex items-center gap-6">
             <Link
               to="/"
-              className={`font-medium transition-colors ${isHome ? "text-[#f43a09] font-semibold" : "text-black hover:text-[#f43a09]"}`}
+              className={`font-medium transition-colors ${isHome ? "text-[#d85a30] font-semibold" : "text-black hover:text-[#d85a30]"}`}
             >
               Home
             </Link>
-            <a href="#" className="font-medium text-black hover:text-[#f43a09] transition-colors">
+            <a href="#" className="font-medium text-black hover:text-[#d85a30] transition-colors">
               About
             </a>
-            <a href="#" className="font-medium text-black hover:text-[#f43a09] transition-colors">
+            <a href="#" className="font-medium text-black hover:text-[#d85a30] transition-colors">
               Schemes
             </a>
-            <a href="#" className="font-medium text-black hover:text-[#f43a09] transition-colors">
+            <a href="#" className="font-medium text-black hover:text-[#d85a30] transition-colors">
               Contact
             </a>
           </nav>
@@ -47,7 +47,7 @@ const Navbar = () => {
           {/* Right side: Login button or spacer to keep nav centered */}
           {!isAuthPage ? (
             <Link to="/login">
-              <button className="bg-[#f43a09] hover:bg-[#ffb766] text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center min-w-[7.5rem]">
+              <button className="bg-[#d85a30] hover:bg-[#ffb766] text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center min-w-[7.5rem]">
                 <RotatingText
                   texts={["Login", "Register"]}
                   mainClassName="overflow-hidden"

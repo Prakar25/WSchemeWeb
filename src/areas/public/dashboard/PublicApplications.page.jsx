@@ -13,6 +13,7 @@ import { getStoredUser } from "../../../utils/user.utils";
 import { formatDateInDDMonYYYY } from "../../../utils/dateFunctions/formatdate";
 
 import Footer from "../footer.component";
+import SplitText from "../../../reusable-components/SplitText/SplitText";
 import PublicHeader from "../components/PublicHeader.component";
 
 export default function PublicApplications() {
@@ -56,7 +57,7 @@ export default function PublicApplications() {
     Approved: {
       bg: "bg-[#c2edda]/30",
       text: "text-black",
-      icon: <FaCheckCircle className="text-[#f43a09]" />,
+      icon: <FaCheckCircle className="text-[#d85a30]" />,
     },
     "Under Review": {
       bg: "bg-[#68d388]/25",
@@ -66,7 +67,7 @@ export default function PublicApplications() {
     Applied: {
       bg: "bg-[#c2edda]/30",
       text: "text-black",
-      icon: <FaFileAlt className="text-[#f43a09]" />,
+      icon: <FaFileAlt className="text-[#d85a30]" />,
     },
     Rejected: {
       bg: "bg-red-100",
@@ -81,14 +82,14 @@ export default function PublicApplications() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
       <PublicHeader />
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Title */}
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          My Applications
+          <SplitText text="My Applications" splitType="chars" delay={35} className="inline-block" />
         </h1>
 
         {/* Application Status Tracker */}
@@ -168,7 +169,7 @@ export default function PublicApplications() {
                             {dateApplied}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button className="text-[#f43a09] hover:text-[#ffb766] font-semibold">
+                          <button className="text-[#d85a30] hover:text-[#ffb766] font-semibold">
                             View Details
                           </button>
                         </td>

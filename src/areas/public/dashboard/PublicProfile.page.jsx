@@ -7,6 +7,7 @@ import { PUBLIC_PROFILE_GET_URL } from "../../../api/api_routing_urls";
 import { getStoredUser, formatDobForAge } from "../../../utils/user.utils";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 import Footer from "../footer.component";
+import SplitText from "../../../reusable-components/SplitText/SplitText";
 import PublicHeader from "../components/PublicHeader.component";
 
 export default function PublicProfile() {
@@ -108,7 +109,7 @@ export default function PublicProfile() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen flex flex-col relative">
         <PublicHeader />
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-center text-gray-500">
@@ -121,16 +122,18 @@ export default function PublicProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
       <PublicHeader />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            <SplitText text="My Profile" splitType="chars" delay={40} className="inline-block" />
+          </h1>
           <button
             type="button"
             onClick={() => navigate("/user/complete-profile")}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#f43a09] text-white rounded-lg hover:bg-[#ffb766] font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#d85a30] text-white rounded-lg hover:bg-[#ffb766] font-medium transition-colors"
           >
             <FiEdit2 size={18} />
             Edit profile
@@ -246,7 +249,7 @@ export default function PublicProfile() {
                         href={displayMedia(doc.filePath)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#f43a09] hover:text-[#ffb766] text-sm font-medium"
+                        className="text-[#d85a30] hover:text-[#ffb766] text-sm font-medium"
                       >
                         View
                       </a>

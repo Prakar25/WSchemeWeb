@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "../../../../api/axios";
 import { ADMIN_PROFILE_URL } from "../../../../api/api_routing_urls";
 import Dashboard from "../../../dashboard-components/dashboard.component";
+import SplitText from "../../../../reusable-components/SplitText/SplitText";
 
 function AdminProfile({ sidebarType = "System Admin" }) {
   const navigate = useNavigate();
@@ -102,7 +103,9 @@ function AdminProfile({ sidebarType = "System Admin" }) {
     <Dashboard sidebarType={sidebarType}>
       <div className="p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            <SplitText text="Admin Profile" splitType="chars" delay={35} className="inline-block" />
+          </h1>
           <p className="text-gray-600 mt-1">View and manage your profile information</p>
         </div>
 
@@ -126,7 +129,7 @@ function AdminProfile({ sidebarType = "System Admin" }) {
                     viewBox="0 0 24 24"
                     strokeWidth="1.5"
                     stroke="currentColor"
-                    className="w-12 h-12 text-[#f43a09]"
+                    className="w-12 h-12 text-[#d85a30]"
                   >
                     <path
                       strokeLinecap="round"

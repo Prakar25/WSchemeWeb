@@ -253,7 +253,7 @@ const SchemesList = ({
             placeholder="Search schemes by name, category, gender, or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-[#f43a09]"
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-[#d85a30]"
           />
           {searchQuery && (
             <button
@@ -325,8 +325,8 @@ const SchemesList = ({
               <>
                 {/* Statistics */}
                 <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#f43a09]/30">
-                    <p className="text-sm text-[#f43a09] font-medium">Total</p>
+                  <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#d85a30]/30">
+                    <p className="text-sm text-[#d85a30] font-medium">Total</p>
                     <p className="text-2xl font-bold text-black">{totalApplicants}</p>
                   </div>
                   <div className="bg-[#68d388]/20 p-4 rounded-lg border border-[#68d388]/40">
@@ -338,7 +338,7 @@ const SchemesList = ({
                     <p className="text-2xl font-bold text-black">{countByStatus["Under Review"] || 0}</p>
                   </div>
                   <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#c2edda]/50">
-                    <p className="text-sm text-[#f43a09] font-medium">Approved</p>
+                    <p className="text-sm text-[#d85a30] font-medium">Approved</p>
                     <p className="text-2xl font-bold text-black">{countByStatus.Approved || 0}</p>
                   </div>
                   <div className="bg-red-50 p-4 rounded-lg border border-red-200">
@@ -664,7 +664,7 @@ const SchemeCardAdmin = ({
           </div>
           <button
             onClick={() => onViewApplicants && onViewApplicants(schemeObj)}
-            className="w-full px-3 py-2 text-sm font-medium text-white bg-[#f43a09] rounded-md hover:bg-[#ffb766] transition-colors duration-200"
+            className="w-full px-3 py-2 text-sm font-medium text-white bg-[#d85a30] rounded-md hover:bg-[#ffb766] transition-colors duration-200"
           >
             View Applicants
           </button>

@@ -13,6 +13,7 @@ import {
 } from "../../api/api_routing_urls";
 
 import Input from "../../reusable-components/inputs/InputTextBox/Input";
+import SplitText from "../../reusable-components/SplitText/SplitText";
 
 export default function PublicLogin() {
   const navigate = useNavigate();
@@ -179,13 +180,13 @@ export default function PublicLogin() {
       >
         {/* Step indicator */}
         <div className="flex justify-center gap-2 mb-6">
-          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${!otpSent ? "bg-[#f43a09] text-white" : "bg-[#ffb766] text-[#68d388]"}`}>1</span>
+          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${!otpSent ? "bg-[#d85a30] text-white" : "bg-[#ffb766] text-[#68d388]"}`}>1</span>
           <span className={`w-8 h-0.5 self-center rounded ${otpSent ? "bg-[#ffb766]" : "bg-slate-200"}`} />
-          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${otpSent ? "bg-[#f43a09] text-white" : "bg-slate-200 text-black"}`}>2</span>
+          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${otpSent ? "bg-[#d85a30] text-white" : "bg-slate-200 text-black"}`}>2</span>
         </div>
 
         <h1 className="text-center text-2xl font-bold text-black">
-          {isRegistering ? "Create Account" : "Welcome Back"}
+          <SplitText text={isRegistering ? "Create Account" : "Welcome Back"} splitType="chars" delay={35} className="inline-block" />
         </h1>
         <p className="text-center text-black text-sm mt-1 mb-8">
           {!otpSent
@@ -221,7 +222,7 @@ export default function PublicLogin() {
                 clearError={clearErrors}
                 autoComplete="tel"
                 type="tel"
-                classes="rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09] transition-all w-full"
+                classes="rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30] transition-all w-full"
                 onChangeInput={null}
                 setValue={setValue}
               />
@@ -229,7 +230,7 @@ export default function PublicLogin() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="mt-6 w-full bg-[#f43a09] text-white font-medium rounded-lg py-3 hover:bg-[#ffb766] active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                className="mt-6 w-full bg-[#d85a30] text-white font-medium rounded-lg py-3 hover:bg-[#ffb766] active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
               >
                 {isSubmitting ? "Sending OTP..." : "Send OTP"}
               </button>
@@ -249,7 +250,7 @@ export default function PublicLogin() {
                       setMobileNumber("");
                       setOtpTimer(0);
                     }}
-                    className="text-[#f43a09] hover:text-[#68d388] font-medium underline underline-offset-2"
+                    className="text-[#d85a30] hover:text-[#68d388] font-medium underline underline-offset-2"
                   >
                     Register
                   </button>
@@ -267,7 +268,7 @@ export default function PublicLogin() {
                       setMobileNumber("");
                       setOtpTimer(0);
                     }}
-                    className="text-[#f43a09] hover:text-[#68d388] font-medium underline underline-offset-2"
+                    className="text-[#d85a30] hover:text-[#68d388] font-medium underline underline-offset-2"
                   >
                     Login
                   </button>
@@ -282,7 +283,7 @@ export default function PublicLogin() {
                 ✓ OTP sent to <span className="font-semibold">{mobileNumber ? `******${mobileNumber.slice(-4)}` : "your mobile"}</span>
               </p>
               {otpTimer > 0 && (
-                <p className="text-xs text-[#f43a09] text-center mt-1">
+                <p className="text-xs text-[#d85a30] text-center mt-1">
                   Expires in <span className="font-mono font-semibold">{formatTimer(otpTimer)}</span>
                 </p>
               )}
@@ -306,7 +307,7 @@ export default function PublicLogin() {
                     setError={setError}
                     clearError={clearErrors}
                     type="text"
-                    classes="mb-3 rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#f43a09] w-full"
+                    classes="mb-3 rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#d85a30] w-full"
                     onChangeInput={null}
                     setValue={setValue}
                   />
@@ -321,7 +322,7 @@ export default function PublicLogin() {
                     setError={setError}
                     clearError={clearErrors}
                     type="email"
-                    classes="mb-3 rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#f43a09] w-full"
+                    classes="mb-3 rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#d85a30] w-full"
                     onChangeInput={null}
                     setValue={setValue}
                   />
@@ -338,14 +339,14 @@ export default function PublicLogin() {
                 setError={setError}
                 clearError={clearErrors}
                 type="text"
-                classes="rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#f43a09] w-full"
+                classes="rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#d85a30] w-full"
                 onChangeInput={null}
                 setValue={setValue}
               />
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="mt-4 w-full bg-[#f43a09] text-white font-medium rounded-lg py-3 hover:bg-[#ffb766] active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                className="mt-4 w-full bg-[#d85a30] text-white font-medium rounded-lg py-3 hover:bg-[#ffb766] active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Verifying..." : isRegistering ? "Register" : "Login"}
               </button>
@@ -353,7 +354,7 @@ export default function PublicLogin() {
                 {otpTimer > 0 ? (
                   <p className="text-xs text-gray-500">Resend in {formatTimer(otpTimer)}</p>
                 ) : (
-                  <button type="button" onClick={handleResendOtp} disabled={isResendingOtp} className="text-sm text-[#f43a09] hover:text-[#68d388] font-medium disabled:text-black">
+                  <button type="button" onClick={handleResendOtp} disabled={isResendingOtp} className="text-sm text-[#d85a30] hover:text-[#68d388] font-medium disabled:text-black">
                     {isResendingOtp ? "Resending..." : "Resend OTP"}
                   </button>
                 )}
@@ -381,7 +382,7 @@ export default function PublicLogin() {
                       setMobileNumber("");
                       setOtpTimer(0);
                     }}
-                    className="text-[#f43a09] hover:text-[#68d388] font-medium underline underline-offset-2"
+                    className="text-[#d85a30] hover:text-[#68d388] font-medium underline underline-offset-2"
                   >
                     Login
                   </button>
@@ -399,7 +400,7 @@ export default function PublicLogin() {
                       setMobileNumber("");
                       setOtpTimer(0);
                     }}
-                    className="text-[#f43a09] hover:text-[#68d388] font-medium underline underline-offset-2"
+                    className="text-[#d85a30] hover:text-[#68d388] font-medium underline underline-offset-2"
                   >
                     Register
                   </button>

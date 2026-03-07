@@ -465,7 +465,7 @@ export default function ApplyToScheme() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative">
       <PublicHeader />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -473,7 +473,7 @@ export default function ApplyToScheme() {
         <div className="mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-[#f43a09] hover:text-[#ffb766] font-medium mb-4"
+            className="flex items-center gap-2 text-[#d85a30] hover:text-[#ffb766] font-medium mb-4"
           >
             <FaArrowLeft /> Back
           </button>
@@ -750,8 +750,8 @@ export default function ApplyToScheme() {
                     </div>
                     {uploadedDocuments[docType] && uploadedDocuments[docType].length > 0 ? (
                       <div className="flex items-center gap-2">
-                        <FaCheckCircle className="text-[#f43a09]" />
-                        <span className="text-sm text-[#f43a09] font-medium">
+                        <FaCheckCircle className="text-[#d85a30]" />
+                        <span className="text-sm text-[#d85a30] font-medium">
                           Uploaded
                         </span>
                         <button
@@ -771,7 +771,7 @@ export default function ApplyToScheme() {
                             [docType]: !prev[docType],
                           }))
                         }
-                        className="flex items-center gap-2 px-4 py-2 bg-[#f43a09] text-white rounded-md hover:bg-[#ffb766] transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#d85a30] text-white rounded-md hover:bg-[#ffb766] transition-colors"
                       >
                         <FaUpload /> Upload
                       </button>
@@ -835,7 +835,7 @@ export default function ApplyToScheme() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-[#f43a09] text-white rounded-lg hover:bg-[#ffb766] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-[#d85a30] text-white rounded-lg hover:bg-[#ffb766] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>

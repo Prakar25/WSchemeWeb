@@ -249,14 +249,14 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                   type="file"
                   accept=".xls,.xlsx,.csv"
                   onChange={handleFileChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
                   disabled={loading}
                 />
                 <p className="mt-2 text-sm text-gray-500">
                   Supported formats: .xls, .xlsx, .csv (Max size: 10MB)
                 </p>
                 {selectedFile && (
-                  <p className="mt-1 text-sm text-[#f43a09] font-medium">
+                  <p className="mt-1 text-sm text-[#d85a30] font-medium">
                     Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                   </p>
                 )}
@@ -266,7 +266,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
               <button
                 onClick={handleUpload}
                 disabled={loading || !selectedFile || !schemeId}
-                className="w-full bg-[#f43a09] text-white py-3 px-6 rounded-md hover:bg-[#ffb766] disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
+                className="w-full bg-[#d85a30] text-white py-3 px-6 rounded-md hover:bg-[#ffb766] disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -284,14 +284,14 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
             <div className="space-y-6">
               {/* Statistics */}
               <div className="grid grid-cols-5 gap-4">
-                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#f43a09]/30">
-                  <div className="text-2xl font-bold text-[#f43a09]">
+                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#d85a30]/30">
+                  <div className="text-2xl font-bold text-[#d85a30]">
                     {previewData.total_rows || 0}
                   </div>
                   <div className="text-sm text-gray-600">Total Rows</div>
                 </div>
                 <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#c2edda]/50">
-                  <div className="text-2xl font-bold text-[#f43a09]">
+                  <div className="text-2xl font-bold text-[#d85a30]">
                     {previewData.valid_rows || 0}
                   </div>
                   <div className="text-sm text-gray-600">Valid Rows</div>
@@ -612,7 +612,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                 <button
                   onClick={handleConfirm}
                   disabled={loading || (previewData.valid_rows || 0) === 0}
-                  className="flex-1 bg-[#f43a09] text-white py-3 px-6 rounded-md hover:bg-[#ffb766] disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
+                  className="flex-1 bg-[#d85a30] text-white py-3 px-6 rounded-md hover:bg-[#ffb766] disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -630,8 +630,8 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
           {phase === "success" && saveResults && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="text-6xl text-[#f43a09] mb-4">✓</div>
-                <h3 className="text-2xl font-bold text-[#f43a09] mb-2">
+                <div className="text-6xl text-[#d85a30] mb-4">✓</div>
+                <h3 className="text-2xl font-bold text-[#d85a30] mb-2">
                   Upload Completed Successfully!
                 </h3>
                 <p className="text-gray-600">
@@ -641,12 +641,12 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
 
               {/* Results Statistics */}
               <div className="grid grid-cols-6 gap-4">
-                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#f43a09]/30">
-                  <div className="text-2xl font-bold text-[#f43a09]">{saveResults.total || 0}</div>
+                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#d85a30]/30">
+                  <div className="text-2xl font-bold text-[#d85a30]">{saveResults.total || 0}</div>
                   <div className="text-sm text-gray-600">Total</div>
                 </div>
                 <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#c2edda]/50">
-                  <div className="text-2xl font-bold text-[#f43a09]">
+                  <div className="text-2xl font-bold text-[#d85a30]">
                     {saveResults.success || 0}
                   </div>
                   <div className="text-sm text-gray-600">Success</div>
@@ -664,13 +664,13 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                   <div className="text-sm text-gray-600">Redundancies</div>
                 </div>
                 <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#c2edda]/50">
-                  <div className="text-2xl font-bold text-[#f43a09]">
+                  <div className="text-2xl font-bold text-[#d85a30]">
                     {saveResults.created_users || 0}
                   </div>
                   <div className="text-sm text-gray-600">New Users</div>
                 </div>
-                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#f43a09]/30">
-                  <div className="text-2xl font-bold text-[#f43a09]">
+                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#d85a30]/30">
+                  <div className="text-2xl font-bold text-[#d85a30]">
                     {saveResults.created_applications || 0}
                   </div>
                   <div className="text-sm text-gray-600">Applications</div>
@@ -809,7 +809,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
               {/* Close Button */}
               <button
                 onClick={handleClose}
-                className="w-full bg-[#f43a09] text-white py-3 px-6 rounded-md hover:bg-[#ffb766] font-medium transition-colors"
+                className="w-full bg-[#d85a30] text-white py-3 px-6 rounded-md hover:bg-[#ffb766] font-medium transition-colors"
               >
                 Close
               </button>

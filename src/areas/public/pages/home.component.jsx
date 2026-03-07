@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 import axios from "../../../api/axios";
+import SplitText from "../../../reusable-components/SplitText/SplitText";
+import AdsSection from "../../../reusable-components/FlowingMenu/AdsSection";
 import { SCHEMES_CONFIG_URL, CATEGORIES_SIMPLE_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 
@@ -99,16 +101,17 @@ const Home = () => {
 
   return (
     <section className="min-h-screen">
+      {/* Ads – full width, half viewport height, just below top bar */}
+      <div className="w-full overflow-hidden" style={{ height: "4.375vh", minHeight: "35px" }}>
+        <AdsSection className="w-full h-full" height="100%" />
+      </div>
+
       {/* Hero Section */}
       <div className="text-center py-12 sm:py-16 px-4">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#f43a09] max-w-3xl mx-auto leading-tight"
-        >
-          Access Government Welfare Schemes Online
-        </motion.h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-[#d85a30] max-w-4xl mx-auto leading-tight px-2">
+          <SplitText text="Access Government Welfare" tag="span" splitType="chars" delay={35} className="block" />
+          <SplitText text="Schemes Online" tag="span" splitType="chars" delay={35} className="block mt-1" />
+        </h1>
 
         <motion.p
           initial={{ opacity: 0 }}
@@ -125,14 +128,14 @@ const Home = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="bg-white/90 backdrop-blur shadow-lg shadow-[#f43a09]/10 w-full max-w-2xl mx-auto mt-10 p-6 sm:p-8 rounded-2xl border border-[#c2edda]/40"
+          className="bg-white/90 backdrop-blur shadow-lg shadow-[#d85a30]/10 w-full max-w-2xl mx-auto mt-10 p-6 sm:p-8 rounded-2xl border border-[#c2edda]/40"
         >
           <p className="text-black text-sm font-medium mb-4">Filter schemes by age and category</p>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-black text-xs font-medium mb-1.5">Age Group</label>
               <select
-                className="w-full border border-[#68d388]/40 rounded-xl px-4 py-3 text-black bg-white focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09] transition-all"
+                className="w-full border border-[#68d388]/40 rounded-xl px-4 py-3 text-black bg-white focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30] transition-all"
                 value={ageGroup}
                 onChange={(e) => setAgeGroup(e.target.value)}
               >
@@ -146,7 +149,7 @@ const Home = () => {
             <div>
               <label className="block text-black text-xs font-medium mb-1.5">Category</label>
               <select
-                className="w-full border border-[#68d388]/40 rounded-xl px-4 py-3 text-black bg-white focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09] transition-all"
+                className="w-full border border-[#68d388]/40 rounded-xl px-4 py-3 text-black bg-white focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30] transition-all"
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
               >
@@ -162,7 +165,7 @@ const Home = () => {
           </div>
           <button
             onClick={handleSearch}
-            className="mt-6 w-full bg-[#f43a09] text-white py-3 rounded-xl font-semibold hover:bg-[#ffb766] active:scale-[0.99] transition-all"
+            className="mt-6 w-full bg-[#d85a30] text-white py-3 rounded-xl font-semibold hover:bg-[#ffb766] active:scale-[0.99] transition-all"
           >
             Search Schemes
           </button>
@@ -172,7 +175,9 @@ const Home = () => {
 
       {/* Schemes Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16 pt-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-black mb-8 mt-8">Available Schemes</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-black mb-8 mt-8">
+          <SplitText text="Available Schemes" splitType="chars" delay={30} className="inline-block" />
+        </h2>
 
         {loading ? (
           // Loading state
@@ -223,7 +228,7 @@ const SchemeCard = ({ scheme }) => {
         transition: { duration: 0.2, ease: "easeOut" },
       }}
       whileTap={{ scale: 0.98 }}
-      className="group bg-white shadow-md shadow-[#f43a09]/5 hover:shadow-xl hover:shadow-[#f43a09]/10 rounded-2xl overflow-hidden cursor-pointer border border-[#c2edda]/20 hover:border-[#f43a09]/30 transition-all duration-300"
+      className="group bg-white shadow-md shadow-[#d85a30]/5 hover:shadow-xl hover:shadow-[#d85a30]/10 rounded-2xl overflow-hidden cursor-pointer border border-[#c2edda]/20 hover:border-[#d85a30]/30 transition-all duration-300"
     >
       <div className="h-52 w-full overflow-hidden bg-[#c2edda]/20">
         {scheme_image_file_url ? (
@@ -234,20 +239,20 @@ const SchemeCard = ({ scheme }) => {
           />
         ) : (
           <div className="h-full w-full flex items-center justify-center">
-            <span className="text-5xl font-bold text-[#f43a09]/30">{(scheme_name || "S").charAt(0)}</span>
+            <span className="text-5xl font-bold text-[#d85a30]/30">{(scheme_name || "S").charAt(0)}</span>
           </div>
         )}
       </div>
 
       <div className="p-5 text-center">
-        <h3 className="font-semibold text-lg text-[#f43a09] mb-2 group-hover:text-[#ffb766] transition-colors">
+        <h3 className="font-semibold text-lg text-[#d85a30] mb-2 group-hover:text-[#ffb766] transition-colors">
           {scheme_name}
         </h3>
 
         <p className="text-sm text-black line-clamp-3">
           {scheme_description || "View details for more information."}
         </p>
-        <p className="mt-3 text-sm text-[#f43a09] font-medium">View details →</p>
+        <p className="mt-3 text-sm text-[#d85a30] font-medium">View details →</p>
       </div>
     </motion.div>
   );

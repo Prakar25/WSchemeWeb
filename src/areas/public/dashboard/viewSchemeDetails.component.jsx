@@ -147,13 +147,13 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-8">
+    <div className="min-h-screen py-8 relative px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Go Back Button */}
         <button
           type="button"
           onClick={onClose}
-          className="mb-6 text-[#f43a09] hover:text-[#ffb766] font-medium flex items-center gap-2"
+          className="mb-6 text-[#d85a30] hover:text-[#ffb766] font-medium flex items-center gap-2"
         >
           ← Go Back
         </button>
@@ -266,7 +266,7 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                     className={`w-full font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors ${
                       checkingProfile || !canApply
                         ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-[#f43a09] hover:bg-[#ffb766] text-white"
+                        : "bg-[#d85a30] hover:bg-[#ffb766] text-white"
                     }`}
                   >
                     {checkingProfile ? "Checking..." : "Apply Now"}
@@ -310,7 +310,7 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                 <div className="mb-6">
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div
-                      className="bg-[#f43a09] h-3 rounded-full transition-all duration-300"
+                      className="bg-[#d85a30] h-3 rounded-full transition-all duration-300"
                       style={{ width: `${progressPercentage}%` }}
                     ></div>
                   </div>
@@ -323,14 +323,14 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                         key={index}
                         className={`text-center p-4 rounded-lg ${
                           isCompleted
-                            ? "bg-[#c2edda]/20 border-2 border-[#f43a09]/30"
+                            ? "bg-[#c2edda]/20 border-2 border-[#d85a30]/30"
                             : "bg-gray-50 border-2 border-gray-200"
                         }`}
                       >
                         <div
                           className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center font-bold ${
                             isCompleted
-                              ? "bg-[#f43a09] text-white"
+                              ? "bg-[#d85a30] text-white"
                               : "bg-gray-300 text-gray-600"
                           }`}
                         >
@@ -362,8 +362,8 @@ export default ViewSchemeDetails;
 function Section({ title, underlineColor, content }) {
   const underlineColors = {
     yellow: "border-[#68d388]",
-    green: "border-[#f43a09]",
-    blue: "border-[#f43a09]",
+    green: "border-[#d85a30]",
+    blue: "border-[#d85a30]",
   };
 
   return (

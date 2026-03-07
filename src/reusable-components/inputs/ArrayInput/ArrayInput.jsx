@@ -79,7 +79,7 @@ export default function ArrayInput({
               value={item}
               onChange={(e) => handleItemChange(index, e.target.value)}
               placeholder={`${placeholder} ${index + 1}`}
-              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-[#f43a09] transition-all"
+              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-[#d85a30] transition-all"
             />
             {items.length > 1 && (
               <button

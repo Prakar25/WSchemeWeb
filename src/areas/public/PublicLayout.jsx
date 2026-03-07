@@ -5,7 +5,7 @@ import PublicFooter from "./footer.component";
 
 export function PublicLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#c2edda]/50 via-white to-[#c2edda]/25">
+    <div className="min-h-screen flex flex-col relative">
       <div className="navbar">
         <PublicNavbar />
       </div>

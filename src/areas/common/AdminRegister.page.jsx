@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import axios from "../../api/axios";
 import { ADMIN_REGISTER_URL, ADMIN_ROLES_FOR_AUTHORIZATION_URL, DEPARTMENTS_URL } from "../../api/api_routing_urls";
 import Input from "../../reusable-components/inputs/InputTextBox/Input";
+import SplitText from "../../reusable-components/SplitText/SplitText";
 import PasswordInput from "../../reusable-components/inputs/InputTextBox/PasswordInput";
 import showToast from "../../utils/notification/NotificationModal";
 
@@ -116,7 +117,9 @@ export default function AdminRegister() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 px-4">
       <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-8">
-        <h1 className="text-center text-2xl font-bold text-gray-900">Admin Registration</h1>
+        <h1 className="text-center text-2xl font-bold text-gray-900">
+          <SplitText text="Admin Registration" splitType="chars" delay={30} className="inline-block" />
+        </h1>
         <p className="text-center text-gray-500 mb-6 text-sm">
           Register as an admin. Your account will be pending until a Super Admin or Secretary verifies you.
         </p>
@@ -216,7 +219,7 @@ export default function AdminRegister() {
             </label>
             <select
               {...register("departmentId")}
-              className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#f43a09]"
+              className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#d85a30]"
               disabled={loadingOptions}
             >
               <option value="">{loadingOptions ? "Loading..." : "Select your department (optional)"}</option>
@@ -234,7 +237,7 @@ export default function AdminRegister() {
             </label>
             <select
               {...register("roleLevel", { required: "Please select a role" })}
-              className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#f43a09]"
+              className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#d85a30]"
               disabled={loadingOptions}
             >
               <option value="">{loadingOptions ? "Loading..." : "Select your role"}</option>
@@ -252,7 +255,7 @@ export default function AdminRegister() {
           <button
             type="submit"
             disabled={loading || loadingOptions}
-            className="mt-6 w-full bg-[#f43a09] text-white rounded-md py-2.5 hover:bg-[#ffb766] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="mt-6 w-full bg-[#d85a30] text-white rounded-md py-2.5 hover:bg-[#ffb766] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Registering..." : "Register"}
           </button>
@@ -263,7 +266,7 @@ export default function AdminRegister() {
         </p>
 
         <div className="mt-4 text-center">
-          <Link to="/admin-login" className="text-[#f43a09] hover:text-[#ffb766] text-sm font-medium">
+          <Link to="/admin-login" className="text-[#d85a30] hover:text-[#ffb766] text-sm font-medium">
             ← Back to Login
           </Link>
         </div>

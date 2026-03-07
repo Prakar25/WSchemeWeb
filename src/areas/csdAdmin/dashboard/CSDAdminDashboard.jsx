@@ -10,6 +10,7 @@ import {
   ADMIN_PROFILE_URL,
 } from "../../../api/api_routing_urls";
 import Dashboard from "../../dashboard-components/dashboard.component";
+import SplitText from "../../../reusable-components/SplitText/SplitText";
 import Spinner from "../../../reusable-components/spinner/spinner.component";
 
 export default function CSDAdminDashboard() {
@@ -136,7 +137,9 @@ export default function CSDAdminDashboard() {
     <Dashboard sidebarType="CSD Admin">
       <div className="p-6 bg-slate-50 min-h-screen">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-800">CSD Admin Dashboard</h1>
+          <h1 className="text-2xl font-semibold text-gray-800">
+            <SplitText text="CSD Admin Dashboard" splitType="chars" delay={35} className="inline-block" />
+          </h1>
           <p className="text-gray-500 text-sm mt-1">
             Verify pending registrations and review pending applications.
           </p>
@@ -163,13 +166,13 @@ export default function CSDAdminDashboard() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-[#68d388]/25 rounded-lg flex items-center justify-center">
-                    <MdPersonAdd className="text-[#f43a09]" size={28} />
+                    <MdPersonAdd className="text-[#d85a30]" size={28} />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-800">
                       Pending Registrations
                     </h2>
-                    <p className="text-3xl font-bold text-[#f43a09] mt-1">
+                    <p className="text-3xl font-bold text-[#d85a30] mt-1">
                       {pendingRegistrationsCount}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
@@ -190,13 +193,13 @@ export default function CSDAdminDashboard() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-[#c2edda]/30 rounded-lg flex items-center justify-center">
-                    <MdAssignment className="text-[#f43a09]" size={28} />
+                    <MdAssignment className="text-[#d85a30]" size={28} />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-800">
                       Pending Applications
                     </h2>
-                    <p className="text-3xl font-bold text-[#f43a09] mt-1">
+                    <p className="text-3xl font-bold text-[#d85a30] mt-1">
                       {pendingApplicationsCount}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">

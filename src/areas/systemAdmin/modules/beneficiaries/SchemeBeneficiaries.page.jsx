@@ -236,14 +236,14 @@ export default function SchemeBeneficiaries() {
                   navigate(-1); // Go back in browser history
                 }
               }}
-              className="flex items-center gap-2 text-[#f43a09] hover:text-[#ffb766] font-medium"
+              className="flex items-center gap-2 text-[#d85a30] hover:text-[#ffb766] font-medium"
             >
               <FaArrowLeft /> Back
             </button>
             {scheme && (
               <button
                 onClick={() => setShowBulkUpload(true)}
-                className="flex items-center gap-2 bg-[#f43a09] text-white px-4 py-2 rounded-md hover:bg-[#ffb766] font-medium transition-colors"
+                className="flex items-center gap-2 bg-[#d85a30] text-white px-4 py-2 rounded-md hover:bg-[#ffb766] font-medium transition-colors"
               >
                 <FaUpload /> Bulk Upload
               </button>
@@ -275,8 +275,8 @@ export default function SchemeBeneficiaries() {
           <>
             {/* Statistics Cards */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-              <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#f43a09]/30">
-                <p className="text-sm text-[#f43a09] font-medium">Total</p>
+              <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#d85a30]/30">
+                <p className="text-sm text-[#d85a30] font-medium">Total</p>
                 <p className="text-2xl font-bold text-black">{totalApplicants}</p>
               </div>
               <div className="bg-[#68d388]/20 p-4 rounded-lg border border-[#68d388]/40">
@@ -288,7 +288,7 @@ export default function SchemeBeneficiaries() {
                 <p className="text-2xl font-bold text-black">{countByStatus["Under Review"] || 0}</p>
               </div>
               <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#c2edda]/50">
-                <p className="text-sm text-[#f43a09] font-medium">Approved</p>
+                <p className="text-sm text-[#d85a30] font-medium">Approved</p>
                 <p className="text-2xl font-bold text-black">{countByStatus.Approved || 0}</p>
               </div>
               <div className="bg-red-50 p-4 rounded-lg border border-red-200">
@@ -306,7 +306,7 @@ export default function SchemeBeneficiaries() {
                   placeholder="Search by name, Aadhaar, application ID, or status..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
                 />
               </div>
               {searchQuery && (

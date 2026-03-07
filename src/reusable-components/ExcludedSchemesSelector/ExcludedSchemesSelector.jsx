@@ -387,7 +387,7 @@ const ExcludedSchemesSelector = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className="bg-[#c2edda]/20 border border-[#f43a09]/30 rounded-lg p-4 mb-4">
+      <div className="bg-[#c2edda]/20 border border-[#d85a30]/30 rounded-lg p-4 mb-4">
         <p className="text-sm text-black">
           <strong>Note:</strong> Select schemes that should be excluded. If a user applies to any of these schemes, they cannot apply to this scheme.
         </p>
@@ -442,19 +442,19 @@ const ExcludedSchemesSelector = ({
                           toggleDepartmentSelection(deptKey);
                         }
                       }}
-                      className="flex items-center justify-center w-5 h-5 text-[#f43a09] hover:text-[#ffb766] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#f43a09] rounded"
+                      className="flex items-center justify-center w-5 h-5 text-[#d85a30] hover:text-[#ffb766] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#d85a30] rounded"
                     >
                       {isDeptFullySelected ? (
                         <FaCheckSquare className="w-5 h-5" />
                       ) : isDeptPartiallySelected ? (
-                        <div className="w-5 h-5 border-2 border-[#f43a09] bg-[#c2edda]/30 rounded flex items-center justify-center">
-                          <div className="w-2 h-2 bg-[#f43a09] rounded" />
+                        <div className="w-5 h-5 border-2 border-[#d85a30] bg-[#c2edda]/30 rounded flex items-center justify-center">
+                          <div className="w-2 h-2 bg-[#d85a30] rounded" />
                         </div>
                       ) : (
                         <FaSquare className="w-5 h-5" />
                       )}
                     </div>
-                    <FaBuilding className="text-[#f43a09] w-4 h-4" />
+                    <FaBuilding className="text-[#d85a30] w-4 h-4" />
                     <span className="font-semibold text-gray-900">
                       {department.department.department_display_name || 
                        department.department.department_name || 
@@ -492,7 +492,7 @@ const ExcludedSchemesSelector = ({
                         return (
                           <div key={catKey} className="bg-gray-50">
                             {/* Category Header */}
-                            <div className="px-4 py-2.5 border-l-4 border-[#f43a09]/30">
+                            <div className="px-4 py-2.5 border-l-4 border-[#d85a30]/30">
                               <button
                                 type="button"
                                 onClick={() => toggleCategory(catKey)}
@@ -513,19 +513,19 @@ const ExcludedSchemesSelector = ({
                                         toggleCategorySelection(deptKey, catKey);
                                       }
                                     }}
-                                    className="flex items-center justify-center w-5 h-5 text-[#f43a09] hover:text-[#ffb766] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#f43a09] rounded"
+                                    className="flex items-center justify-center w-5 h-5 text-[#d85a30] hover:text-[#ffb766] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#d85a30] rounded"
                                   >
                                     {isCatFullySelected ? (
                                       <FaCheckSquare className="w-5 h-5" />
                                     ) : isCatPartiallySelected ? (
-                                      <div className="w-5 h-5 border-2 border-[#f43a09] bg-[#c2edda]/30 rounded flex items-center justify-center">
-                                        <div className="w-2 h-2 bg-[#f43a09] rounded" />
+                                      <div className="w-5 h-5 border-2 border-[#d85a30] bg-[#c2edda]/30 rounded flex items-center justify-center">
+                                        <div className="w-2 h-2 bg-[#d85a30] rounded" />
                                       </div>
                                     ) : (
                                       <FaSquare className="w-5 h-5" />
                                     )}
                                   </div>
-                                  <FaFolder className="text-[#f43a09] w-4 h-4" />
+                                  <FaFolder className="text-[#d85a30] w-4 h-4" />
                                   <span className="font-medium text-gray-800">
                                     {category.category.category_display_name || 
                                      category.category.category_name || 
@@ -568,7 +568,7 @@ const ExcludedSchemesSelector = ({
                                         >
                                           <div className="flex items-center justify-center w-4 h-4 text-gray-600">
                                             {isSelected ? (
-                                              <FaCheckSquare className="w-4 h-4 text-[#f43a09]" />
+                                              <FaCheckSquare className="w-4 h-4 text-[#d85a30]" />
                                             ) : (
                                               <FaSquare className="w-4 h-4" />
                                             )}

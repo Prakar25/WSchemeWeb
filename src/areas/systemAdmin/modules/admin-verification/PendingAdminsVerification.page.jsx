@@ -11,6 +11,7 @@ import {
   DEPARTMENTS_URL,
 } from "../../../../api/api_routing_urls";
 import Dashboard from "../../../dashboard-components/dashboard.component";
+import SplitText from "../../../../reusable-components/SplitText/SplitText";
 import GenericModal from "../../../../reusable-components/modals/GenericModal.component";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import showToast from "../../../../utils/notification/NotificationModal";
@@ -219,8 +220,10 @@ export default function PendingAdminsVerification() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MdPersonAdd className="text-2xl text-[#f43a09]" />
-            <h1 className="text-2xl font-bold text-gray-900">Pending Admin Verifications</h1>
+            <MdPersonAdd className="text-2xl text-[#d85a30]" />
+            <h1 className="text-2xl font-bold text-gray-900">
+              <SplitText text="Pending Admin Verifications" splitType="chars" delay={30} className="inline-block" />
+            </h1>
           </div>
         </div>
 
@@ -283,7 +286,7 @@ export default function PendingAdminsVerification() {
                               type="button"
                               onClick={() => handleApprove(id)}
                               disabled={isProcessing}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#f43a09] text-white rounded-md hover:bg-[#ffb766] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#d85a30] text-white rounded-md hover:bg-[#ffb766] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                             >
                               {isProcessing ? <Spinner /> : <FaCheck />}
                               Approve

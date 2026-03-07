@@ -10,6 +10,7 @@ import {
   APPLICATION_VERIFY_URL,
 } from "../../../api/api_routing_urls";
 import Dashboard from "../../dashboard-components/dashboard.component";
+import SplitText from "../../../reusable-components/SplitText/SplitText";
 import GenericModal from "../../../reusable-components/modals/GenericModal.component";
 import Spinner from "../../../reusable-components/spinner/spinner.component";
 import showToast from "../../../utils/notification/NotificationModal";
@@ -210,8 +211,10 @@ export default function CSDPendingApplications() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MdAssignment className="text-2xl text-[#f43a09]" />
-            <h1 className="text-2xl font-bold text-gray-900">Pending Applications</h1>
+            <MdAssignment className="text-2xl text-[#d85a30]" />
+            <h1 className="text-2xl font-bold text-gray-900">
+              <SplitText text="Pending Applications" splitType="chars" delay={30} className="inline-block" />
+            </h1>
           </div>
         </div>
 
@@ -303,7 +306,7 @@ export default function CSDPendingApplications() {
         setOpen={(v) => !v && setSelectedApplication(null)}
         title={
           <div className="flex items-center gap-2">
-            <MdInfo className="text-[#f43a09]" size={24} />
+            <MdInfo className="text-[#d85a30]" size={24} />
             <span>Application Details</span>
           </div>
         }
@@ -355,14 +358,14 @@ export default function CSDPendingApplications() {
                 <button
                   onClick={() => handleVerify("Verified")}
                   disabled={processingAction}
-                  className="flex-1 px-4 py-2 rounded-md bg-[#f43a09] text-white hover:bg-[#ffb766] font-medium disabled:opacity-60"
+                  className="flex-1 px-4 py-2 rounded-md bg-[#d85a30] text-white hover:bg-[#ffb766] font-medium disabled:opacity-60"
                 >
                   {processingAction ? "Processing..." : "Verify"}
                 </button>
                 <button
                   onClick={() => handleVerify("Forwarded")}
                   disabled={processingAction}
-                  className="flex-1 px-4 py-2 rounded-md bg-[#f43a09] text-white hover:bg-[#ffb766] font-medium disabled:opacity-60"
+                  className="flex-1 px-4 py-2 rounded-md bg-[#d85a30] text-white hover:bg-[#ffb766] font-medium disabled:opacity-60"
                 >
                   Forward
                 </button>

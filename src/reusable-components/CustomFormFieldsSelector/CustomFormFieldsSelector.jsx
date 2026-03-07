@@ -96,7 +96,7 @@ const CustomFormFieldsSelector = ({
                     }
                     placeholder="e.g. annual_income"
                     disabled={disabled}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
                   />
                 </div>
                 <div>
@@ -109,7 +109,7 @@ const CustomFormFieldsSelector = ({
                     onChange={(e) => updateField(index, { label: e.target.value })}
                     placeholder="e.g. Annual Income (INR)"
                     disabled={disabled}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
                   />
                 </div>
               </div>
@@ -128,7 +128,7 @@ const CustomFormFieldsSelector = ({
                       })
                     }
                     disabled={disabled}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
                   >
                     {FIELD_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>
@@ -146,7 +146,7 @@ const CustomFormFieldsSelector = ({
                       updateField(index, { required: e.target.checked })
                     }
                     disabled={disabled}
-                    className="rounded border-gray-300 text-[#f43a09] focus:ring-[#f43a09]"
+                    className="rounded border-gray-300 text-[#d85a30] focus:ring-[#d85a30]"
                   />
                   <label
                     htmlFor={`required-${index}`}
@@ -168,7 +168,7 @@ const CustomFormFieldsSelector = ({
                       }
                       placeholder="Option1, Option2, Option3"
                       disabled={disabled}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
                     />
                   </div>
                 )}
@@ -181,7 +181,7 @@ const CustomFormFieldsSelector = ({
           type="button"
           onClick={addField}
           disabled={disabled}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#f43a09] border border-[#f43a09]/40 rounded-lg hover:bg-[#c2edda]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#d85a30] border border-[#d85a30]/40 rounded-lg hover:bg-[#c2edda]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <FiPlus size={16} />
           Add form field
