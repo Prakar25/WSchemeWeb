@@ -54,19 +54,19 @@ export default function PublicApplications() {
   // Get status config
   const statusConfig = {
     Approved: {
-      bg: "bg-green-100",
-      text: "text-green-700",
-      icon: <FaCheckCircle className="text-green-600" />,
+      bg: "bg-[#c2edda]/30",
+      text: "text-black",
+      icon: <FaCheckCircle className="text-[#f43a09]" />,
     },
     "Under Review": {
-      bg: "bg-yellow-100",
-      text: "text-yellow-700",
-      icon: <FaTrophy className="text-yellow-600" />,
+      bg: "bg-[#68d388]/25",
+      text: "text-black",
+      icon: <FaTrophy className="text-[#68d388]" />,
     },
     Applied: {
-      bg: "bg-blue-100",
-      text: "text-blue-700",
-      icon: <FaFileAlt className="text-blue-600" />,
+      bg: "bg-[#c2edda]/30",
+      text: "text-black",
+      icon: <FaFileAlt className="text-[#f43a09]" />,
     },
     Rejected: {
       bg: "bg-red-100",
@@ -168,7 +168,7 @@ export default function PublicApplications() {
                             {dateApplied}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button className="text-blue-600 hover:text-blue-800 font-semibold">
+                          <button className="text-[#f43a09] hover:text-[#ffb766] font-semibold">
                             View Details
                           </button>
                         </td>

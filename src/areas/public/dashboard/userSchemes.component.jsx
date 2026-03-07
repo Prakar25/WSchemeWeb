@@ -56,7 +56,7 @@ const SchemeSection = ({ title, schemes, eligible, onSelect }) => {
               transition: { duration: 0.2, ease: "easeInOut" }, // smooth tap effect
             }}
             className={`rounded-xl overflow-hidden shadow-lg cursor-pointer border-2 ${
-              eligible ? "border-green-100" : "border-gray-300"
+              eligible ? "border-[#c2edda]/50" : "border-gray-300"
             }`}
             onClick={() => onSelect(scheme)}
           >
@@ -79,7 +79,7 @@ const SchemeSection = ({ title, schemes, eligible, onSelect }) => {
                 onClick={(e) => e.stopPropagation()}
                 className={`mt-5 w-full py-3 rounded-md font-medium text-sm ${
                   eligible
-                    ? "bg-white text-green-700 hover:bg-green-500 hover:text-white cursor-pointer transition-all ease-in-out duration-500"
+                    ? "bg-white text-black hover:bg-[#c2edda]/200 hover:text-white cursor-pointer transition-all ease-in-out duration-500"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
               >
@@ -156,7 +156,7 @@ export default function UserSchemes() {
         />
       ) : (
         <section className="py-12 px-6">
-          <div className="text-2xl font-bold text-center text-blue-800 mb-10">
+          <div className="text-2xl font-bold text-center text-black mb-10">
             Schemes
           </div>
 
@@ -173,7 +173,7 @@ export default function UserSchemes() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1 }}
-              className="text-center p-8 bg-yellow-100 border border-yellow-300 rounded-lg text-yellow-800 mb-10"
+              className="text-center p-8 bg-[#68d388]/25 border border-[#68d388]/50 rounded-lg text-black mb-10"
             >
               You are not eligible for any schemes currently.
             </motion.div>

@@ -104,7 +104,7 @@ export default function PublicHeader() {
           {/* Logo */}
           <Link to="/user/dashboard" className="flex items-center gap-3">
             <img src={skGovtLogo} alt="Logo" className="h-6 w-6 object-contain" />
-            <span className="text-xl font-bold text-green-600">
+            <span className="text-xl font-bold text-[#f43a09]">
               WelfareConnect
             </span>
           </Link>
@@ -115,8 +115,8 @@ export default function PublicHeader() {
               onClick={() => navigate("/user/dashboard")}
               className={`font-medium transition-colors ${
                 isActive("/user/dashboard")
-                  ? "text-green-600 font-semibold"
-                  : "text-gray-700 hover:text-green-600"
+                  ? "text-[#f43a09] font-semibold"
+                  : "text-black hover:text-[#f43a09]"
               }`}
             >
               Home
@@ -125,8 +125,8 @@ export default function PublicHeader() {
               onClick={() => navigate("/user/schemes")}
               className={`font-medium transition-colors ${
                 isActive("/user/schemes")
-                  ? "text-green-600 font-semibold"
-                  : "text-gray-700 hover:text-green-600"
+                  ? "text-[#f43a09] font-semibold"
+                  : "text-black hover:text-[#f43a09]"
               }`}
             >
               Schemes
@@ -135,8 +135,8 @@ export default function PublicHeader() {
               onClick={() => navigate("/user/applications")}
               className={`font-medium transition-colors ${
                 isActive("/user/applications")
-                  ? "text-green-600 font-semibold"
-                  : "text-gray-700 hover:text-green-600"
+                  ? "text-[#f43a09] font-semibold"
+                  : "text-black hover:text-[#f43a09]"
               }`}
             >
               My Applications
@@ -147,7 +147,7 @@ export default function PublicHeader() {
           <div className="flex items-center gap-4">
             {/* Notification Bell */}
             <div className="relative cursor-pointer">
-              <FaBell className="text-gray-600 text-xl" />
+              <FaBell className="text-black text-xl" />
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 1
               </span>
@@ -157,7 +157,7 @@ export default function PublicHeader() {
             {user && (
               <button
                 onClick={() => navigate("/user/profile")}
-                className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#f43a09] focus:ring-offset-2"
               >
                 {user.photo?.url ? (
                   <img
@@ -166,7 +166,7 @@ export default function PublicHeader() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-400 to-green-400 flex items-center justify-center text-white font-bold">
+                  <div className="w-full h-full bg-gradient-to-br from-[#c2edda] to-[#f43a09] flex items-center justify-center text-white font-bold">
                     {(user.fullName || "U").charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -176,7 +176,7 @@ export default function PublicHeader() {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-black hover:text-gray-800 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
               title="Logout"
             >
               <FiLogOut size={18} />

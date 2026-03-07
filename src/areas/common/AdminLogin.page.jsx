@@ -55,7 +55,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen px-4 py-8 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+    <div className="flex justify-center items-center min-h-screen px-4 py-8 bg-gradient-to-br from-[#c2edda]/30 via-[#c2edda]/20 to-slate-50">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -63,15 +63,15 @@ export default function AdminLogin() {
         className="bg-white w-full max-w-md rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 sm:p-10"
       >
         <div className="flex justify-center mb-6">
-          <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 text-blue-600">
+          <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#c2edda] text-[#f43a09]">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </span>
         </div>
 
-        <h1 className="text-center text-2xl font-bold text-slate-800">Admin Login</h1>
-        <p className="text-center text-slate-500 text-sm mt-1 mb-8">
+        <h1 className="text-center text-2xl font-bold text-black">Admin Login</h1>
+        <p className="text-center text-black text-sm mt-1 mb-8">
           Sign in with your admin credentials
         </p>
 
@@ -97,7 +97,7 @@ export default function AdminLogin() {
             setError={setError}
             clearError={clearErrors}
             type="text"
-            classes="mb-4 rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-400 w-full"
+            classes="mb-4 rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09] w-full"
             onChangeInput={null}
             setValue={setValue}
           />
@@ -114,7 +114,7 @@ export default function AdminLogin() {
             setError={setError}
             clearError={clearErrors}
             autoComplete="current-password"
-            classes="rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-blue-500 w-full"
+            classes="rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#f43a09] w-full"
             onChangeInput={null}
             setValue={setValue}
           />
@@ -122,15 +122,15 @@ export default function AdminLogin() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-6 w-full bg-blue-600 text-white font-medium rounded-lg py-3 hover:bg-blue-700 active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            className="mt-6 w-full bg-[#f43a09] text-white font-medium rounded-lg py-3 hover:bg-[#ffb766] active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
 
           <hr className="my-6 border-slate-100" />
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-black">
             Don&apos;t have an admin account?{" "}
-            <Link to="/admin-register" className="text-blue-600 hover:text-blue-700 font-medium underline underline-offset-2">
+            <Link to="/admin-register" className="text-[#f43a09] hover:text-[#68d388] font-medium underline underline-offset-2">
               Register as Admin
             </Link>
           </p>

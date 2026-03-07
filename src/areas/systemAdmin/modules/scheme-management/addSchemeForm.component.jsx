@@ -1007,7 +1007,7 @@ const AddSchemeForm = ({
                   <div>
                     {docScheme !== null && (
                       <div className="flex flex-wrap gap-x-2 items-center">
-                        <div className="text-sm text-blue-700">
+                        <div className="text-sm text-black">
                           {docScheme[0]?.name}
                         </div>
 
@@ -1063,7 +1063,7 @@ const AddSchemeForm = ({
                       <div>
                         {docScheme !== null && (
                           <div className="flex flex-wrap gap-x-2 items-center">
-                            <div className="text-sm text-blue-700">
+                            <div className="text-sm text-black">
                               {docScheme[0]?.name}
                             </div>
 
@@ -1107,14 +1107,14 @@ const AddSchemeForm = ({
             {!isFormSubmitting ? (
               <button
                 type="submit"
-                className="col-start-2 flex justify-self-center items-center bg-blue-800 w-fit text-white py-2 px-5 rounded cursor-pointer"
+                className="col-start-2 flex justify-self-center items-center bg-[#f43a09] w-fit text-white py-2 px-5 rounded cursor-pointer"
               >
                 <span className="text-sm font-medium">
                   {!isEdit ? "Submit" : "Update"}
                 </span>
               </button>
             ) : (
-              <div className="col-start-2 flex justify-self-center items-center bg-blue-800 w-fit text-white py-2 px-5 rounded cursor-pointer">
+              <div className="col-start-2 flex justify-self-center items-center bg-[#f43a09] w-fit text-white py-2 px-5 rounded cursor-pointer">
                 <div className="flex gap-x-1 items-center">
                   <p className="text-sm font-medium">
                     {!isEdit ? "Submitting" : "Updating"}

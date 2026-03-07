@@ -155,7 +155,7 @@ export default function PublicSchemes() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09]"
             >
               <option value="All">Category</option>
               <option value="Pension">Pension</option>
@@ -171,7 +171,7 @@ export default function PublicSchemes() {
                 placeholder="Search for schemes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09]"
               />
             </div>
           </div>
@@ -220,8 +220,8 @@ export default function PublicSchemes() {
                     <span
                       className={`px-3 py-1 rounded text-xs font-semibold ${
                         schemeType === "STATE"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-orange-100 text-orange-700"
+                          ? "bg-[#c2edda]/30 text-black"
+                          : "bg-[#68d388]/25 text-black"
                       }`}
                     >
                       {schemeType} SCHEME
@@ -277,8 +277,8 @@ export default function PublicSchemes() {
                     className={`w-full py-3 rounded-md font-semibold text-sm transition-colors ${
                       isEligible
                         ? schemeType === "STATE"
-                          ? "bg-blue-600 hover:bg-blue-700 text-white"
-                          : "bg-orange-600 hover:bg-orange-700 text-white"
+                          ? "bg-[#f43a09] hover:bg-[#ffb766] text-white"
+                          : "bg-[#f43a09] hover:bg-[#ffb766] text-white"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                   >

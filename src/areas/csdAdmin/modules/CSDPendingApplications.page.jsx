@@ -210,7 +210,7 @@ export default function CSDPendingApplications() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MdAssignment className="text-2xl text-blue-600" />
+            <MdAssignment className="text-2xl text-[#f43a09]" />
             <h1 className="text-2xl font-bold text-gray-900">Pending Applications</h1>
           </div>
         </div>
@@ -220,7 +220,7 @@ export default function CSDPendingApplications() {
         </p>
 
         {error && (
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+          <div className="p-4 bg-[#68d388]/20 border border-[#68d388]/40 rounded-lg text-black text-sm">
             {error}
           </div>
         )}
@@ -282,7 +282,7 @@ export default function CSDPendingApplications() {
                             : "—"}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-blue-100 text-blue-700 text-sm font-medium hover:bg-blue-200">
+                          <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#c2edda]/30 text-black text-sm font-medium hover:bg-[#c2edda]/40">
                             <MdInfo size={16} />
                             View
                           </button>
@@ -303,7 +303,7 @@ export default function CSDPendingApplications() {
         setOpen={(v) => !v && setSelectedApplication(null)}
         title={
           <div className="flex items-center gap-2">
-            <MdInfo className="text-blue-600" size={24} />
+            <MdInfo className="text-[#f43a09]" size={24} />
             <span>Application Details</span>
           </div>
         }
@@ -324,7 +324,7 @@ export default function CSDPendingApplications() {
             </div>
             <div>
               <span className="font-medium text-gray-600">Status:</span>{" "}
-              <span className="inline-flex px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 text-xs">
+              <span className="inline-flex px-2 py-0.5 rounded bg-[#68d388]/25 text-black text-xs">
                 {selectedApplication.status || "Pending"}
               </span>
             </div>
@@ -355,14 +355,14 @@ export default function CSDPendingApplications() {
                 <button
                   onClick={() => handleVerify("Verified")}
                   disabled={processingAction}
-                  className="flex-1 px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 font-medium disabled:opacity-60"
+                  className="flex-1 px-4 py-2 rounded-md bg-[#f43a09] text-white hover:bg-[#ffb766] font-medium disabled:opacity-60"
                 >
                   {processingAction ? "Processing..." : "Verify"}
                 </button>
                 <button
                   onClick={() => handleVerify("Forwarded")}
                   disabled={processingAction}
-                  className="flex-1 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-medium disabled:opacity-60"
+                  className="flex-1 px-4 py-2 rounded-md bg-[#f43a09] text-white hover:bg-[#ffb766] font-medium disabled:opacity-60"
                 >
                   Forward
                 </button>

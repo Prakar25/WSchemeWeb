@@ -8,7 +8,7 @@ const Footer = () => {
 
   return (
     <section>
-      <footer className="bg-blue-900 text-white py-12 mt-10">
+      <footer className="bg-[#f43a09] text-white py-12">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10 px-6">
           {/* Quick Links */}
           <div>
@@ -43,7 +43,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="text-center text-xs mt-10 opacity-70">
+        <div className="text-center text-xs mt-10 text-white/90">
           ©{d.getFullYear()} Women and Child Welfare Department, Government of
           Sikkim. All Rights Reserved.
         </div>

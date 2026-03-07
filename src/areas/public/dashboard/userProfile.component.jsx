@@ -43,7 +43,7 @@ export default function UserProfile() {
     <Dashboard sidebarType="Public User">
       <section className="bg-linear-to-r from-orange-600 via-white to-green-500 text-white rounded-xl shadow p-6 mb-6">
         <div className="flex flex-col sm:flex-row items-center gap-5">
-          <div className="h-20 w-20 rounded-full bg-white text-green-700 flex items-center justify-center text-3xl font-bold shadow">
+          <div className="h-20 w-20 rounded-full bg-white text-black flex items-center justify-center text-3xl font-bold shadow">
             {user.fullName?.charAt(0)}
           </div>
 
@@ -70,7 +70,7 @@ export default function UserProfile() {
               </button>
             </div>
 
-            <span className="inline-block mt-3 px-4 py-1 text-xs font-semibold bg-white text-green-700 rounded-full">
+            <span className="inline-block mt-3 px-4 py-1 text-xs font-semibold bg-white text-black rounded-full">
               ✔ Verified Public User
             </span>
           </div>

@@ -216,7 +216,7 @@ export default function AdminRegister() {
             </label>
             <select
               {...register("departmentId")}
-              className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#f43a09]"
               disabled={loadingOptions}
             >
               <option value="">{loadingOptions ? "Loading..." : "Select your department (optional)"}</option>
@@ -234,7 +234,7 @@ export default function AdminRegister() {
             </label>
             <select
               {...register("roleLevel", { required: "Please select a role" })}
-              className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#f43a09]"
               disabled={loadingOptions}
             >
               <option value="">{loadingOptions ? "Loading..." : "Select your role"}</option>
@@ -252,7 +252,7 @@ export default function AdminRegister() {
           <button
             type="submit"
             disabled={loading || loadingOptions}
-            className="mt-6 w-full bg-blue-600 text-white rounded-md py-2.5 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="mt-6 w-full bg-[#f43a09] text-white rounded-md py-2.5 hover:bg-[#ffb766] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "Registering..." : "Register"}
           </button>
@@ -263,7 +263,7 @@ export default function AdminRegister() {
         </p>
 
         <div className="mt-4 text-center">
-          <Link to="/admin-login" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+          <Link to="/admin-login" className="text-[#f43a09] hover:text-[#ffb766] text-sm font-medium">
             ← Back to Login
           </Link>
         </div>

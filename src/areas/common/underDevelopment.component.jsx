@@ -16,7 +16,7 @@ const UnderDevelopment = ({
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="w-12 h-12 text-orange-500"
+            className="w-12 h-12 text-[#f43a09]"
           >
             <path
               strokeLinecap="round"

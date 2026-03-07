@@ -86,23 +86,26 @@ const Home = () => {
   };
 
   useEffect(() => {
-    getSchemesList();
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    getSchemesList();
+  }, [ageGroup, categoryId]);
 
   const handleSearch = () => {
     getSchemesList();
   };
 
   return (
-    <section className="min-h-screen bg-gray-50">
+    <section className="min-h-screen">
       {/* Hero Section */}
-      <div className="text-center py-14">
+      <div className="text-center py-12 sm:py-16 px-4">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-4xl font-bold text-primary"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#f43a09] max-w-3xl mx-auto leading-tight"
         >
           Access Government Welfare Schemes Online
         </motion.h1>
@@ -110,8 +113,8 @@ const Home = () => {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-          className="mt-3 text-gray-700 max-w-2xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mt-4 text-black max-w-2xl mx-auto text-base sm:text-lg"
         >
           A single point of access for all welfare schemes for women and
           children from the State & Central Government.
@@ -121,67 +124,76 @@ const Home = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-          className="bg-white shadow-md w-full max-w-3xl mx-auto mt-10 p-6 rounded-lg"
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="bg-white/90 backdrop-blur shadow-lg shadow-[#f43a09]/10 w-full max-w-2xl mx-auto mt-10 p-6 sm:p-8 rounded-2xl border border-[#c2edda]/40"
         >
+          <p className="text-black text-sm font-medium mb-4">Filter schemes by age and category</p>
           <div className="grid md:grid-cols-2 gap-4">
-            <select
-              className="border rounded-md p-2 w-full"
-              value={ageGroup}
-              onChange={(e) => setAgeGroup(e.target.value)}
-            >
-              {AGE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-
-            <select
-              className="border rounded-md p-2 w-full"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-            >
-              <option value="">Category</option>
-              <option value="all">All</option>
-              {categories.map((cat) => (
-                <option key={cat._id || cat.id} value={cat._id || cat.id}>
-                  {cat.category_name || cat.name || cat.categoryName || cat._id}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="block text-black text-xs font-medium mb-1.5">Age Group</label>
+              <select
+                className="w-full border border-[#68d388]/40 rounded-xl px-4 py-3 text-black bg-white focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09] transition-all"
+                value={ageGroup}
+                onChange={(e) => setAgeGroup(e.target.value)}
+              >
+                {AGE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-black text-xs font-medium mb-1.5">Category</label>
+              <select
+                className="w-full border border-[#68d388]/40 rounded-xl px-4 py-3 text-black bg-white focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09] transition-all"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option value="">Select category</option>
+                <option value="all">All</option>
+                {categories.map((cat) => (
+                  <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                    {cat.category_name || cat.name || cat.categoryName || cat._id}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-
           <button
             onClick={handleSearch}
-            className="mt-5 w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition"
+            className="mt-6 w-full bg-[#f43a09] text-white py-3 rounded-xl font-semibold hover:bg-[#ffb766] active:scale-[0.99] transition-all"
           >
             Search Schemes
           </button>
+          <p className="mt-3 text-black/70 text-xs text-center">Results update automatically when you change filters</p>
         </motion.div>
       </div>
 
       {/* Schemes Section */}
-      <div className="max-w-7xl mx-auto px-6 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-16 pt-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-black mb-8 mt-8">Available Schemes</h2>
+
         {loading ? (
           // Loading state
-          <div className="grid md:grid-cols-3 gap-8 mt-16">
-            {[...Array(3)].map((_, i) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="h-96 bg-gray-200 animate-pulse rounded-lg"
+                className="h-80 bg-[#c2edda]/20 animate-pulse rounded-2xl"
               />
             ))}
           </div>
         ) : schemesList?.length === 0 ? (
           // Empty schemes list
-          <p className="text-center text-gray-500 py-20">
-            No schemes available at the moment.
-          </p>
+          <div className="text-center py-20 px-6 bg-[#c2edda]/10 rounded-2xl border border-[#c2edda]/30">
+            <p className="text-black text-lg font-medium">No schemes found</p>
+            <p className="text-black/70 text-sm mt-2">Try adjusting your filters or check back later for new schemes.</p>
+          </div>
         ) : (
           // Schemes Cards
           <motion.div
-            className="grid md:grid-cols-3 gap-8 mt-16"
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
             initial="offscreen"
             animate="onscreen"
             variants={containerVariants}
@@ -207,26 +219,35 @@ const SchemeCard = ({ scheme }) => {
     <motion.div
       variants={cardVariants}
       whileHover={{
-        scale: 1.03,
-        transition: { duration: 0.3, ease: "easeOut" },
+        y: -4,
+        transition: { duration: 0.2, ease: "easeOut" },
       }}
-      whileTap={{ scale: 0.97 }}
-      className="bg-white shadow-lg rounded-xl overflow-hidden cursor-pointer"
+      whileTap={{ scale: 0.98 }}
+      className="group bg-white shadow-md shadow-[#f43a09]/5 hover:shadow-xl hover:shadow-[#f43a09]/10 rounded-2xl overflow-hidden cursor-pointer border border-[#c2edda]/20 hover:border-[#f43a09]/30 transition-all duration-300"
     >
-      <img
-        src={displayMedia(scheme_image_file_url)}
-        alt={scheme_name}
-        className="h-64 w-full object-cover"
-      />
+      <div className="h-52 w-full overflow-hidden bg-[#c2edda]/20">
+        {scheme_image_file_url ? (
+          <img
+            src={displayMedia(scheme_image_file_url)}
+            alt={scheme_name}
+            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="h-full w-full flex items-center justify-center">
+            <span className="text-5xl font-bold text-[#f43a09]/30">{(scheme_name || "S").charAt(0)}</span>
+          </div>
+        )}
+      </div>
 
       <div className="p-5 text-center">
-        <h3 className="font-semibold text-lg text-primary mb-2">
+        <h3 className="font-semibold text-lg text-[#f43a09] mb-2 group-hover:text-[#ffb766] transition-colors">
           {scheme_name}
         </h3>
 
-        <p className="text-sm text-gray-600 line-clamp-3">
-          {scheme_description}
+        <p className="text-sm text-black line-clamp-3">
+          {scheme_description || "View details for more information."}
         </p>
+        <p className="mt-3 text-sm text-[#f43a09] font-medium">View details →</p>
       </div>
     </motion.div>
   );

@@ -24,8 +24,8 @@ export default function PublicSidebar({
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/dashboard")
-                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
-                  : "text-yellow-200 font-normal"
+                  ? "bg-white text-[#f43a09] font-semibold rounded-e-full"
+                  : "text-[#c2edda] font-normal"
               }`}
             >
               <MdOutlineDashboardCustomize size={20} />
@@ -41,8 +41,8 @@ export default function PublicSidebar({
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/profile") && !pathname.includes("/user/complete-profile")
-                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
-                  : "text-yellow-200 font-normal"
+                  ? "bg-white text-[#f43a09] font-semibold rounded-e-full"
+                  : "text-[#c2edda] font-normal"
               }`}
             >
               <AiOutlineUser size={20} />
@@ -58,8 +58,8 @@ export default function PublicSidebar({
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/complete-profile")
-                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
-                  : "text-yellow-200 font-normal"
+                  ? "bg-white text-[#f43a09] font-semibold rounded-e-full"
+                  : "text-[#c2edda] font-normal"
               }`}
             >
               <FiUserCheck size={20} />
@@ -75,8 +75,8 @@ export default function PublicSidebar({
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/schemes")
-                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
-                  : "text-yellow-200 font-normal"
+                  ? "bg-white text-[#f43a09] font-semibold rounded-e-full"
+                  : "text-[#c2edda] font-normal"
               }`}
             >
               <MdFormatListBulleted size={20} />
@@ -92,8 +92,8 @@ export default function PublicSidebar({
             <div
               className={`flex items-center gap-x-2 my-3 py-2 px-2 ${
                 pathname.includes("/user/application-status")
-                  ? "bg-white text-slate-700 font-semibold rounded-e-full"
-                  : "text-yellow-200 font-normal"
+                  ? "bg-white text-[#f43a09] font-semibold rounded-e-full"
+                  : "text-[#c2edda] font-normal"
               }`}
             >
               <LuFileClock size={20} />

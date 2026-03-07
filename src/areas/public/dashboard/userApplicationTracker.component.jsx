@@ -17,15 +17,15 @@ import Dashboard from "../../dashboard-components/dashboard.component";
 const statusConfig = {
   Approved: {
     bg: "from-green-400 to-emerald-500",
-    text: "text-green-700",
-    badge: "bg-green-100",
-    icon: <FaCheckCircle className="text-green-600 text-xl" />,
+    text: "text-black",
+    badge: "bg-[#c2edda]/30",
+    icon: <FaCheckCircle className="text-[#f43a09] text-xl" />,
   },
   "Under Review": {
     bg: "from-yellow-400 to-orange-400",
-    text: "text-yellow-800",
-    badge: "bg-yellow-100",
-    icon: <FaClock className="text-yellow-600 text-xl" />,
+    text: "text-black",
+    badge: "bg-[#68d388]/25",
+    icon: <FaClock className="text-[#68d388] text-xl" />,
   },
   Rejected: {
     bg: "from-red-400 to-rose-500",
@@ -161,8 +161,8 @@ export default function UserApplicationTracker() {
                     <motion.button
                       whileHover={{ x: 4 }}
                       transition={{ ease: "easeOut", duration: 0.2 }}
-                      className="flex items-center gap-2 text-blue-600
-                                 font-semibold hover:text-blue-700"
+                      className="flex items-center gap-2 text-[#f43a09]
+                                 font-semibold hover:text-[#ffb766]"
                     >
                       View Details
                       <FaArrowRight />

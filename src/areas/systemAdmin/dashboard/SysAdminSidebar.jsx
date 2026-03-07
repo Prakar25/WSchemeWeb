@@ -23,11 +23,11 @@ function NavItem({ to, pathname, icon, label, isActive }) {
         whileTap={{ scale: 0.98 }}
         className={`flex items-center gap-x-2 my-3 py-2 px-3 rounded-lg transition-all duration-200 ${
           isActive
-            ? "bg-white text-orange-600 font-semibold shadow-sm"
-            : "text-yellow-200 font-normal hover:bg-white/10 hover:text-white"
+            ? "bg-white text-[#f43a09] font-semibold shadow-sm"
+            : "text-[#c2edda] font-normal hover:bg-white/10 hover:text-white"
         }`}
       >
-        <div className={isActive ? "text-orange-600" : ""}>{icon}</div>
+        <div className={isActive ? "text-[#f43a09]" : ""}>{icon}</div>
         <div className="text-lg cursor-pointer">
           <p>{label}</p>
         </div>
@@ -156,7 +156,7 @@ export default function SysAdminSidebar({
             <motion.div
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-x-2 my-3 py-2 px-2 text-yellow-200 font-normal hover:text-white transition-colors cursor-pointer"
+              className="flex items-center gap-x-2 my-3 py-2 px-2 text-[#c2edda] font-normal hover:text-white transition-colors cursor-pointer"
               onClick={handleLogout}
             >
               <FiLogOut size={20} />

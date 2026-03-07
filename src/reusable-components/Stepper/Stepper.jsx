@@ -228,8 +228,8 @@ function StepIndicator({ step, currentStep, onClickStep, disableStepIndicators }
       <motion.div
         variants={{
           inactive: { scale: 1, backgroundColor: "#64748b", color: "#94a3b8" },
-          active: { scale: 1, backgroundColor: "#ea580c", color: "#ffffff" },
-          complete: { scale: 1, backgroundColor: "#ea580c", color: "#fed7aa" },
+          active: { scale: 1, backgroundColor: "#f43a09", color: "#ffffff" },
+          complete: { scale: 1, backgroundColor: "#f43a09", color: "#c2edda" },
         }}
         transition={{ duration: 0.3 }}
         className="stepper-indicator-inner"
@@ -249,7 +249,7 @@ function StepIndicator({ step, currentStep, onClickStep, disableStepIndicators }
 function StepConnector({ isComplete }) {
   const lineVariants = {
     incomplete: { width: 0, backgroundColor: "transparent" },
-    complete: { width: "100%", backgroundColor: "#ea580c" },
+    complete: { width: "100%", backgroundColor: "#f43a09" },
   };
 
   return (

@@ -473,7 +473,7 @@ export default function ApplyToScheme() {
         <div className="mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-4"
+            className="flex items-center gap-2 text-[#f43a09] hover:text-[#ffb766] font-medium mb-4"
           >
             <FaArrowLeft /> Back
           </button>
@@ -750,8 +750,8 @@ export default function ApplyToScheme() {
                     </div>
                     {uploadedDocuments[docType] && uploadedDocuments[docType].length > 0 ? (
                       <div className="flex items-center gap-2">
-                        <FaCheckCircle className="text-green-500" />
-                        <span className="text-sm text-green-600 font-medium">
+                        <FaCheckCircle className="text-[#f43a09]" />
+                        <span className="text-sm text-[#f43a09] font-medium">
                           Uploaded
                         </span>
                         <button
@@ -771,7 +771,7 @@ export default function ApplyToScheme() {
                             [docType]: !prev[docType],
                           }))
                         }
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#f43a09] text-white rounded-md hover:bg-[#ffb766] transition-colors"
                       >
                         <FaUpload /> Upload
                       </button>
@@ -809,7 +809,7 @@ export default function ApplyToScheme() {
                           ? uploadedDocuments[docType].map((url, idx) => (
                               <span
                                 key={idx}
-                                className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm"
+                                className="px-3 py-1 bg-[#c2edda]/30 text-black rounded text-sm"
                               >
                                 File {idx + 1}
                               </span>
@@ -835,7 +835,7 @@ export default function ApplyToScheme() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-[#f43a09] text-white rounded-lg hover:bg-[#ffb766] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>

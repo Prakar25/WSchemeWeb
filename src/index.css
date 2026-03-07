@@ -8,7 +8,7 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: #000000;
+  color: #000000; /* Base text color: black */
   background-color: #ffffff;
 
   font-synthesis: none;
@@ -28,11 +28,15 @@
 }
 
 @theme {
-  /* Colors */
-  --color-primary: #1c398e;
-  --color-secondary: #8bc5db;
-  --color-ternary: #182c38;
-  --color-quaternary: #e88935;
+  /* Primary palette - UI only (text stays black) */
+  --color-primary: #f43a09;
+  --color-secondary: #ffb766;
+  --color-ternary: #c2edda;
+  --color-quaternary: #68d388;
+  --color-bright-orange: #f43a09;
+  --color-grandpa-orange: #ffb766;
+  --color-grey-blue-green: #c2edda;
+  --color-live-green: #68d388;
 
   /* Fonts */
   --font-display: "Inter", "sans-serif";

@@ -73,7 +73,7 @@ const DynamicAuthLevelsSelector = ({
                 onChange(updated);
               }}
               disabled={loading || disabled}
-              className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
             >
               <option value="">Select role...</option>
               {options
@@ -100,7 +100,7 @@ const DynamicAuthLevelsSelector = ({
           type="button"
           onClick={onAddLevel}
           disabled={loading || disabled || options.length === 0}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#f43a09] border border-[#f43a09]/50 rounded-lg hover:bg-[#c2edda]/20 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <FiPlus size={16} />
           Add level
@@ -108,9 +108,9 @@ const DynamicAuthLevelsSelector = ({
       </div>
 
       {showPreview && levels.filter((l) => l?.level != null && !isNaN(l.level)).length > 0 && (
-        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs font-medium text-blue-800 mb-2">Workflow order</p>
-          <ol className="list-decimal list-inside text-sm text-blue-900 space-y-1">
+        <div className="mt-3 p-3 bg-[#c2edda]/20 border border-[#f43a09]/30 rounded-lg">
+          <p className="text-xs font-medium text-black mb-2">Workflow order</p>
+          <ol className="list-decimal list-inside text-sm text-black space-y-1">
             {levels
               .filter((l) => l?.level != null && !isNaN(l.level))
               .map((l, i) => (

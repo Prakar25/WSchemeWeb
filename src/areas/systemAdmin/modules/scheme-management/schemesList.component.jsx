@@ -253,7 +253,7 @@ const SchemesList = ({
             placeholder="Search schemes by name, category, gender, or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-[#f43a09]"
           />
           {searchQuery && (
             <button
@@ -325,21 +325,21 @@ const SchemesList = ({
               <>
                 {/* Statistics */}
                 <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <p className="text-sm text-blue-600 font-medium">Total</p>
-                    <p className="text-2xl font-bold text-blue-900">{totalApplicants}</p>
+                  <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#f43a09]/30">
+                    <p className="text-sm text-[#f43a09] font-medium">Total</p>
+                    <p className="text-2xl font-bold text-black">{totalApplicants}</p>
                   </div>
-                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                    <p className="text-sm text-yellow-600 font-medium">Applied</p>
-                    <p className="text-2xl font-bold text-yellow-900">{countByStatus.Applied || 0}</p>
+                  <div className="bg-[#68d388]/20 p-4 rounded-lg border border-[#68d388]/40">
+                    <p className="text-sm text-black font-medium">Applied</p>
+                    <p className="text-2xl font-bold text-black">{countByStatus.Applied || 0}</p>
                   </div>
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <p className="text-sm text-purple-600 font-medium">Under Review</p>
-                    <p className="text-2xl font-bold text-purple-900">{countByStatus["Under Review"] || 0}</p>
+                  <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#c2edda]/50">
+                    <p className="text-sm text-black font-medium">Under Review</p>
+                    <p className="text-2xl font-bold text-black">{countByStatus["Under Review"] || 0}</p>
                   </div>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <p className="text-sm text-green-600 font-medium">Approved</p>
-                    <p className="text-2xl font-bold text-green-900">{countByStatus.Approved || 0}</p>
+                  <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#c2edda]/50">
+                    <p className="text-sm text-[#f43a09] font-medium">Approved</p>
+                    <p className="text-2xl font-bold text-black">{countByStatus.Approved || 0}</p>
                   </div>
                   <div className="bg-red-50 p-4 rounded-lg border border-red-200">
                     <p className="text-sm text-red-600 font-medium">Rejected</p>
@@ -358,9 +358,9 @@ const SchemesList = ({
                       const applicant = application.applicant || {};
                       const status = application.application_status || "Unknown";
                       const statusColors = {
-                        "Applied": "bg-yellow-100 text-yellow-800",
-                        "Under Review": "bg-purple-100 text-purple-800",
-                        "Approved": "bg-green-100 text-green-800",
+                        "Applied": "bg-[#68d388]/25 text-black",
+                        "Under Review": "bg-[#c2edda]/30 text-black",
+                        "Approved": "bg-[#c2edda]/30 text-black",
                         "Rejected": "bg-red-100 text-red-800",
                         "Pending": "bg-gray-100 text-gray-800",
                       };
@@ -467,13 +467,13 @@ const SchemeCardAdmin = ({
     const status = schemeObj?.approval_status || "approved"; // Default to approved for legacy schemes
     if (status === "pending_department_head_approval") {
       return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#68d388]/25 text-black border border-[#68d388]/50">
           Pending Approval
         </span>
       );
     } else if (status === "approved") {
       return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#c2edda]/30 text-black border border-[#c2edda]/50">
           Approved
         </span>
       );
@@ -582,11 +582,11 @@ const SchemeCardAdmin = ({
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-3">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#c2edda]/30 text-black">
             {schemeObj?.gender || schemeObj?.gender_name || "N/A"}
           </span>
           {schemeObj?.department && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#c2edda]/30 text-black">
               {(() => {
                 const dept = departments.get(schemeObj.department);
                 return dept 
@@ -596,7 +596,7 @@ const SchemeCardAdmin = ({
             </span>
           )}
           {schemeObj?.category && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#c2edda]/30 text-black">
               {(() => {
                 const cat = categories.get(schemeObj.category);
                 return cat 
@@ -645,7 +645,7 @@ const SchemeCardAdmin = ({
           <div className="flex gap-2">
           <button
             onClick={() => onClickEdit(schemeObj)}
-            className="flex-1 px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-blue-700 transition-colors duration-200"
+            className="flex-1 px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-[#ffb766] transition-colors duration-200"
           >
             Edit
           </button>
@@ -664,7 +664,7 @@ const SchemeCardAdmin = ({
           </div>
           <button
             onClick={() => onViewApplicants && onViewApplicants(schemeObj)}
-            className="w-full px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors duration-200"
+            className="w-full px-3 py-2 text-sm font-medium text-white bg-[#f43a09] rounded-md hover:bg-[#ffb766] transition-colors duration-200"
           >
             View Applicants
           </button>

@@ -251,23 +251,23 @@ export default function CompleteProfile() {
   const getKycLevelColor = (level) => {
     switch (level) {
       case "FULL":
-        return "bg-green-100 text-green-700";
+        return "bg-[#c2edda]/50 text-black";
       case "PARTIAL":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-[#68d388]/50 text-black";
       case "BASIC":
-        return "bg-gray-100 text-gray-700";
+        return "bg-gray-100 text-black";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-gray-100 text-black";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#c2edda]/10 flex flex-col">
       <PublicHeader />
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Complete Your Profile</h1>
+          <h1 className="text-3xl font-bold text-black">Complete Your Profile</h1>
           <div className="flex items-center gap-3">
             {user?.kycLevel && (
               <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getKycLevelColor(user.kycLevel)}`}>
@@ -277,7 +277,7 @@ export default function CompleteProfile() {
             <button
               type="button"
               onClick={() => navigate("/user/profile")}
-              className="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+              className="bg-gray-200 text-black py-2 px-4 rounded-lg hover:bg-gray-300 font-medium transition-colors"
             >
               Cancel
             </button>
@@ -285,8 +285,8 @@ export default function CompleteProfile() {
         </div>
 
         {user?.kycLevel === "FULL" && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800 text-sm">
+          <div className="mb-6 p-4 bg-[#c2edda]/50 border border-[#c2edda] rounded-lg">
+            <p className="text-black text-sm">
               ✓ Your profile is complete! You can now apply for schemes.
             </p>
           </div>
@@ -296,7 +296,7 @@ export default function CompleteProfile() {
           <div className="fixed inset-0 bg-white/70 z-50 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
               <Spinner />
-              <p className="text-gray-600 font-medium">Saving profile & documents...</p>
+              <p className="text-black font-medium">Saving profile & documents...</p>
             </div>
           </div>
         )}
@@ -309,7 +309,7 @@ export default function CompleteProfile() {
             nextButtonProps={{ disabled: loading || isSubmitting }}
           >
             <Step>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
+              <h2 className="text-xl font-semibold text-black mb-6">Personal Information</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
@@ -346,12 +346,12 @@ export default function CompleteProfile() {
               />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-black mb-2">
                   Gender
                 </label>
                 <select
                   {...register("gender")}
-                  className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#f43a09]"
                 >
                   <option value="">Select Gender</option>
                   <option value="M">Male</option>
@@ -397,7 +397,7 @@ export default function CompleteProfile() {
             </Step>
 
             <Step>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Address</h2>
+              <h2 className="text-xl font-semibold text-black mb-6">Address</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
@@ -539,8 +539,8 @@ export default function CompleteProfile() {
             </Step>
 
             <Step>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Documents</h2>
-              <p className="text-sm text-gray-600 mb-4">
+              <h2 className="text-xl font-semibold text-black mb-6">Documents</h2>
+              <p className="text-sm text-black mb-4">
               Select documents below. They will be saved when you press Submit at the bottom.
             </p>
             <div className="space-y-4">
@@ -629,19 +629,19 @@ function DocumentUpload({
 
   return (
     <div className="border border-gray-300 rounded-lg p-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-black mb-2">
         {label}
       </label>
 
       {hasExistingDoc && !file && (
-        <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-md">
+        <div className="mb-3 p-3 bg-[#c2edda]/50 border border-[#c2edda] rounded-md">
           <div className="flex items-center gap-3 flex-wrap">
             {/* Preview: thumbnail for image, badge for PDF */}
             {existingIsImage && (
               <div className="h-20 w-20 flex-shrink-0 rounded border border-gray-300 overflow-hidden bg-gray-100">
                 {existingPreviewError ? (
                   <div className="h-full w-full flex items-center justify-center">
-                    <span className="text-xs text-gray-500 text-center px-1">Preview unavailable</span>
+                    <span className="text-xs text-black text-center px-1">Preview unavailable</span>
                   </div>
                 ) : (
                   <img
@@ -659,13 +659,13 @@ function DocumentUpload({
               </div>
             )}
             <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-              <FiCheck className="text-green-600 flex-shrink-0" />
-              <span className="text-sm text-green-800">Document uploaded</span>
+              <FiCheck className="text-black flex-shrink-0" />
+              <span className="text-sm text-black">Document uploaded</span>
               <a
                 href={existingDocUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                className="text-sm text-[#f43a09] hover:text-[#68d388] font-medium"
               >
                 View
               </a>
@@ -681,13 +681,13 @@ function DocumentUpload({
             </div>
           </div>
           {existingPreviewError && (
-            <p className="text-xs text-gray-500 mt-2">Image could not be loaded. Use View to open the file.</p>
+            <p className="text-xs text-black mt-2">Image could not be loaded. Use View to open the file.</p>
           )}
         </div>
       )}
 
       {file && (
-        <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+        <div className="mb-3 p-3 bg-[#68d388]/30 border border-[#f43a09]/50 rounded-md">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               {isImageFile && previewUrl && (
@@ -702,7 +702,7 @@ function DocumentUpload({
                   <span className="text-xs font-bold text-red-600">PDF</span>
                 </div>
               )}
-              <span className="text-sm text-blue-800 truncate" title={file.name}>
+              <span className="text-sm text-slate-800 truncate" title={file.name}>
                 {file.name}
               </span>
             </div>
@@ -725,15 +725,15 @@ function DocumentUpload({
           onChange={(e) => onFileChange(e.target.files[0] || null)}
           className="hidden"
         />
-        <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-blue-500 transition-colors">
+        <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-[#f43a09] transition-colors">
           <FiUpload className="mx-auto mb-2 text-gray-400" />
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-black">
             {file ? "Change File" : "Choose File"}
           </span>
         </div>
       </label>
 
-      <p className="mt-2 text-xs text-gray-500">
+      <p className="mt-2 text-xs text-black">
         Supported: JPEG, PNG, WebP, PDF (Max 10MB). Saved when you press Submit.
       </p>
     </div>

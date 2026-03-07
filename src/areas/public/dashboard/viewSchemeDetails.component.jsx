@@ -153,7 +153,7 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
         <button
           type="button"
           onClick={onClose}
-          className="mb-6 text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
+          className="mb-6 text-[#f43a09] hover:text-[#ffb766] font-medium flex items-center gap-2"
         >
           ← Go Back
         </button>
@@ -246,15 +246,15 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                     You are eligible to apply.
                   </p>
                   {!profileComplete && (
-                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm text-yellow-800">
+                    <div className="mb-4 p-3 bg-[#68d388]/20 border border-[#68d388]/40 rounded-lg">
+                      <p className="text-sm text-black">
                         ⚠ Please complete your profile to apply for this scheme.
                       </p>
                     </div>
                   )}
                   {profileComplete && !isVerified && accountStatusMessage && (
-                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-sm text-amber-800">{accountStatusMessage}</p>
+                    <div className="mb-4 p-3 bg-[#68d388]/20 border border-[#68d388]/40 rounded-lg">
+                      <p className="text-sm text-black">{accountStatusMessage}</p>
                     </div>
                   )}
                   {profileComplete && !isVerified && !accountStatusMessage && (
@@ -266,7 +266,7 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                     className={`w-full font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors ${
                       checkingProfile || !canApply
                         ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-green-600 hover:bg-green-700 text-white"
+                        : "bg-[#f43a09] hover:bg-[#ffb766] text-white"
                     }`}
                   >
                     {checkingProfile ? "Checking..." : "Apply Now"}
@@ -303,14 +303,14 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                   Track Application Progress
                 </h3>
                 <div className="mb-4">
-                  <span className="inline-block bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-medium">
+                  <span className="inline-block bg-[#c2edda]/30 text-black px-4 py-1 rounded-full text-sm font-medium">
                     IN PROGRESS
                   </span>
                 </div>
                 <div className="mb-6">
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div
-                      className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                      className="bg-[#f43a09] h-3 rounded-full transition-all duration-300"
                       style={{ width: `${progressPercentage}%` }}
                     ></div>
                   </div>
@@ -323,14 +323,14 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                         key={index}
                         className={`text-center p-4 rounded-lg ${
                           isCompleted
-                            ? "bg-blue-50 border-2 border-blue-200"
+                            ? "bg-[#c2edda]/20 border-2 border-[#f43a09]/30"
                             : "bg-gray-50 border-2 border-gray-200"
                         }`}
                       >
                         <div
                           className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center font-bold ${
                             isCompleted
-                              ? "bg-blue-600 text-white"
+                              ? "bg-[#f43a09] text-white"
                               : "bg-gray-300 text-gray-600"
                           }`}
                         >
@@ -338,7 +338,7 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                         </div>
                         <p
                           className={`text-sm font-medium ${
-                            isCompleted ? "text-blue-900" : "text-gray-600"
+                            isCompleted ? "text-black" : "text-gray-600"
                           }`}
                         >
                           {step}
@@ -361,9 +361,9 @@ export default ViewSchemeDetails;
 // Section Component with colored underline
 function Section({ title, underlineColor, content }) {
   const underlineColors = {
-    yellow: "border-yellow-400",
-    green: "border-green-500",
-    blue: "border-blue-500",
+    yellow: "border-[#68d388]",
+    green: "border-[#f43a09]",
+    blue: "border-[#f43a09]",
   };
 
   return (

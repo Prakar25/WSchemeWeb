@@ -126,7 +126,7 @@ function AdminProfile({ sidebarType = "System Admin" }) {
                     viewBox="0 0 24 24"
                     strokeWidth="1.5"
                     stroke="currentColor"
-                    className="w-12 h-12 text-blue-600"
+                    className="w-12 h-12 text-[#f43a09]"
                   >
                     <path
                       strokeLinecap="round"
@@ -137,14 +137,14 @@ function AdminProfile({ sidebarType = "System Admin" }) {
                 </div>
                 <div className="text-white">
                   <h2 className="text-2xl font-bold">{adminProfile.fullName || "Admin User"}</h2>
-                  <p className="text-blue-100 mt-1">{adminProfile.role || "System Admin"}</p>
+                  <p className="text-[#c2edda] mt-1">{adminProfile.role || "System Admin"}</p>
                   {adminProfile.roleLevel !== undefined && adminProfile.roleLevel !== null && adminProfile.roleLevel !== 0 && (
                     <div className="mt-2 flex items-center gap-2">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
                         Level {adminProfile.roleLevel}
                       </span>
                       {adminProfile.roleLevel === 1 && (
-                        <span className="text-xs text-yellow-300 font-medium">(Highest)</span>
+                        <span className="text-xs text-[#c2edda] font-medium">(Highest)</span>
                       )}
                       {adminProfile.roleLevel === 8 && (
                         <span className="text-xs text-gray-300 font-medium">(Lowest)</span>
@@ -197,7 +197,7 @@ function AdminProfile({ sidebarType = "System Admin" }) {
                     <div>
                       <label className="text-sm font-medium text-gray-500">Authority Level</label>
                       <div className="mt-1">
-                        <span className="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-[#c2edda]/30 text-black">
                           Level {adminProfile.roleLevel}
                         </span>
                         <p className="text-sm text-gray-600 mt-1">
@@ -213,7 +213,7 @@ function AdminProfile({ sidebarType = "System Admin" }) {
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                           adminProfile.isActive
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-[#c2edda]/30 text-black"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
@@ -246,8 +246,8 @@ function AdminProfile({ sidebarType = "System Admin" }) {
               )}
 
               {error && (
-                <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-yellow-800 text-sm">
+                <div className="mt-6 bg-[#68d388]/20 border border-[#68d388]/40 rounded-lg p-4">
+                  <p className="text-black text-sm">
                     <strong>Note:</strong> {error}
                   </p>
                 </div>

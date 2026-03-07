@@ -241,10 +241,10 @@ const PendingApprovals = () => {
             <span className="ml-3 text-gray-600">Loading pending schemes...</span>
           </div>
         ) : pendingSchemes.length === 0 ? (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center mt-6">
-            <MdCheckCircle className="mx-auto text-green-500 text-5xl mb-4" />
-            <h3 className="text-xl font-semibold text-green-800 mb-2">All Clear!</h3>
-            <p className="text-green-600">There are no pending scheme approvals at the moment.</p>
+          <div className="bg-[#c2edda]/20 border border-[#c2edda]/50 rounded-lg p-8 text-center mt-6">
+            <MdCheckCircle className="mx-auto text-[#f43a09] text-5xl mb-4" />
+            <h3 className="text-xl font-semibold text-black mb-2">All Clear!</h3>
+            <p className="text-[#f43a09]">There are no pending scheme approvals at the moment.</p>
           </div>
         ) : (
           <div className="mt-6 space-y-6">
@@ -280,7 +280,7 @@ const PendingApprovals = () => {
                             <h3 className="text-xl font-semibold text-gray-900 mb-2">
                               {scheme.scheme_name}
                             </h3>
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#68d388]/25 text-black border border-[#68d388]/50">
                               Pending Approval
                             </span>
                           </div>
@@ -364,7 +364,7 @@ const PendingApprovals = () => {
                           <button
                             onClick={() => handleApprove(schemeId)}
                             disabled={isProcessing}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#f43a09] text-white rounded-md hover:bg-[#ffb766] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                           >
                             {isProcessing ? (
                               <>

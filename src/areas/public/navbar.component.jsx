@@ -10,7 +10,7 @@ const Navbar = () => {
   const isAuthPage = pathname === "/login" || pathname === "/admin-login" || pathname === "/admin-register";
   const isHome = pathname === "/";
   return (
-    <header className="bg-white border-b border-gray-200 shadow-sm">
+    <header className="bg-[#c2edda]/20 border-b border-[#68d388]/30 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo + Brand (same as PublicHeader) */}
@@ -20,7 +20,7 @@ const Navbar = () => {
               alt="Sikkim Gov Logo"
               className="h-6 w-6 object-contain"
             />
-            <span className="text-xl font-bold text-green-600">
+            <span className="text-xl font-bold text-[#f43a09]">
               WelfareConnect
             </span>
           </Link>
@@ -29,17 +29,17 @@ const Navbar = () => {
           <nav className="hidden md:flex items-center gap-6">
             <Link
               to="/"
-              className={`font-medium transition-colors ${isHome ? "text-green-600 font-semibold" : "text-gray-700 hover:text-green-600"}`}
+              className={`font-medium transition-colors ${isHome ? "text-[#f43a09] font-semibold" : "text-black hover:text-[#f43a09]"}`}
             >
               Home
             </Link>
-            <a href="#" className="font-medium text-gray-700 hover:text-green-600 transition-colors">
+            <a href="#" className="font-medium text-black hover:text-[#f43a09] transition-colors">
               About
             </a>
-            <a href="#" className="font-medium text-gray-700 hover:text-green-600 transition-colors">
+            <a href="#" className="font-medium text-black hover:text-[#f43a09] transition-colors">
               Schemes
             </a>
-            <a href="#" className="font-medium text-gray-700 hover:text-green-600 transition-colors">
+            <a href="#" className="font-medium text-black hover:text-[#f43a09] transition-colors">
               Contact
             </a>
           </nav>
@@ -47,7 +47,7 @@ const Navbar = () => {
           {/* Right side: Login button or spacer to keep nav centered */}
           {!isAuthPage ? (
             <Link to="/login">
-              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center min-w-[7.5rem]">
+              <button className="bg-[#f43a09] hover:bg-[#ffb766] text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center min-w-[7.5rem]">
                 <RotatingText
                   texts={["Login", "Register"]}
                   mainClassName="overflow-hidden"

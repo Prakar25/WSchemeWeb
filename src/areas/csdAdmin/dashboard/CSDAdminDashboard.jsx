@@ -143,7 +143,7 @@ export default function CSDAdminDashboard() {
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+          <div className="mb-4 p-4 bg-[#68d388]/20 border border-[#68d388]/40 rounded-lg text-black text-sm">
             {error}
           </div>
         )}
@@ -162,14 +162,14 @@ export default function CSDAdminDashboard() {
                 className="p-6 bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <MdPersonAdd className="text-orange-600" size={28} />
+                  <div className="w-14 h-14 bg-[#68d388]/25 rounded-lg flex items-center justify-center">
+                    <MdPersonAdd className="text-[#f43a09]" size={28} />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-800">
                       Pending Registrations
                     </h2>
-                    <p className="text-3xl font-bold text-orange-600 mt-1">
+                    <p className="text-3xl font-bold text-[#f43a09] mt-1">
                       {pendingRegistrationsCount}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
@@ -189,14 +189,14 @@ export default function CSDAdminDashboard() {
                 className="p-6 bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <MdAssignment className="text-blue-600" size={28} />
+                  <div className="w-14 h-14 bg-[#c2edda]/30 rounded-lg flex items-center justify-center">
+                    <MdAssignment className="text-[#f43a09]" size={28} />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-800">
                       Pending Applications
                     </h2>
-                    <p className="text-3xl font-bold text-blue-600 mt-1">
+                    <p className="text-3xl font-bold text-[#f43a09] mt-1">
                       {pendingApplicationsCount}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">

@@ -170,7 +170,7 @@ export default function PublicLogin() {
   const formatTimer = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 
   return (
-    <div className="flex justify-center items-center min-h-screen px-4 py-8 bg-gradient-to-br from-slate-50 via-orange-50/30 to-slate-50">
+    <div className="flex justify-center items-center min-h-screen px-4 py-8 bg-gradient-to-br from-[#ffb766]/30 via-[#c2edda]/20 to-[#ffb766]/30">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -179,15 +179,15 @@ export default function PublicLogin() {
       >
         {/* Step indicator */}
         <div className="flex justify-center gap-2 mb-6">
-          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${!otpSent ? "bg-orange-600 text-white" : "bg-orange-100 text-orange-600"}`}>1</span>
-          <span className={`w-8 h-0.5 self-center rounded ${otpSent ? "bg-orange-300" : "bg-slate-200"}`} />
-          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${otpSent ? "bg-orange-600 text-white" : "bg-slate-200 text-slate-500"}`}>2</span>
+          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${!otpSent ? "bg-[#f43a09] text-white" : "bg-[#ffb766] text-[#68d388]"}`}>1</span>
+          <span className={`w-8 h-0.5 self-center rounded ${otpSent ? "bg-[#ffb766]" : "bg-slate-200"}`} />
+          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${otpSent ? "bg-[#f43a09] text-white" : "bg-slate-200 text-black"}`}>2</span>
         </div>
 
-        <h1 className="text-center text-2xl font-bold text-slate-800">
+        <h1 className="text-center text-2xl font-bold text-black">
           {isRegistering ? "Create Account" : "Welcome Back"}
         </h1>
-        <p className="text-center text-slate-500 text-sm mt-1 mb-8">
+        <p className="text-center text-black text-sm mt-1 mb-8">
           {!otpSent
             ? isRegistering
               ? "Enter your mobile number to get started"
@@ -221,21 +221,21 @@ export default function PublicLogin() {
                 clearError={clearErrors}
                 autoComplete="tel"
                 type="tel"
-                classes="rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-400 transition-all w-full"
+                classes="rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09] transition-all w-full"
                 onChangeInput={null}
                 setValue={setValue}
               />
-              <p className="mt-1 text-xs text-slate-400">10-digit Indian mobile number</p>
+              <p className="mt-1 text-xs text-black">10-digit Indian mobile number</p>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="mt-6 w-full bg-orange-600 text-white font-medium rounded-lg py-3 hover:bg-orange-700 active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                className="mt-6 w-full bg-[#f43a09] text-white font-medium rounded-lg py-3 hover:bg-[#ffb766] active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
               >
                 {isSubmitting ? "Sending OTP..." : "Send OTP"}
               </button>
             </form>
             <hr className="my-6 border-slate-100" />
-            <p className="text-center text-sm text-slate-500">
+            <p className="text-center text-sm text-black">
               {!isRegistering ? (
                 <>
                   Don&apos;t have an account?{" "}
@@ -249,7 +249,7 @@ export default function PublicLogin() {
                       setMobileNumber("");
                       setOtpTimer(0);
                     }}
-                    className="text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2"
+                    className="text-[#f43a09] hover:text-[#68d388] font-medium underline underline-offset-2"
                   >
                     Register
                   </button>
@@ -267,7 +267,7 @@ export default function PublicLogin() {
                       setMobileNumber("");
                       setOtpTimer(0);
                     }}
-                    className="text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2"
+                    className="text-[#f43a09] hover:text-[#68d388] font-medium underline underline-offset-2"
                   >
                     Login
                   </button>
@@ -277,19 +277,19 @@ export default function PublicLogin() {
           </>
         ) : (
           <>
-            <div className="mb-5 p-3 rounded-lg bg-green-50 border border-green-100">
-              <p className="text-sm text-green-800 text-center">
+            <div className="mb-5 p-3 rounded-lg bg-[#c2edda]/20 border border-[#c2edda]/50">
+              <p className="text-sm text-black text-center">
                 ✓ OTP sent to <span className="font-semibold">{mobileNumber ? `******${mobileNumber.slice(-4)}` : "your mobile"}</span>
               </p>
               {otpTimer > 0 && (
-                <p className="text-xs text-green-600 text-center mt-1">
+                <p className="text-xs text-[#f43a09] text-center mt-1">
                   Expires in <span className="font-mono font-semibold">{formatTimer(otpTimer)}</span>
                 </p>
               )}
             </div>
             {otpFromServer && (
-              <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
-                <p className="text-xs text-yellow-800 text-center"><strong>Dev Mode:</strong> OTP is {otpFromServer}</p>
+              <div className="mb-3 p-2 bg-[#68d388]/20 border border-[#68d388]/40 rounded-md">
+                <p className="text-xs text-black text-center"><strong>Dev Mode:</strong> OTP is {otpFromServer}</p>
               </div>
             )}
 
@@ -306,7 +306,7 @@ export default function PublicLogin() {
                     setError={setError}
                     clearError={clearErrors}
                     type="text"
-                    classes="mb-3 rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-orange-500 w-full"
+                    classes="mb-3 rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#f43a09] w-full"
                     onChangeInput={null}
                     setValue={setValue}
                   />
@@ -321,7 +321,7 @@ export default function PublicLogin() {
                     setError={setError}
                     clearError={clearErrors}
                     type="email"
-                    classes="mb-3 rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-orange-500 w-full"
+                    classes="mb-3 rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#f43a09] w-full"
                     onChangeInput={null}
                     setValue={setValue}
                   />
@@ -338,14 +338,14 @@ export default function PublicLogin() {
                 setError={setError}
                 clearError={clearErrors}
                 type="text"
-                classes="rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-orange-500 w-full"
+                classes="rounded-lg px-4 py-3 text-base border-slate-200 focus:ring-2 focus:ring-[#f43a09] w-full"
                 onChangeInput={null}
                 setValue={setValue}
               />
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="mt-4 w-full bg-orange-600 text-white font-medium rounded-lg py-3 hover:bg-orange-700 active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                className="mt-4 w-full bg-[#f43a09] text-white font-medium rounded-lg py-3 hover:bg-[#ffb766] active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Verifying..." : isRegistering ? "Register" : "Login"}
               </button>
@@ -353,7 +353,7 @@ export default function PublicLogin() {
                 {otpTimer > 0 ? (
                   <p className="text-xs text-gray-500">Resend in {formatTimer(otpTimer)}</p>
                 ) : (
-                  <button type="button" onClick={handleResendOtp} disabled={isResendingOtp} className="text-sm text-orange-600 hover:text-orange-700 font-medium disabled:text-slate-400">
+                  <button type="button" onClick={handleResendOtp} disabled={isResendingOtp} className="text-sm text-[#f43a09] hover:text-[#68d388] font-medium disabled:text-black">
                     {isResendingOtp ? "Resending..." : "Resend OTP"}
                   </button>
                 )}
@@ -361,13 +361,13 @@ export default function PublicLogin() {
               <button
                 type="button"
                 onClick={() => { setOtpSent(false); reset(); setOtpTimer(0); }}
-                className="mt-3 w-full text-sm text-slate-500 hover:text-slate-700 py-2"
+                className="mt-3 w-full text-sm text-black hover:text-black py-2"
               >
                 ← Change Mobile Number
               </button>
             </form>
             <hr className="my-6 border-slate-100" />
-            <p className="text-center text-sm text-slate-500">
+            <p className="text-center text-sm text-black">
               {isRegistering ? (
                 <>
                   Already have an account?{" "}
@@ -381,7 +381,7 @@ export default function PublicLogin() {
                       setMobileNumber("");
                       setOtpTimer(0);
                     }}
-                    className="text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2"
+                    className="text-[#f43a09] hover:text-[#68d388] font-medium underline underline-offset-2"
                   >
                     Login
                   </button>
@@ -399,7 +399,7 @@ export default function PublicLogin() {
                       setMobileNumber("");
                       setOtpTimer(0);
                     }}
-                    className="text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2"
+                    className="text-[#f43a09] hover:text-[#68d388] font-medium underline underline-offset-2"
                   >
                     Register
                   </button>

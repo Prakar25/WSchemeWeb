@@ -249,14 +249,14 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                   type="file"
                   accept=".xls,.xlsx,.csv"
                   onChange={handleFileChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
                   disabled={loading}
                 />
                 <p className="mt-2 text-sm text-gray-500">
                   Supported formats: .xls, .xlsx, .csv (Max size: 10MB)
                 </p>
                 {selectedFile && (
-                  <p className="mt-1 text-sm text-green-600 font-medium">
+                  <p className="mt-1 text-sm text-[#f43a09] font-medium">
                     Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                   </p>
                 )}
@@ -266,7 +266,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
               <button
                 onClick={handleUpload}
                 disabled={loading || !selectedFile || !schemeId}
-                className="w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
+                className="w-full bg-[#f43a09] text-white py-3 px-6 rounded-md hover:bg-[#ffb766] disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -284,14 +284,14 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
             <div className="space-y-6">
               {/* Statistics */}
               <div className="grid grid-cols-5 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <div className="text-2xl font-bold text-blue-600">
+                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#f43a09]/30">
+                  <div className="text-2xl font-bold text-[#f43a09]">
                     {previewData.total_rows || 0}
                   </div>
                   <div className="text-sm text-gray-600">Total Rows</div>
                 </div>
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <div className="text-2xl font-bold text-green-600">
+                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#c2edda]/50">
+                  <div className="text-2xl font-bold text-[#f43a09]">
                     {previewData.valid_rows || 0}
                   </div>
                   <div className="text-sm text-gray-600">Valid Rows</div>
@@ -302,14 +302,14 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                   </div>
                   <div className="text-sm text-gray-600">Error Rows</div>
                 </div>
-                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                  <div className="text-2xl font-bold text-orange-600">
+                <div className="bg-[#68d388]/20 p-4 rounded-lg border border-[#68d388]/40">
+                  <div className="text-2xl font-bold text-[#68d388]">
                     {previewData.redundancy_rows || previewData.redundancies?.length || 0}
                   </div>
                   <div className="text-sm text-gray-600">Redundancy Rows</div>
                 </div>
-                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                  <div className="text-2xl font-bold text-yellow-600">
+                <div className="bg-[#68d388]/20 p-4 rounded-lg border border-[#68d388]/40">
+                  <div className="text-2xl font-bold text-black">
                     {previewData.total_rows > 0
                       ? ((previewData.valid_rows / previewData.total_rows) * 100).toFixed(1)
                       : 0}
@@ -395,15 +395,15 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                                   </td>
                                   <td className="px-4 py-3 text-sm">
                                     {item.hasExistingApplication ? (
-                                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                                      <span className="px-2 py-1 bg-[#68d388]/25 text-black rounded-full text-xs font-medium">
                                         Existing Application
                                       </span>
                                     ) : item.hasExistingUser ? (
-                                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                      <span className="px-2 py-1 bg-[#c2edda]/30 text-black rounded-full text-xs font-medium">
                                         Existing User
                                       </span>
                                     ) : (
-                                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                      <span className="px-2 py-1 bg-[#c2edda]/30 text-black rounded-full text-xs font-medium">
                                         New User
                                       </span>
                                     )}
@@ -418,20 +418,20 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                   );
                 } else {
                   return (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-yellow-800 text-sm">
+                    <div className="bg-[#68d388]/20 border border-[#68d388]/40 rounded-lg p-4">
+                      <p className="text-black text-sm">
                         No preview data available. Valid rows: {previewData.valid_rows || 0}
                       </p>
-                      <p className="text-yellow-600 text-xs mt-2">
+                      <p className="text-black text-xs mt-2">
                         Debug: preview_data = {JSON.stringify(previewData.preview_data)}, 
                         previewData = {JSON.stringify(previewData.previewData)}, 
                         data = {JSON.stringify(previewData.data)}
                       </p>
                       <details className="mt-2">
-                        <summary className="text-yellow-700 cursor-pointer text-xs font-medium">
+                        <summary className="text-black cursor-pointer text-xs font-medium">
                           Click to see full API response structure
                         </summary>
-                        <pre className="mt-2 text-xs bg-yellow-100 p-2 rounded overflow-auto max-h-40">
+                        <pre className="mt-2 text-xs bg-[#68d388]/25 p-2 rounded overflow-auto max-h-40">
                           {JSON.stringify(previewData, null, 2)}
                         </pre>
                       </details>
@@ -454,9 +454,9 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                 if (redundancies.length > 0) {
                   return (
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 text-orange-600 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold mb-4 text-[#68d388] flex items-center gap-2">
                         <svg
-                          className="h-5 w-5 text-orange-500"
+                          className="h-5 w-5 text-[#68d388]"
                           viewBox="0 0 20 20"
                           fill="currentColor"
                         >
@@ -468,30 +468,30 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                         </svg>
                         Redundancies ({redundancyCount} total, showing {redundancies.length})
                       </h3>
-                  <div className="overflow-x-auto border border-orange-200 rounded-lg bg-orange-50">
+                  <div className="overflow-x-auto border border-[#68d388]/40 rounded-lg bg-[#68d388]/20">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-orange-100">
+                      <thead className="bg-[#68d388]/25">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-orange-700 uppercase tracking-wider">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                             Row
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-orange-700 uppercase tracking-wider">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                             Aadhaar
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-orange-700 uppercase tracking-wider">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                             Full Name
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-orange-700 uppercase tracking-wider">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                             Type
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-orange-700 uppercase tracking-wider">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                             Message
                           </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {redundancies.map((redundancy, index) => (
-                          <tr key={index} className="hover:bg-orange-50">
+                          <tr key={index} className="hover:bg-[#68d388]/20">
                             <td className="px-4 py-3 text-sm text-gray-900 font-medium">
                               {redundancy.row}
                             </td>
@@ -505,10 +505,10 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                               <div className="flex flex-col gap-1">
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                   redundancy.type === "duplicate_in_file"
-                                    ? "bg-orange-100 text-orange-800"
+                                    ? "bg-[#68d388]/25 text-black"
                                     : redundancy.type === "excluded_scheme_conflict"
                                     ? "bg-red-100 text-red-800"
-                                    : "bg-yellow-100 text-yellow-800"
+                                    : "bg-[#68d388]/25 text-black"
                                 }`}>
                                   {redundancy.type === "duplicate_in_file"
                                     ? "Duplicate in File"
@@ -525,7 +525,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-orange-700">
+                            <td className="px-4 py-3 text-sm text-black">
                               {redundancy.error || redundancy.message || "Duplicate entry"}
                             </td>
                           </tr>
@@ -534,7 +534,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                     </table>
                   </div>
                   {previewData.redundancy_rows && previewData.redundancy_rows > redundancies.length && (
-                    <p className="mt-2 text-sm text-orange-600 italic">
+                    <p className="mt-2 text-sm text-[#68d388] italic">
                       Note: Showing {redundancies.length} of {previewData.redundancy_rows} redundancies. Some may be duplicates within the file.
                     </p>
                   )}
@@ -612,7 +612,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                 <button
                   onClick={handleConfirm}
                   disabled={loading || (previewData.valid_rows || 0) === 0}
-                  className="flex-1 bg-green-600 text-white py-3 px-6 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
+                  className="flex-1 bg-[#f43a09] text-white py-3 px-6 rounded-md hover:bg-[#ffb766] disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -630,8 +630,8 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
           {phase === "success" && saveResults && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="text-6xl text-green-500 mb-4">✓</div>
-                <h3 className="text-2xl font-bold text-green-600 mb-2">
+                <div className="text-6xl text-[#f43a09] mb-4">✓</div>
+                <h3 className="text-2xl font-bold text-[#f43a09] mb-2">
                   Upload Completed Successfully!
                 </h3>
                 <p className="text-gray-600">
@@ -641,36 +641,36 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
 
               {/* Results Statistics */}
               <div className="grid grid-cols-6 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <div className="text-2xl font-bold text-blue-600">{saveResults.total || 0}</div>
+                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#f43a09]/30">
+                  <div className="text-2xl font-bold text-[#f43a09]">{saveResults.total || 0}</div>
                   <div className="text-sm text-gray-600">Total</div>
                 </div>
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <div className="text-2xl font-bold text-green-600">
+                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#c2edda]/50">
+                  <div className="text-2xl font-bold text-[#f43a09]">
                     {saveResults.success || 0}
                   </div>
                   <div className="text-sm text-gray-600">Success</div>
                 </div>
-                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                  <div className="text-2xl font-bold text-yellow-600">
+                <div className="bg-[#68d388]/20 p-4 rounded-lg border border-[#68d388]/40">
+                  <div className="text-2xl font-bold text-black">
                     {saveResults.skipped || 0}
                   </div>
                   <div className="text-sm text-gray-600">Skipped</div>
                 </div>
-                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                  <div className="text-2xl font-bold text-orange-600">
+                <div className="bg-[#68d388]/20 p-4 rounded-lg border border-[#68d388]/40">
+                  <div className="text-2xl font-bold text-[#68d388]">
                     {saveResults.redundancies?.length || 0}
                   </div>
                   <div className="text-sm text-gray-600">Redundancies</div>
                 </div>
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                  <div className="text-2xl font-bold text-purple-600">
+                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#c2edda]/50">
+                  <div className="text-2xl font-bold text-[#f43a09]">
                     {saveResults.created_users || 0}
                   </div>
                   <div className="text-sm text-gray-600">New Users</div>
                 </div>
-                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                  <div className="text-2xl font-bold text-indigo-600">
+                <div className="bg-[#c2edda]/20 p-4 rounded-lg border border-[#f43a09]/30">
+                  <div className="text-2xl font-bold text-[#f43a09]">
                     {saveResults.created_applications || 0}
                   </div>
                   <div className="text-sm text-gray-600">Applications</div>
@@ -679,11 +679,11 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
 
               {/* Redundancy Warnings */}
               {saveResults.redundancies && saveResults.redundancies.length > 0 && (
-                <div className="bg-orange-100 border-l-4 border-orange-500 p-4 rounded">
+                <div className="bg-[#68d388]/25 border-l-4 border-[#68d388] p-4 rounded">
                   <div className="flex">
                     <div className="flex-shrink-0">
                       <svg
-                        className="h-5 w-5 text-orange-400"
+                        className="h-5 w-5 text-[#68d388]"
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >
@@ -695,10 +695,10 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                       </svg>
                     </div>
                     <div className="ml-3 flex-1">
-                      <h3 className="text-sm font-medium text-orange-800">
+                      <h3 className="text-sm font-medium text-black">
                         Redundancy Warning
                       </h3>
-                      <div className="mt-2 text-sm text-orange-700">
+                      <div className="mt-2 text-sm text-black">
                         <p className="mb-2">
                           {saveResults.redundancies.length} row(s) were skipped due to redundancies:
                         </p>
@@ -720,7 +720,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                             </li>
                           ))}
                           {saveResults.redundancies.length > 10 && (
-                            <li className="text-orange-600 italic">
+                            <li className="text-[#68d388] italic">
                               ... and {saveResults.redundancies.length - 10} more redundancies
                             </li>
                           )}
@@ -733,11 +733,11 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
 
               {/* Redundancy Warnings */}
               {saveResults.redundancies && saveResults.redundancies.length > 0 && (
-                <div className="bg-orange-100 border-l-4 border-orange-500 p-4 rounded">
+                <div className="bg-[#68d388]/25 border-l-4 border-[#68d388] p-4 rounded">
                   <div className="flex">
                     <div className="flex-shrink-0">
                       <svg
-                        className="h-5 w-5 text-orange-400"
+                        className="h-5 w-5 text-[#68d388]"
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >
@@ -749,10 +749,10 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                       </svg>
                     </div>
                     <div className="ml-3 flex-1">
-                      <h3 className="text-sm font-medium text-orange-800">
+                      <h3 className="text-sm font-medium text-black">
                         Redundancy Warning
                       </h3>
-                      <div className="mt-2 text-sm text-orange-700">
+                      <div className="mt-2 text-sm text-black">
                         <p className="mb-2">
                           {saveResults.redundancies.length} row(s) were skipped due to redundancies:
                         </p>
@@ -774,7 +774,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
                             </li>
                           ))}
                           {saveResults.redundancies.length > 10 && (
-                            <li className="text-orange-600 italic">
+                            <li className="text-[#68d388] italic">
                               ... and {saveResults.redundancies.length - 10} more redundancies
                             </li>
                           )}
@@ -809,7 +809,7 @@ const BulkUploadModal = ({ isOpen, onClose, schemeId, schemeName, adminDepartmen
               {/* Close Button */}
               <button
                 onClick={handleClose}
-                className="w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 font-medium transition-colors"
+                className="w-full bg-[#f43a09] text-white py-3 px-6 rounded-md hover:bg-[#ffb766] font-medium transition-colors"
               >
                 Close
               </button>

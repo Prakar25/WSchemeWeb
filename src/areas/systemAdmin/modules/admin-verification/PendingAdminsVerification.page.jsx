@@ -219,7 +219,7 @@ export default function PendingAdminsVerification() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MdPersonAdd className="text-2xl text-orange-600" />
+            <MdPersonAdd className="text-2xl text-[#f43a09]" />
             <h1 className="text-2xl font-bold text-gray-900">Pending Admin Verifications</h1>
           </div>
         </div>
@@ -283,7 +283,7 @@ export default function PendingAdminsVerification() {
                               type="button"
                               onClick={() => handleApprove(id)}
                               disabled={isProcessing}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#f43a09] text-white rounded-md hover:bg-[#ffb766] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                             >
                               {isProcessing ? <Spinner /> : <FaCheck />}
                               Approve

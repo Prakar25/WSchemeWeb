@@ -65,7 +65,7 @@ function Header({ sidebarOpen, setSidebarOpen }) {
   };
 
   return (
-    <header className="sticky top-0 bg-white border-b border-blue-900 z-20">
+    <header className="sticky top-0 bg-white border-b border-[#f43a09]/30 z-20">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-2">
           {/* Header: Left side */}
@@ -114,7 +114,7 @@ function Header({ sidebarOpen, setSidebarOpen }) {
                 {adminProfile.roleLevel !== undefined && adminProfile.roleLevel !== null && adminProfile.roleLevel !== 0 && (
                   <>
                     <span className="text-gray-400">•</span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-[#c2edda]/30 text-black">
                       Level {adminProfile.roleLevel}
                     </span>
                   </>
@@ -123,7 +123,7 @@ function Header({ sidebarOpen, setSidebarOpen }) {
             )}
             <p
               onClick={() => signOut()}
-              className="inline-flex items-center gap-2 border border-gray-200 py-1.5 px-4 bg-white text-primary rounded-md text-sm font-medium hover:bg-blue-800 hover:text-white cursor-pointer transition-all duration-300 ease-in-out"
+              className="inline-flex items-center gap-2 border border-gray-200 py-1.5 px-4 bg-white text-primary rounded-md text-sm font-medium hover:bg-[#ffb766] hover:text-white cursor-pointer transition-all duration-300 ease-in-out"
             >
               <FiLogOut size={16} />
               Logout

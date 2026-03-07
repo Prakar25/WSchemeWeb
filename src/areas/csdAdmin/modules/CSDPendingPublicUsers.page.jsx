@@ -211,7 +211,7 @@ export default function CSDPendingPublicUsers() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MdPersonAdd className="text-2xl text-orange-600" />
+            <MdPersonAdd className="text-2xl text-[#f43a09]" />
             <h1 className="text-2xl font-bold text-gray-900">Pending Registrations</h1>
           </div>
         </div>
@@ -279,7 +279,7 @@ export default function CSDPendingPublicUsers() {
                           {user.email || "—"}
                         </td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-medium">
+                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-[#c2edda]/30 text-black text-xs font-medium">
                             {getKycDisplay(user.kycLevel || user.kyc_level)}
                           </span>
                         </td>
@@ -293,7 +293,7 @@ export default function CSDPendingPublicUsers() {
                             <button
                               onClick={() => handleApprove(id)}
                               disabled={isProcessing}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#f43a09] text-white text-sm font-medium hover:bg-[#ffb766] disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                               {isProcessing ? (
                                 <Spinner />
@@ -349,7 +349,7 @@ export default function CSDPendingPublicUsers() {
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
             placeholder="Rejection reason (optional)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
             rows={3}
           />
           <div className="flex justify-end gap-3 pt-2">

@@ -130,7 +130,7 @@ export default function PublicProfile() {
           <button
             type="button"
             onClick={() => navigate("/user/complete-profile")}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#f43a09] text-white rounded-lg hover:bg-[#ffb766] font-medium transition-colors"
           >
             <FiEdit2 size={18} />
             Edit profile
@@ -181,9 +181,9 @@ export default function PublicProfile() {
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                       user.kycLevel === "FULL"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-[#c2edda]/30 text-black"
                         : user.kycLevel === "PARTIAL"
-                          ? "bg-yellow-100 text-yellow-700"
+                          ? "bg-[#68d388]/25 text-black"
                           : "bg-gray-100 text-gray-700"
                     }`}
                   >
@@ -246,7 +246,7 @@ export default function PublicProfile() {
                         href={displayMedia(doc.filePath)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        className="text-[#f43a09] hover:text-[#ffb766] text-sm font-medium"
                       >
                         View
                       </a>

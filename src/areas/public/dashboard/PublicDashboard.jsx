@@ -278,19 +278,19 @@ export default function PublicDashboard() {
   // Get status config
   const statusConfig = {
     Approved: {
-      bg: "bg-green-100",
-      text: "text-green-700",
-      icon: <FaCheckCircle className="text-green-600" />,
+      bg: "bg-[#c2edda]/30",
+      text: "text-black",
+      icon: <FaCheckCircle className="text-[#f43a09]" />,
     },
     "Under Review": {
-      bg: "bg-yellow-100",
-      text: "text-yellow-700",
-      icon: <FaTrophy className="text-yellow-600" />,
+      bg: "bg-[#68d388]/25",
+      text: "text-black",
+      icon: <FaTrophy className="text-[#68d388]" />,
     },
     Applied: {
-      bg: "bg-blue-100",
-      text: "text-blue-700",
-      icon: <FaFileAlt className="text-blue-600" />,
+      bg: "bg-[#c2edda]/30",
+      text: "text-black",
+      icon: <FaFileAlt className="text-[#f43a09]" />,
     },
     Rejected: {
       bg: "bg-red-100",
@@ -316,7 +316,7 @@ export default function PublicDashboard() {
   // If a scheme is selected, show the detail view
   if (selectedScheme) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 flex flex-col">
+      <div className="min-h-screen bg-gradient-to-b from-[#68d388]/20 via-white to-[#c2edda]/20 flex flex-col">
         <PublicHeader />
         <ViewSchemeDetails
           scheme={selectedScheme}
@@ -328,20 +328,20 @@ export default function PublicDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-[#68d388]/20 via-white to-[#c2edda]/20 flex flex-col">
       <PublicHeader />
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero & Dashboard Title */}
         <div className="mb-8 text-center">
-          <p className="text-slate-500 text-sm font-medium font-montserrat tracking-wide uppercase mb-1">
+          <p className="text-black text-sm font-medium font-montserrat tracking-wide uppercase mb-1">
             Welcome to WelfareConnect
           </p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 font-montserrat">
+          <h1 className="text-3xl sm:text-4xl font-bold text-black font-montserrat">
             Welcome, {user?.fullName?.split(" ")[0] || "there"}!
           </h1>
-          <p className="text-slate-600 mt-1">
+          <p className="text-black mt-1">
             Here are schemes you can apply for and your application status.
           </p>
         </div>
@@ -351,14 +351,14 @@ export default function PublicDashboard() {
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 bg-amber-50/90 backdrop-blur border border-amber-200 p-4 rounded-xl shadow-sm"
+            className="mb-6 bg-[#c2edda]/20/90 backdrop-blur border border-[#f43a09]/30 p-4 rounded-xl shadow-sm"
             role="alert"
           >
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                <FiAlertCircle className="text-amber-600 text-xl" />
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#c2edda] flex items-center justify-center">
+                <FiAlertCircle className="text-[#f43a09] text-xl" />
               </div>
-              <p className="text-amber-800 text-sm font-medium pt-1.5">{user.accountStatusMessage}</p>
+              <p className="text-black text-sm font-medium pt-1.5">{user.accountStatusMessage}</p>
             </div>
           </motion.div>
         )}
@@ -368,23 +368,23 @@ export default function PublicDashboard() {
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 p-5 rounded-2xl shadow-sm"
+            className="mb-8 bg-gradient-to-r from-[#c2edda]/20 to-[#68d388]/20 border border-[#f43a09]/30 p-5 rounded-2xl shadow-sm"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-4 flex-1">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                  <FiAlertCircle className="text-amber-600 text-2xl" />
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#c2edda] flex items-center justify-center">
+                  <FiAlertCircle className="text-[#f43a09] text-2xl" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-amber-900 mb-1 font-montserrat">
+                  <h3 className="text-lg font-semibold text-black mb-1 font-montserrat">
                     Complete Your Profile
                   </h3>
-                  <p className="text-amber-800/90 text-sm mb-4">
+                  <p className="text-black/90 text-sm mb-4">
                     Your profile is incomplete. Complete it to apply for schemes and access all features.
                   </p>
                   <button
                     onClick={() => navigate("/user/complete-profile")}
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-all hover:shadow-md active:scale-[0.98]"
+                    className="bg-[#f43a09] hover:bg-[#ffb766] text-white font-semibold px-5 py-2.5 rounded-xl transition-all hover:shadow-md active:scale-[0.98]"
                   >
                     Complete Profile Now
                   </button>
@@ -392,7 +392,7 @@ export default function PublicDashboard() {
               </div>
               <button
                 onClick={() => setShowProfilePrompt(false)}
-                className="flex-shrink-0 text-amber-600 hover:text-amber-800 hover:bg-amber-100 rounded-lg p-2 transition-colors"
+                className="flex-shrink-0 text-[#f43a09] hover:text-black hover:bg-[#c2edda] rounded-lg p-2 transition-colors"
                 aria-label="Dismiss"
               >
                 <FiX size={20} />
@@ -420,31 +420,31 @@ export default function PublicDashboard() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 flex items-center justify-center text-white text-2xl font-bold font-montserrat">
+                    <div className="w-full h-full bg-gradient-to-br from-[#68d388] via-[#f43a09] to-[#c2edda] flex items-center justify-center text-white text-2xl font-bold font-montserrat">
                       {(user.fullName || "U").charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
-                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white" />
+                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#f43a09] border-2 border-white" />
               </div>
 
               {/* User Info */}
               <div className="flex-1">
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-montserrat">
+                <h2 className="text-xl sm:text-2xl font-bold text-black font-montserrat">
                   {user.fullName || "User Name"}
                 </h2>
-                <p className="text-slate-500 text-sm mt-1 font-medium">
+                <p className="text-black text-sm mt-1 font-medium">
                   Aadhaar: {maskAadhaar(user.aadhaarNumber)}
                 </p>
-                <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 bg-[#c2edda]/50 text-black rounded-xl text-sm font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-[#f43a09] animate-pulse" />
                   Eligible: {getEligibilityStatus(user)}
                 </span>
               </div>
 
               <button
                 onClick={() => navigate("/user/profile")}
-                className="hidden sm:flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors"
+                className="hidden sm:flex items-center gap-2 text-black hover:text-black font-medium text-sm transition-colors"
               >
                 View Profile
                 <span className="text-slate-400">→</span>
@@ -456,12 +456,12 @@ export default function PublicDashboard() {
         {/* Available Schemes Section */}
         <div className="mb-14">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-montserrat">
+            <h2 className="text-xl sm:text-2xl font-bold text-black font-montserrat">
               Available Schemes
             </h2>
             <button
               onClick={() => navigate("/user/schemes")}
-              className="text-emerald-600 hover:text-emerald-700 font-semibold text-sm flex items-center gap-1"
+              className="text-[#f43a09] hover:text-[#c2edda] font-semibold text-sm flex items-center gap-1"
             >
               View all schemes
               <span>→</span>
@@ -480,14 +480,14 @@ export default function PublicDashboard() {
                     placeholder="Search schemes by name or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+                    className="w-full border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09]/50 focus:border-[#f43a09] transition-all"
                   />
                 </div>
                 {/* Age Group Filter */}
                 <select
                   value={ageGroupFilter}
                   onChange={(e) => setAgeGroupFilter(e.target.value)}
-                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 bg-white min-w-[160px]"
+                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09]/50 focus:border-[#f43a09] bg-white min-w-[160px]"
                 >
                   {AGE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -499,7 +499,7 @@ export default function PublicDashboard() {
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 bg-white min-w-[160px]"
+                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09]/50 focus:border-[#f43a09] bg-white min-w-[160px]"
                 >
                 <option value="All">All Categories</option>
                 <option value="Pension">Pension</option>
@@ -529,7 +529,7 @@ export default function PublicDashboard() {
                   transition={{ duration: 0.35, delay: index * 0.08 }}
                   className={`group bg-white rounded-2xl shadow-md shadow-slate-200/50 border border-slate-100 overflow-hidden cursor-pointer transition-all duration-300 ${
                     isEligible
-                      ? "hover:shadow-xl hover:shadow-emerald-100/50 hover:-translate-y-1 hover:border-emerald-200/60"
+                      ? "hover:shadow-xl hover:shadow-[#68d388]/50 hover:-translate-y-1 hover:border-[#68d388]/60"
                       : "opacity-65 grayscale-[0.3] hover:opacity-75"
                   }`}
                   onClick={() => handleSchemeClick(scheme)}
@@ -556,8 +556,8 @@ export default function PublicDashboard() {
                       <span
                         className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
                           schemeType === "STATE"
-                            ? "bg-blue-50 text-blue-700"
-                            : "bg-orange-50 text-orange-700"
+                            ? "bg-[#c2edda]/20 text-black"
+                            : "bg-[#68d388]/20 text-black"
                         }`}
                       >
                         {schemeType}
@@ -569,12 +569,12 @@ export default function PublicDashboard() {
                       )}
                     </div>
 
-                    <h3 className="text-lg font-bold text-slate-900 mb-3 font-montserrat line-clamp-2 group-hover:text-emerald-700 transition-colors">
+                    <h3 className="text-lg font-bold text-black mb-3 font-montserrat line-clamp-2 group-hover:text-[#c2edda] transition-colors">
                       {scheme.scheme_name}
                     </h3>
 
                     <div className="mb-4 space-y-2">
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-black">
                         {scheme.scheme_eligibility
                           ? `Age ${scheme.scheme_eligibility.lower_age_limit || "N/A"}–${scheme.scheme_eligibility.upper_age_limit || "N/A"} yrs`
                           : "See details"}
@@ -582,7 +582,7 @@ export default function PublicDashboard() {
                       {!isEligible && eligibilityReason && (
                         <p className="text-xs text-red-600 italic">{eligibilityReason}</p>
                       )}
-                      <p className="text-sm text-slate-600 line-clamp-2">
+                      <p className="text-sm text-black line-clamp-2">
                         {Array.isArray(scheme.scheme_benefits) && scheme.scheme_benefits.length > 0
                           ? scheme.scheme_benefits[0]
                           : "Check scheme for benefits"}
@@ -597,7 +597,7 @@ export default function PublicDashboard() {
                       disabled={!isEligible}
                       className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${
                         isEligible
-                          ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-md active:scale-[0.98]"
+                          ? "bg-[#f43a09] hover:bg-[#68d388] text-white shadow-sm hover:shadow-md active:scale-[0.98]"
                           : "bg-slate-100 text-slate-400 cursor-not-allowed"
                       }`}
                     >
@@ -618,8 +618,8 @@ export default function PublicDashboard() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-200/60 flex items-center justify-center">
                 <FaSearch className="text-slate-400 text-2xl" />
               </div>
-              <p className="text-slate-600 font-medium">No schemes found</p>
-              <p className="text-slate-500 text-sm mt-1">Try adjusting your search or category filter.</p>
+              <p className="text-black font-medium">No schemes found</p>
+              <p className="text-black text-sm mt-1">Try adjusting your search or category filter.</p>
             </motion.div>
           )}
         </div>
@@ -627,12 +627,12 @@ export default function PublicDashboard() {
         {/* Application Status Tracker */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-montserrat">
+            <h2 className="text-xl sm:text-2xl font-bold text-black font-montserrat">
               Application Status
             </h2>
             <button
               onClick={() => navigate("/user/applications")}
-              className="text-emerald-600 hover:text-emerald-700 font-semibold text-sm flex items-center gap-1"
+              className="text-[#f43a09] hover:text-[#c2edda] font-semibold text-sm flex items-center gap-1"
             >
               View all applications
               <span>→</span>
@@ -644,16 +644,16 @@ export default function PublicDashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-100">
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-black uppercase tracking-wider">
                       Scheme
                     </th>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-black uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-5 py-4 text-left text-xs font-semibold text-black uppercase tracking-wider">
                       Date Applied
                     </th>
-                    <th className="px-5 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <th className="px-5 py-4 text-right text-xs font-semibold text-black uppercase tracking-wider">
                       Action
                     </th>
                   </tr>
@@ -667,12 +667,12 @@ export default function PublicDashboard() {
                             <FaFileAlt className="text-slate-400 text-xl" />
                           </div>
                           <div>
-                            <p className="text-slate-600 font-medium">No applications yet</p>
-                            <p className="text-slate-500 text-sm mt-0.5">Apply for schemes to track your status here.</p>
+                            <p className="text-black font-medium">No applications yet</p>
+                            <p className="text-black text-sm mt-0.5">Apply for schemes to track your status here.</p>
                           </div>
                           <button
                             onClick={() => navigate("/user/schemes")}
-                            className="text-emerald-600 hover:text-emerald-700 font-semibold text-sm"
+                            className="text-[#f43a09] hover:text-[#c2edda] font-semibold text-sm"
                           >
                             Browse schemes →
                           </button>
@@ -689,11 +689,11 @@ export default function PublicDashboard() {
                       return (
                         <tr key={app._id || app.applicationId || index} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-5 py-4">
-                            <div className="text-sm font-semibold text-slate-900">
+                            <div className="text-sm font-semibold text-black">
                               {app.schemeName || app.scheme_name || "N/A"}
                             </div>
                             {app.verification_stage_display && (
-                              <div className="text-xs text-slate-500 mt-0.5">
+                              <div className="text-xs text-black mt-0.5">
                                 {app.verification_stage_display}
                               </div>
                             )}
@@ -706,13 +706,13 @@ export default function PublicDashboard() {
                               {app.status}
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-sm text-slate-600">
+                          <td className="px-5 py-4 text-sm text-black">
                             {dateApplied}
                           </td>
                           <td className="px-5 py-4 text-right">
                             <button
                               onClick={() => navigate("/user/applications")}
-                              className="text-emerald-600 hover:text-emerald-700 font-semibold text-sm"
+                              className="text-[#f43a09] hover:text-[#c2edda] font-semibold text-sm"
                             >
                               View
                             </button>

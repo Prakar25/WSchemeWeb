@@ -257,14 +257,14 @@ export default function SysAdminDashboard() {
                 <SummaryCard
                   title="Approved"
                   value={formatNumber(statistics.approved)}
-                  bg="bg-green-500"
+                  bg="bg-[#c2edda]/200"
                   text="text-white"
                   index={1}
                 />
                 <SummaryCard
                   title="Pending"
                   value={formatNumber(statistics.pending)}
-                  bg="bg-orange-500"
+                  bg="bg-[#68d388]/200"
                   text="text-white"
                   index={2}
                 />
@@ -298,13 +298,13 @@ export default function SysAdminDashboard() {
                     placeholder="Search by name or scheme"
                     value={searchText}
                     onChange={handleSearchChange}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#f43a09] focus:border-[#f43a09]"
                   />
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 hover:shadow-md transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#f43a09] text-white rounded-md text-sm font-medium hover:bg-[#ffb766] hover:shadow-md transition-all duration-200"
                 >
                   <FaFilter size={14} />
                   Filter
@@ -329,7 +329,7 @@ export default function SysAdminDashboard() {
                       <tr>
                         <td colSpan="5" className="py-8 text-center">
                           <div className="flex justify-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f43a09]"></div>
                           </div>
                         </td>
                       </tr>
@@ -370,7 +370,7 @@ export default function SysAdminDashboard() {
               <div className="space-y-3">
                 {alertsLoading ? (
                   <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f43a09]"></div>
                   </div>
                 ) : alerts.length > 0 ? (
                   alerts.map((alert, index) => (
@@ -405,7 +405,7 @@ export default function SysAdminDashboard() {
                 title={
                   <div className="flex items-center gap-2">
                     {selectedAlert.type === "duplicate" ? (
-                      <FiAlertTriangle className="text-yellow-600" size={24} />
+                      <FiAlertTriangle className="text-[#68d388]" size={24} />
                     ) : (
                       <FaExclamationTriangle className="text-red-600" size={24} />
                     )}
@@ -486,19 +486,19 @@ function TableRow({ scheme, schemeId, total, approved, pending, rejected, index,
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2, delay: index * 0.05 }}
-      className="hover:bg-blue-50 transition-colors cursor-pointer border-b border-gray-100"
+      className="hover:bg-[#c2edda]/20 transition-colors cursor-pointer border-b border-gray-100"
       whileHover={{ backgroundColor: "rgb(239 246 255)" }}
       onClick={handleClick}
     >
       <td className="py-4 px-4 text-gray-800 font-medium">{scheme}</td>
       <td className="py-4 px-4 text-gray-700">{total}</td>
       <td className="py-4 px-4 text-gray-700">
-        <span className="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 text-xs font-medium">
+        <span className="inline-flex items-center px-2 py-1 rounded-md bg-[#c2edda]/30 text-black text-xs font-medium">
           {approved}
         </span>
       </td>
       <td className="py-4 px-4 text-gray-700">
-        <span className="inline-flex items-center px-2 py-1 rounded-md bg-orange-100 text-orange-800 text-xs font-medium">
+        <span className="inline-flex items-center px-2 py-1 rounded-md bg-[#68d388]/25 text-black text-xs font-medium">
           {pending}
         </span>
       </td>
@@ -513,9 +513,9 @@ function TableRow({ scheme, schemeId, total, approved, pending, rejected, index,
 
 function AlertCard({ alert, index, onCardClick }) {
   const isDuplicate = alert.type === "duplicate";
-  const bgColor = isDuplicate ? "bg-yellow-50" : "bg-red-50";
-  const borderColor = isDuplicate ? "border-yellow-200" : "border-red-200";
-  const textColor = isDuplicate ? "text-yellow-700" : "text-red-600";
+  const bgColor = isDuplicate ? "bg-[#68d388]/20" : "bg-red-50";
+  const borderColor = isDuplicate ? "border-[#68d388]/40" : "border-red-200";
+  const textColor = isDuplicate ? "text-black" : "text-red-600";
   const title = alert.title || (isDuplicate ? "Duplicate Application" : "Ineligible Claim");
   const description = alert.description || "";
   const applicantName = alert.applicantName || "";
@@ -563,8 +563,8 @@ function AlertCard({ alert, index, onCardClick }) {
           {description || `${title} detected for applicant: ${applicantName}.`}{" "}
           <span
             className={`underline font-medium ${
-              isDuplicate ? "text-yellow-800" : "text-red-800"
-            } group-hover:${isDuplicate ? "text-yellow-900" : "text-red-900"} transition-colors`}
+              isDuplicate ? "text-black" : "text-red-800"
+            } group-hover:${isDuplicate ? "text-black" : "text-red-900"} transition-colors`}
           >
             {isDuplicate ? "Review" : "Investigate"}
           </span>
@@ -602,7 +602,7 @@ function AlertDetailsModal({ alert }) {
       <div className="flex items-center gap-2 mb-4">
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
           isDuplicate 
-            ? "bg-yellow-100 text-yellow-800" 
+            ? "bg-[#68d388]/25 text-black" 
             : "bg-red-100 text-red-800"
         }`}>
           {isDuplicate ? "Duplicate Detection" : "Fraud/Ineligibility Alert"}
@@ -612,8 +612,8 @@ function AlertDetailsModal({ alert }) {
             alert.severity === "high" 
               ? "bg-red-200 text-red-900" 
               : alert.severity === "medium"
-              ? "bg-orange-200 text-orange-900"
-              : "bg-yellow-200 text-yellow-900"
+              ? "bg-[#68d388]/25 text-black"
+              : "bg-[#68d388]/25 text-black"
           }`}>
             {alert.severity.toUpperCase()} Priority
           </span>
@@ -690,9 +690,9 @@ function AlertDetailsModal({ alert }) {
           
           {/* Show all alert data for debugging if no standard fields found */}
           {!alert.applicantName && !alert.applicant && !alert.application && (
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-              <p className="font-medium text-yellow-800 mb-1">Debug: Available alert fields:</p>
-              <pre className="text-yellow-700 overflow-auto max-h-32">
+            <div className="mt-2 p-2 bg-[#68d388]/20 border border-[#68d388]/40 rounded text-xs">
+              <p className="font-medium text-black mb-1">Debug: Available alert fields:</p>
+              <pre className="text-black overflow-auto max-h-32">
                 {JSON.stringify(alert, null, 2)}
               </pre>
             </div>
@@ -713,9 +713,9 @@ function AlertDetailsModal({ alert }) {
 
       {/* Additional Details */}
       {alert.details && (
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-          <h3 className="font-semibold text-blue-800 mb-2">Additional Details</h3>
-          <div className="text-sm text-blue-700 space-y-2">
+        <div className="bg-[#c2edda]/20 border border-[#f43a09]/30 p-4 rounded-lg">
+          <h3 className="font-semibold text-black mb-2">Additional Details</h3>
+          <div className="text-sm text-black space-y-2">
             {typeof alert.details === "string" ? (
               <p className="whitespace-pre-wrap">{alert.details}</p>
             ) : (
@@ -733,9 +733,9 @@ function AlertDetailsModal({ alert }) {
 
       {/* Evidence or Evidence Fields */}
       {alert.evidence && (
-        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-          <h3 className="font-semibold text-yellow-800 mb-2">Evidence</h3>
-          <div className="text-sm text-yellow-700">
+        <div className="bg-[#68d388]/20 border border-[#68d388]/40 p-4 rounded-lg">
+          <h3 className="font-semibold text-black mb-2">Evidence</h3>
+          <div className="text-sm text-black">
             {typeof alert.evidence === "string" ? (
               <p className="whitespace-pre-wrap">{alert.evidence}</p>
             ) : (
@@ -764,7 +764,7 @@ function AlertDetailsModal({ alert }) {
         {applicationId && (
           <button
             onClick={handleViewApplication}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+            className="flex-1 px-4 py-2 bg-[#f43a09] text-white rounded-md hover:bg-[#ffb766] transition-colors font-medium"
           >
             View Full Application
           </button>

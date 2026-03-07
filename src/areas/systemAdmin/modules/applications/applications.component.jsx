@@ -637,8 +637,8 @@ const Applications = () => {
     
     if (statusLower === "approved") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          <FaCheckCircle className="text-green-600" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#c2edda]/30 text-black">
+          <FaCheckCircle className="text-[#f43a09]" />
           Approved
         </span>
       );
@@ -651,8 +651,8 @@ const Applications = () => {
       );
     } else {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-          <FaClock className="text-yellow-600" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#68d388]/25 text-black">
+          <FaClock className="text-[#68d388]" />
           Pending
         </span>
       );
@@ -863,7 +863,7 @@ const Applications = () => {
                         {getStatusBadge(app.status)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#c2edda]/30 text-black">
                           {getStageDisplayName(app)}
                         </span>
                       </td>
@@ -882,7 +882,7 @@ const Applications = () => {
                             console.log("View button clicked for app:", app);
                             handleViewApplication(app);
                           }}
-                          className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+                          className="text-[#f43a09] hover:text-[#ffb766] font-medium flex items-center gap-1 cursor-pointer hover:underline"
                         >
                           <FaEye /> View Details
                         </button>
@@ -997,7 +997,7 @@ const Applications = () => {
                             <div>
                               <label className="text-sm font-medium text-gray-500">Verification Stage</label>
                               <div className="mt-1">
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#c2edda]/30 text-black">
                                   {getStageDisplayName(app)}
                                 </span>
                                 {app.verification_level !== undefined && (
@@ -1021,14 +1021,14 @@ const Applications = () => {
                                         <div key={index} className="flex items-center gap-1">
                                           <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${
                                             isCompleted 
-                                              ? "bg-green-500 text-white" 
+                                              ? "bg-[#c2edda]/200 text-white" 
                                               : isCurrent 
-                                              ? "bg-blue-500 text-white ring-2 ring-blue-300" 
+                                              ? "bg-[#c2edda]/200 text-white ring-2 ring-blue-300" 
                                               : "bg-gray-200 text-gray-600"
                                           }`}>
                                             {isCompleted ? "✓" : index + 1}
                                           </div>
-                                          <span className={`text-xs ${isCurrent ? "font-semibold text-blue-600" : isCompleted ? "text-green-600" : "text-gray-500"}`}>
+                                          <span className={`text-xs ${isCurrent ? "font-semibold text-[#f43a09]" : isCompleted ? "text-[#f43a09]" : "text-gray-500"}`}>
                                             {getRoleLevelName(level)}
                                           </span>
                                           {index < app.authorization_levels.length - 1 && (
@@ -1311,7 +1311,7 @@ const Applications = () => {
                                         href={`${import.meta.env.VITE_ENDPOINT_URL || "http://localhost:3000"}/${doc.file_url}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-600 hover:text-blue-800 text-sm mt-1 inline-block"
+                                        className="text-[#f43a09] hover:text-[#ffb766] text-sm mt-1 inline-block"
                                       >
                                         View Document
                                       </a>
@@ -1328,7 +1328,7 @@ const Applications = () => {
                               <h3 className="text-lg font-semibold text-gray-900 mb-3">Verification History</h3>
                               <div className="bg-gray-50 rounded-lg p-4 space-y-4">
                                 {app.verification_history.map((history, index) => (
-                                  <div key={index} className="border-l-4 border-blue-500 pl-4 pb-4 last:pb-0">
+                                  <div key={index} className="border-l-4 border-[#f43a09] pl-4 pb-4 last:pb-0">
                                     <div className="flex items-start justify-between">
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
@@ -1340,10 +1340,10 @@ const Applications = () => {
                                         <div className="flex items-center gap-2 mb-2">
                                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                             history.action === "Verified" || history.action === "Forwarded" 
-                                              ? "bg-green-100 text-green-800"
+                                              ? "bg-[#c2edda]/30 text-black"
                                               : history.action === "Rejected"
                                               ? "bg-red-100 text-red-800"
-                                              : "bg-yellow-100 text-yellow-800"
+                                              : "bg-[#68d388]/25 text-black"
                                           }`}>
                                             {history.action}
                                           </span>
@@ -1373,12 +1373,12 @@ const Applications = () => {
                               <div className="space-y-4">
                                 {/* Stage Requirements Info */}
                                 {stageRequirements && (
-                                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                  <div className="bg-[#c2edda]/20 border border-[#f43a09]/30 rounded-lg p-4">
                                     <div className="space-y-2">
                                       {stageRequirements.current && (
                                         <div>
-                                          <p className="text-sm font-semibold text-blue-900">Current Stage:</p>
-                                          <p className="text-sm text-blue-700">
+                                          <p className="text-sm font-semibold text-black">Current Stage:</p>
+                                          <p className="text-sm text-black">
                                             Level {stageRequirements.current.roleLevels?.join(" or ")} 
                                             ({stageRequirements.current.roleNames?.join(" or ")})
                                           </p>
@@ -1386,8 +1386,8 @@ const Applications = () => {
                                       )}
                                       {stageRequirements.next && (
                                         <div>
-                                          <p className="text-sm font-semibold text-blue-900">Next Stage:</p>
-                                          <p className="text-sm text-blue-700">
+                                          <p className="text-sm font-semibold text-black">Next Stage:</p>
+                                          <p className="text-sm text-black">
                                             Level {stageRequirements.next.roleLevels?.join(" or ")} 
                                             ({stageRequirements.next.roleNames?.join(" or ")})
                                           </p>
@@ -1457,7 +1457,7 @@ const Applications = () => {
                                             );
                                           })}
                                       </select>
-                                      <p className="text-xs text-blue-600 mt-2">
+                                      <p className="text-xs text-[#f43a09] mt-2">
                                         {nextStageAdmins.length} admin(s) with higher authority available (Level {nextStageAdmins.map(a => a.roleLevel).filter((v, i, a) => a.indexOf(v) === i).sort().join(", ")})
                                       </p>
                                     </>
@@ -1478,7 +1478,7 @@ const Applications = () => {
                                   <button
                                     onClick={() => handleVerify("Verified")}
                                     disabled={processingAction}
-                                    className="flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold text-base shadow-lg hover:shadow-xl"
+                                    className="flex items-center justify-center gap-2 px-6 py-4 bg-[#f43a09] text-white rounded-lg hover:bg-[#ffb766] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold text-base shadow-lg hover:shadow-xl"
                                   >
                                     {processingAction && selectedAction === "Verified" ? (
                                       <>
@@ -1516,7 +1516,7 @@ const Applications = () => {
                                     <br />
                                     <strong>Reject:</strong> Rejects the application and completes the workflow. Application will not proceed to next stage.
                                     <br />
-                                    <span className="text-blue-600 font-medium">Note:</span> The dropdown shows admins with higher authority (lower level number) than you. For example, if you're Level 6, you'll see Level 1-5 admins.
+                                    <span className="text-[#f43a09] font-medium">Note:</span> The dropdown shows admins with higher authority (lower level number) than you. For example, if you're Level 6, you'll see Level 1-5 admins.
                                   </p>
                                 </div>
                               </div>
