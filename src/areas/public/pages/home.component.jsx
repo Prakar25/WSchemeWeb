@@ -5,6 +5,17 @@ import { motion } from "framer-motion";
 import axios from "../../../api/axios";
 import SplitText from "../../../reusable-components/SplitText/SplitText";
 import AdsSection from "../../../reusable-components/FlowingMenu/AdsSection";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogPopup,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "../../../reusable-components/AlertDialog";
 import { SCHEMES_CONFIG_URL, CATEGORIES_SIMPLE_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 
@@ -170,6 +181,33 @@ const Home = () => {
             Search Schemes
           </button>
           <p className="mt-3 text-black/70 text-xs text-center">Results update automatically when you change filters</p>
+          <div className="mt-4 flex justify-center">
+            <AlertDialog>
+              <AlertDialogTrigger
+                render={
+                  <button
+                    type="button"
+                    className="text-sm text-[#d85a30] hover:text-[#ffb766] underline underline-offset-2 transition-colors"
+                  >
+                    Need help?
+                  </button>
+                }
+              />
+              <AlertDialogPopup from="bottom" className="sm:max-w-[425px]">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>About welfare schemes</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Use the filters above to narrow schemes by age group and category. Results update automatically.
+                    Click any scheme card to view full details and apply.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction>Got it</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogPopup>
+            </AlertDialog>
+          </div>
         </motion.div>
       </div>
 

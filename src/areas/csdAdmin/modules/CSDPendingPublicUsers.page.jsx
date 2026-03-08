@@ -14,7 +14,7 @@ import SplitText from "../../../reusable-components/SplitText/SplitText";
 import GenericModal from "../../../reusable-components/modals/GenericModal.component";
 import Spinner from "../../../reusable-components/spinner/spinner.component";
 import showToast from "../../../utils/notification/NotificationModal";
-import { formatDateInDDMonYYYY } from "../../../utils/dateFunctions/formatdate";
+import { formatTSWTZDate } from "../../../utils/dateFunctions/formatdate";
 
 export default function CSDPendingPublicUsers() {
   const [pendingUsers, setPendingUsers] = useState([]);
@@ -255,7 +255,7 @@ export default function CSDPendingPublicUsers() {
                         </td>
                         <td className="px-4 py-3 text-gray-700 text-sm">
                           {user.createdAt
-                            ? formatDateInDDMonYYYY(new Date(user.createdAt))
+                            ? formatTSWTZDate(user.createdAt)
                             : "—"}
                         </td>
                         <td className="px-4 py-3 text-right">

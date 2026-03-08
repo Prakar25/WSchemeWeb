@@ -39,6 +39,27 @@ export default function ApplyToScheme() {
   // Get custom form fields from scheme (defined by admin when creating/editing scheme)
   const customFormFields = Array.isArray(scheme?.custom_form_fields) ? scheme.custom_form_fields : [];
 
+  /** Derive field_key from title (backend does this if field_key not sent) */
+  const getFieldKey = (field) =>
+    field.field_key || (field.title || field.label || "").trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+
+  /** Check if a field with depends_on should be visible based on formData */
+  const isFieldVisible = (field, formData) => {
+    const dep = field.depends_on;
+    if (!dep?.field_key) return true;
+    const parentVal = formData[dep.field_key];
+    const target = dep.value;
+    const parentField = customFormFields.find((f) => getFieldKey(f) === dep.field_key);
+    const parentFieldType = parentField?.type || parentField?.field_type;
+    if (parentFieldType === "checkbox" || field.type === "checkbox") {
+      const checked = [true, 1, "true", "yes", "1"].includes(parentVal);
+      return [true, 1, "true", "yes", "1"].includes(target) === checked;
+    }
+    return String(parentVal) === String(target);
+  };
+
+  const visibleCustomFields = customFormFields.filter((f) => isFieldVisible(f, formData));
+
   // Common beneficiary fields - always shown, pre-filled from profile
   const getProfileValue = (profile, keys) => {
     if (!profile) return "";
@@ -81,6 +102,12 @@ export default function ApplyToScheme() {
       return "";
     }
   };
+  const getAddr = (profile, key) => {
+    const addr = profile?.address ?? profile?.demographics?.address ?? profile?.profile?.address;
+    if (!addr || typeof addr !== "object") return "";
+    const val = addr[key] ?? addr[`${key}_no`] ?? addr[`${key}Number`] ?? "";
+    return val != null && val !== "" ? String(val) : "";
+  };
 
   const COMMON_FIELDS = [
     { key: "beneficiary_name", label: "Beneficiary Name", type: "text", profileKeys: ["fullName", "full_name", "name", "demographics.fullName"] },
@@ -89,9 +116,16 @@ export default function ApplyToScheme() {
     { key: "dob", label: "D.O.B", type: "date", profileKeys: ["dob"], getFromProfile: getDobForInput },
     { key: "gender", label: "Gender", type: "text", profileKeys: ["gender"], getFromProfile: getGenderDisplay },
     { key: "caste", label: "Caste", type: "text", profileKeys: ["caste", "cast", "demographics.caste", "demographics.cast"] },
+    { key: "house", label: "House No.", type: "text", profileKeys: ["address.house"], getFromProfile: (p) => getAddr(p, "house") },
+    { key: "street", label: "Street", type: "text", profileKeys: ["address.street"], getFromProfile: (p) => getAddr(p, "street") },
+    { key: "locality", label: "Locality", type: "text", profileKeys: ["address.locality"], getFromProfile: (p) => getAddr(p, "locality") },
+    { key: "district", label: "City / District", type: "text", profileKeys: ["address.district"], getFromProfile: (p) => getAddr(p, "district") },
+    { key: "state", label: "State", type: "text", profileKeys: ["address.state"], getFromProfile: (p) => getAddr(p, "state") },
+    { key: "pincode", label: "Pincode", type: "text", profileKeys: ["address.pincode"], getFromProfile: (p) => getAddr(p, "pincode") },
     { key: "constituency", label: "Constituency", type: "text", profileKeys: ["constituency", "demographics.constituency", "address.constituency"] },
     { key: "gpu", label: "GPU", type: "text", profileKeys: ["gpu", "demographics.gpu", "address.gpu"] },
     { key: "ward", label: "Ward", type: "text", profileKeys: ["ward", "demographics.ward", "address.ward"] },
+    { key: "bac", label: "BAC", type: "text", profileKeys: ["bac", "demographics.bac"] },
     { key: "uid_no", label: "UID No.", type: "text", profileKeys: ["aadhaarNumber", "aadhaar_number", "uid", "uid_no", "demographics.aadhaarNumber"] },
   ];
 
@@ -178,8 +212,12 @@ export default function ApplyToScheme() {
 
         if (response.data.status === "success" && response.data.user) {
           const userData = response.data.user;
-          setUser(userData);
-          localStorage.setItem("user", JSON.stringify(userData));
+          const profile = response.data.profile ?? response.data.userProfile;
+          const merged = profile
+            ? { ...userData, ...profile, address: userData?.address ?? profile?.address }
+            : userData;
+          setUser(merged);
+          localStorage.setItem("user", JSON.stringify(merged));
 
           if (!isProfileComplete(userData)) {
             showToast(
@@ -258,7 +296,7 @@ export default function ApplyToScheme() {
       COMMON_FIELDS.forEach((f) => {
         if (prev[f.key] == null || prev[f.key] === "") {
           const val = f.getFromProfile ? f.getFromProfile(user) : getProfileValue(user, f.profileKeys);
-          if (val) {
+          if (val != null && val !== "") {
             next[f.key] = val;
             changed = true;
           }
@@ -385,7 +423,7 @@ export default function ApplyToScheme() {
 
       // Build form_data: common fields + custom form fields (backend ignores unknown keys)
       const commonKeys = COMMON_FIELDS.map((f) => f.key);
-      const customKeys = customFormFields.map((f) => f.field_key);
+      const customKeys = visibleCustomFields.map((f) => getFieldKey(f));
       const filteredFormData = {};
       [...commonKeys, ...customKeys].forEach((key) => {
         const val = formData[key];
@@ -603,6 +641,16 @@ export default function ApplyToScheme() {
                         )}
                       </div>
                     )}
+                    {f.type === "textarea" && (
+                      <textarea
+                        value={val ?? ""}
+                        readOnly={isPrePopulated}
+                        onChange={!isPrePopulated ? (e) => handleFieldChange(f.key, e.target.value) : undefined}
+                        placeholder={`Enter ${f.label}`}
+                        rows={3}
+                        className={inputClass}
+                      />
+                    )}
                     {errors[f.key] && (
                       <p className="mt-1 text-sm text-red-600">{errors[f.key]}</p>
                     )}
@@ -614,9 +662,9 @@ export default function ApplyToScheme() {
             {/* Dynamic Form Fields - from scheme.custom_form_fields (defined by admin) */}
             {customFormFields.length > 0 ? (
               <div className="space-y-4">
-                {customFormFields.map((field) => {
-                  const key = field.field_key;
-                  const label = field.label || key;
+                {visibleCustomFields.map((field) => {
+                  const key = getFieldKey(field);
+                  const label = field.title || field.label || key;
                   const isRequired = !!field.required;
                   const fieldType = field.type || field.field_type || "text";
                   const inputClass = `w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-primary ${

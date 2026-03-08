@@ -24,8 +24,9 @@ export default function Input({
   });
 
   useEffect(() => {
-    if (rest?.defaultValue !== "") {
-      setValue?.(defaultName, rest?.defaultValue, { shouldTouch: true });
+    // Only overwrite when parent explicitly passes defaultValue (prevents clearing pre-filled values)
+    if ("defaultValue" in rest) {
+      setValue?.(defaultName, rest.defaultValue ?? "", { shouldTouch: true });
     }
   }, [rest?.defaultValue, setValue, defaultName]);
 

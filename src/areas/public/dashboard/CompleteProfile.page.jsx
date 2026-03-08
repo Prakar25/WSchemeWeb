@@ -17,7 +17,7 @@ import DatePicker from "../../../reusable-components/inputs/DatePicker/DatePicke
 import Spinner from "../../../reusable-components/spinner/spinner.component";
 import Footer from "../footer.component";
 import PublicHeader from "../components/PublicHeader.component";
-import { FiUpload, FiX, FiCheck, FiTrash2 } from "react-icons/fi";
+import { FiUpload, FiX, FiCheck, FiTrash2, FiPlus } from "react-icons/fi";
 
 export default function CompleteProfile() {
   const navigate = useNavigate();
@@ -51,6 +51,8 @@ export default function CompleteProfile() {
     certificateOfIdentification: null,
   });
 
+  const [familyDetails, setFamilyDetails] = useState([]);
+
   // Load user profile on mount
   useEffect(() => {
     const storedUser = getStoredUser();
@@ -83,12 +85,21 @@ export default function CompleteProfile() {
         const userData = response.data.user;
         setUser(userData);
 
-        // Pre-fill form with existing user data
-        setValue("fullName", userData.fullName || "");
-        setValue("dob", userData.dob ? new Date(userData.dob).toISOString().split("T")[0] : "");
-        setValue("gender", userData.gender || "");
-        setValue("email", userData.contactEmail || "");
-        setValue("aadhaarNumber", userData.aadhaarNumber || "");
+        // Pre-fill form with existing user data (support flat and nested API shapes)
+        const fullName = userData.demographics?.fullName || userData.fullName || "";
+        const dobRaw = userData.dob ?? userData.demographics?.dob;
+        const dobStr = dobRaw
+          ? (typeof dobRaw === "string" ? dobRaw : dobRaw?.date || "")
+          : "";
+        const dobFormatted = dobStr ? new Date(dobStr).toISOString().split("T")[0] : "";
+        const gender = userData.demographics?.gender || userData.gender || "";
+        const email = userData.contact?.email?.value ?? userData.contactEmail ?? "";
+
+        setValue("fullName", fullName);
+        setValue("dob", dobFormatted);
+        setValue("gender", gender);
+        setValue("email", email);
+        setValue("aadhaarNumber", userData.aadhaarNumber || userData.aadhaar_number || "");
         
         // Address fields
         setValue("careOf", userData.address?.careOf || "");
@@ -99,6 +110,15 @@ export default function CompleteProfile() {
         setValue("state", userData.address?.state || "");
         setValue("pincode", userData.address?.pincode || "");
         setValue("country", userData.address?.country || "India");
+
+        if (Array.isArray(userData.familyDetails) && userData.familyDetails.length > 0) {
+          setFamilyDetails(userData.familyDetails.map((f) => ({
+            name: f.name || "",
+            relationWithApplicant: f.relationWithApplicant || "",
+            age: f.age ?? "",
+            occupation: f.occupation ?? "",
+          })));
+        }
       }
     } catch (error) {
       console.error("Error loading profile:", error);
@@ -202,6 +222,16 @@ export default function CompleteProfile() {
       if (documents.aadhaarCard) formData.append("aadhaarCard", documents.aadhaarCard);
       if (documents.birthCertificate) formData.append("birthCertificate", documents.birthCertificate);
       if (documents.certificateOfIdentification) formData.append("certificateOfIdentification", documents.certificateOfIdentification);
+
+      const validFamilyDetails = familyDetails
+        .filter((f) => f.name?.trim() && f.relationWithApplicant?.trim() && (f.age === 0 || (f.age != null && f.age !== "")))
+        .map((f) => ({
+          name: f.name.trim(),
+          relationWithApplicant: f.relationWithApplicant.trim(),
+          age: Number(f.age),
+          occupation: (f.occupation || "").trim(),
+        }));
+      formData.append("familyDetails", JSON.stringify(validFamilyDetails));
 
       const response = await axios.post(PUBLIC_PROFILE_SUBMIT_COMPLETE_URL, formData, {
         params: { userId },
@@ -342,7 +372,11 @@ export default function CompleteProfile() {
                 setValue={setValue}
                 classes="rounded-md px-3 py-2 text-sm w-full"
                 max={new Date().toISOString().split("T")[0]}
-                defaultValue={user?.dob ? new Date(user.dob).toISOString().split("T")[0] : ""}
+                defaultValue={(() => {
+                  const d = user?.dob ?? user?.demographics?.dob;
+                  const str = typeof d === "string" ? d : d?.date;
+                  return str ? new Date(str).toISOString().split("T")[0] : "";
+                })()}
               />
 
               <div>
@@ -536,6 +570,109 @@ export default function CompleteProfile() {
                 setValue={setValue}
               />
             </div>
+            </Step>
+
+            <Step>
+              <h2 className="text-xl font-semibold text-black mb-6">Family Details</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Add family members (optional). Each entry needs name, relation, and age.
+              </p>
+              <div className="space-y-3">
+                {familyDetails.map((member, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-lg border border-gray-200 bg-gray-50/50 flex flex-wrap items-end gap-3"
+                  >
+                    <div className="flex-1 min-w-[120px]">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
+                      <input
+                        type="text"
+                        value={member.name}
+                        onChange={(e) =>
+                          setFamilyDetails((prev) => {
+                            const next = [...prev];
+                            next[idx] = { ...next[idx], name: e.target.value };
+                            return next;
+                          })
+                        }
+                        placeholder="Name"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-[120px]">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Relation</label>
+                      <input
+                        type="text"
+                        value={member.relationWithApplicant}
+                        onChange={(e) =>
+                          setFamilyDetails((prev) => {
+                            const next = [...prev];
+                            next[idx] = { ...next[idx], relationWithApplicant: e.target.value };
+                            return next;
+                          })
+                        }
+                        placeholder="e.g. Spouse, Son, Daughter"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
+                      />
+                    </div>
+                    <div className="w-20">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Age</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={member.age === "" ? "" : member.age}
+                        onChange={(e) =>
+                          setFamilyDetails((prev) => {
+                            const next = [...prev];
+                            const val = e.target.value === "" ? "" : Number(e.target.value);
+                            next[idx] = { ...next[idx], age: val };
+                            return next;
+                          })
+                        }
+                        placeholder="Age"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-[100px]">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Occupation</label>
+                      <input
+                        type="text"
+                        value={member.occupation}
+                        onChange={(e) =>
+                          setFamilyDetails((prev) => {
+                            const next = [...prev];
+                            next[idx] = { ...next[idx], occupation: e.target.value };
+                            return next;
+                          })
+                        }
+                        placeholder="Optional"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFamilyDetails((prev) => prev.filter((_, i) => i !== idx))}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                      aria-label="Remove"
+                    >
+                      <FiTrash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFamilyDetails((prev) => [
+                      ...prev,
+                      { name: "", relationWithApplicant: "", age: "", occupation: "" },
+                    ])
+                  }
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#d85a30] border border-[#d85a30]/40 rounded-lg hover:bg-[#d85a30]/5 transition-colors"
+                >
+                  <FiPlus size={16} />
+                  Add family member
+                </button>
+              </div>
             </Step>
 
             <Step>

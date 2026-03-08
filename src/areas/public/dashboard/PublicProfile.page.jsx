@@ -228,6 +228,32 @@ export default function PublicProfile() {
           </div>
         </div>
 
+        {/* Family Details */}
+        {Array.isArray(user.familyDetails) && user.familyDetails.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">
+              Family Details
+            </h3>
+            <div className="divide-y divide-gray-200">
+              {user.familyDetails.map((member, idx) => (
+                <div
+                  key={idx}
+                  className="py-4 flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-2"
+                >
+                  <span className="sm:w-1/4 text-gray-600 font-medium">
+                    {member.relationWithApplicant || "Family member"}
+                  </span>
+                  <span className="sm:w-3/4 text-gray-900 font-semibold">
+                    {member.name}
+                    {member.age != null && member.age !== "" ? `, ${member.age} years` : ""}
+                    {member.occupation ? ` — ${member.occupation}` : ""}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Documents */}
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
           <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">

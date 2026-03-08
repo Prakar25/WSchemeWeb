@@ -1,0 +1,105 @@
+/* Toast beautification - Welfare Dept theme */
+
+.Toastify__toast-container {
+  width: auto;
+  max-width: 420px;
+  padding: 0;
+  z-index: 99999;
+}
+
+.Toastify__toast {
+  min-height: 56px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  font-family: var(--font-roboto), "Roboto", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  border: none;
+}
+
+/* Success - soft green matching #68d388 / #c2edda */
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #d4f4e0 0%, #b8e9ce 100%);
+  color: #166534;
+}
+
+.Toastify__toast--success .Toastify__toast-icon {
+  color: #16a34a;
+}
+
+/* Error - soft coral/red */
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #991b1b;
+}
+
+.Toastify__toast--error .Toastify__toast-icon {
+  color: #dc2626;
+}
+
+/* Warning - brand orange #d85a30 */
+.Toastify__toast--warning {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  color: #9a3412;
+}
+
+.Toastify__toast--warning .Toastify__toast-icon {
+  color: #d85a30;
+}
+
+/* Info - subtle blue-mint */
+.Toastify__toast--info {
+  background: linear-gradient(135deg, #ecfeff 0%, #c2edda 100%);
+  color: #0e7490;
+}
+
+.Toastify__toast--info .Toastify__toast-icon {
+  color: #0891b2;
+}
+
+/* Default */
+.Toastify__toast--default {
+  background: white;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+}
+
+/* Progress bar - refined */
+.Toastify__progress-bar {
+  height: 3px;
+  border-radius: 0 0 12px 12px;
+}
+
+.Toastify__progress-bar--success {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+.Toastify__progress-bar--error {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.Toastify__progress-bar--warning {
+  background: linear-gradient(90deg, #d85a30, #f97316);
+}
+
+.Toastify__progress-bar--info {
+  background: linear-gradient(90deg, #0891b2, #06b6d4);
+}
+
+/* Close button */
+.Toastify__close-button {
+  opacity: 0.6;
+  color: inherit;
+  align-self: center;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
+}
+
+.Toastify__close-button > svg {
+  width: 18px;
+  height: 18px;
+}

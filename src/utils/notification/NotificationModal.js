@@ -1,37 +1,21 @@
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 const showToast = (message, type) => {
+  const options = {
+    position: "top-center",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+  };
   if (type === "error") {
-    toast.error(message, {
-      position: "top-center",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      progress: undefined,
-      theme: "colored",
-    });
+    toast.error(message, options);
   } else if (type === "success") {
-    toast.success(message, {
-      position: "top-center",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      progress: undefined,
-      theme: "colored",
-    });
+    toast.success(message, options);
+  } else if (type === "info") {
+    toast.info(message, options);
   } else {
-    toast.warn(message, {
-      position: "top-center",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      progress: undefined,
-      theme: "colored",
-    });
+    toast.warn(message, options);
   }
 };
 

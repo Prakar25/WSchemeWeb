@@ -268,11 +268,13 @@ const AddSchemeForm = ({
   useEffect(() => {
     if (isEdit && editSchemeDetails?.custom_form_fields && Array.isArray(editSchemeDetails.custom_form_fields)) {
       const fields = editSchemeDetails.custom_form_fields.map((f) => ({
+        title: f.title || f.label || "",
         field_key: f.field_key || "",
-        label: f.label || "",
-        type: f.type || "text",
+        type: f.type || f.field_type || "text",
+        field_type: f.field_type || f.type || "text",
         required: !!f.required,
         options: f.options || "",
+        depends_on: f.depends_on && f.depends_on.field_key ? f.depends_on : null,
       }));
       setCustomFormFields(fields);
     }
@@ -509,16 +511,30 @@ const AddSchemeForm = ({
         }
       }
 
-      // Build custom_form_fields from UI state (filter empty, format for API)
+      // Build custom_form_fields: use title, optional field_key (backend derives from title if omitted)
+      const deriveFieldKey = (t) =>
+        (t || "").trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
       const custom_form_fields = (customFormFields || [])
-        .filter((f) => f && f.field_key && f.label)
-        .map((f) => ({
-          field_key: (f.field_key || "").trim().toLowerCase().replace(/\s+/g, "_"),
-          label: (f.label || "").trim(),
-          type: f.type || "text",
-          required: !!f.required,
-          ...((f.type === "select" && f.options) ? { options: String(f.options).trim() } : {}),
-        }));
+        .filter((f) => f && (f.title || f.label))
+        .map((f) => {
+          const title = (f.title || f.label || "").trim();
+          const fieldKey = (f.field_key || "").trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "")
+            || deriveFieldKey(title);
+          const base = {
+            title,
+            field_type: f.type || f.field_type || "text",
+            required: !!f.required,
+          };
+          if (fieldKey) base.field_key = fieldKey;
+          if ((f.type || f.field_type) === "select" && f.options) base.options = String(f.options).trim();
+          if (f.depends_on && f.depends_on.field_key) {
+            base.depends_on = {
+              field_key: f.depends_on.field_key,
+              value: f.depends_on.value,
+            };
+          }
+          return base;
+        });
 
       let sendDataObj = {
         scheme_name: data?.scheme_name,
