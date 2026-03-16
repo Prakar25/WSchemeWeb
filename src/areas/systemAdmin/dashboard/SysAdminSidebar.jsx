@@ -10,7 +10,6 @@ import {
   MdPersonAdd,
   MdCampaign,
 } from "react-icons/md";
-import { HiOutlineUserGroup, HiOutlineDocumentReport } from "react-icons/hi";
 import { TbBellRinging } from "react-icons/tb";
 import { IoSettingsOutline } from "react-icons/io5";
 import { FiLogOut } from "react-icons/fi";
@@ -101,16 +100,6 @@ export default function SysAdminSidebar({
 
           <li>
             <NavItem
-              to="/system-admin/beneficiaries"
-              pathname={pathname}
-              icon={<HiOutlineUserGroup size={20} />}
-              label="Beneficiaries"
-              isActive={pathname.includes("/system-admin/beneficiaries")}
-            />
-          </li>
-
-          <li>
-            <NavItem
               to="/system-admin/applications"
               pathname={pathname}
               icon={<FaFileAlt size={20} />}
@@ -126,16 +115,6 @@ export default function SysAdminSidebar({
               icon={<MdCampaign size={20} />}
               label="Advertisement"
               isActive={pathname.includes("/system-admin/advertisement")}
-            />
-          </li>
-
-          <li>
-            <NavItem
-              to="/system-admin/reports"
-              pathname={pathname}
-              icon={<HiOutlineDocumentReport size={20} />}
-              label="Reports"
-              isActive={pathname.includes("/system-admin/reports")}
             />
           </li>
 

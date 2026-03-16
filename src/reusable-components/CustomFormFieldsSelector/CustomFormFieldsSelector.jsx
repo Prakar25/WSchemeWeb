@@ -25,6 +25,10 @@ const CustomFormFieldsSelector = ({
   onChange,
   disabled = false,
   className = "",
+  title = "Custom form fields",
+  description = "Extra fields applicants fill when applying to this scheme",
+  emptyMessage = "No custom fields yet",
+  emptyHint = "Click \"Add field\" to add form fields for applicants",
 }) => {
   const updateField = (index, updates) => {
     const updated = [...fields];
@@ -53,17 +57,17 @@ const CustomFormFieldsSelector = ({
     <div className={`space-y-4 ${className}`}>
       <div>
         <h3 className="text-base font-semibold text-gray-800">
-          Custom form fields
+          {title}
         </h3>
         <p className="text-sm text-gray-500 mt-0.5">
-          Extra fields applicants fill when applying to this scheme
+          {description}
         </p>
       </div>
 
       {fields.length === 0 ? (
         <div className="py-6 px-4 rounded-lg border border-dashed border-gray-200 bg-gray-50/50 text-center">
-          <p className="text-sm text-gray-500">No custom fields yet</p>
-          <p className="text-xs text-gray-400 mt-0.5">Click &quot;Add field&quot; to add form fields for applicants</p>
+          <p className="text-sm text-gray-500">{emptyMessage}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{emptyHint}</p>
         </div>
       ) : (
         <div

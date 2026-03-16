@@ -8,6 +8,7 @@ import { PublicLayout } from "./areas/public/PublicLayout";
 import DesktopOnlyRoute from "./areas/DesktopOnlyRoute";
 
 import Home from "./areas/public/pages/home.component";
+import PublicSchemeDetailsPage from "./areas/public/pages/PublicSchemeDetails.page";
 import PublicLogin from "./areas/common/PublicLogin.page";
 import AdminLogin from "./areas/common/AdminLogin.page";
 import AdminRegister from "./areas/common/AdminRegister.page";
@@ -22,10 +23,8 @@ import ApplyToScheme from "./areas/public/dashboard/ApplyToScheme.page";
 import SysAdminDashboard from "./areas/systemAdmin/dashboard/SysAdminDashboard";
 import SchemesConfig from "./areas/systemAdmin/modules/scheme-management/schemesConfig.component";
 import PendingApprovals from "./areas/systemAdmin/modules/scheme-management/pendingApprovals.component";
-import Beneficiaries from "./areas/systemAdmin/modules/beneficiaries/beneficiaries.component";
 import SchemeBeneficiaries from "./areas/systemAdmin/modules/beneficiaries/SchemeBeneficiaries.page";
 import Applications from "./areas/systemAdmin/modules/applications/applications.component";
-import Reports from "./areas/systemAdmin/modules/reports/reports.component";
 import Alerts from "./areas/systemAdmin/modules/alerts/alerts.component";
 import AdminProfile from "./areas/systemAdmin/modules/profile/AdminProfile.page";
 import PendingAdminsVerification from "./areas/systemAdmin/modules/admin-verification/PendingAdminsVerification.page";
@@ -51,6 +50,7 @@ function App() {
       <Routes>
         <Route element={<PublicLayout />}>
           <Route exact path="/" element={<Home />} />
+          <Route exact path="/scheme/:schemeId" element={<PublicSchemeDetailsPage />} />
 
           <Route exact path="/login" element={<PublicLogin />} />
           <Route exact path="/admin-login" element={<AdminLogin />} />
@@ -84,11 +84,6 @@ function App() {
         />
         <Route
           exact
-          path="/system-admin/beneficiaries"
-          element={<Beneficiaries />}
-        />
-        <Route
-          exact
           path="/system-admin/scheme-beneficiaries/:scheme_id"
           element={<SchemeBeneficiaries />}
         />
@@ -99,7 +94,6 @@ function App() {
         />
         <Route exact path="/system-admin/pending-admins" element={<PendingAdminsVerification />} />
         <Route exact path="/system-admin/advertisement" element={<AdvertisementPage />} />
-        <Route exact path="/system-admin/reports" element={<Reports />} />
         <Route exact path="/system-admin/alerts" element={<Alerts />} />
         <Route exact path="/system-admin/profile" element={<AdminProfile />} />
 

@@ -74,6 +74,7 @@ const AddSchemeForm = ({
   // Per-scheme custom form fields: [{ field_key, label, type, required, options }]
   const [customFormFields, setCustomFormFields] = useState([]);
 
+
   // Fixed gender options per spec: All, Male, Female
   const GENDER_OPTIONS = [
     { label: "All", value: "All" },
@@ -347,6 +348,11 @@ const AddSchemeForm = ({
       ? ""
       : editSchemeDetails?.scheme_eligibility?.upper_age_limit ||
         editSchemeDetails?.scheme_eligibility_upper_age_limit,
+    scheme_eligibility_custom_criteria: !isEdit
+      ? []
+      : (Array.isArray(editSchemeDetails?.scheme_eligibility?.custom_fields)
+          ? editSchemeDetails.scheme_eligibility.custom_fields.map((f) => f.title || f.label || f.field_key || "").filter(Boolean)
+          : []),
     scheme_required_document_types: !isEdit
       ? []
       : (Array.isArray(editSchemeDetails?.scheme_required_document_types)
@@ -502,6 +508,22 @@ const AddSchemeForm = ({
         return;
       }
 
+      // Build eligibility custom_fields (informative text only)
+      const deriveFieldKey = (t) =>
+        (t || "").trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+      const criteriaStrings = Array.isArray(data?.scheme_eligibility_custom_criteria)
+        ? data.scheme_eligibility_custom_criteria.filter((s) => s && String(s).trim())
+        : [];
+      const eligibilityCustomFieldsPayload = criteriaStrings.map((text) => {
+        const title = String(text).trim();
+        return {
+          title,
+          field_key: deriveFieldKey(title),
+          field_type: "text",
+          required: false,
+        };
+      });
+
       // Format scheme_date to ISO string if provided
       let schemeDateISO = null;
       if (data?.scheme_date) {
@@ -512,8 +534,6 @@ const AddSchemeForm = ({
       }
 
       // Build custom_form_fields: use title, optional field_key (backend derives from title if omitted)
-      const deriveFieldKey = (t) =>
-        (t || "").trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
       const custom_form_fields = (customFormFields || [])
         .filter((f) => f && (f.title || f.label))
         .map((f) => {
@@ -548,6 +568,7 @@ const AddSchemeForm = ({
         scheme_eligibility: {
           lower_age_limit: lowerAgeLimit,
           upper_age_limit: upperAgeLimit,
+          ...(eligibilityCustomFieldsPayload.length > 0 && { custom_fields: eligibilityCustomFieldsPayload }),
         },
         scheme_required_document_types: scheme_required_document_types, // Array of strings
         scheme_required_documents: [], // Empty array (documents uploaded separately)
@@ -872,7 +893,7 @@ const AddSchemeForm = ({
           {/* Section: Eligibility */}
           <div className="mb-6 pb-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Eligibility</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 gap-y-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 gap-y-5 mb-5">
             <Input
               defaultName="scheme_eligibility_lower_age_limit"
               register={register}
@@ -909,6 +930,18 @@ const AddSchemeForm = ({
               setValue={setValue}
             />
             </div>
+            <ArrayInput
+              defaultName="scheme_eligibility_custom_criteria"
+              register={register}
+              name="Eligibility criteria (informative text)"
+              required={false}
+              errors={errors}
+              setValue={setValue}
+              data={!isEdit ? [] : (Array.isArray(editSchemeDetails?.scheme_eligibility?.custom_fields)
+                ? editSchemeDetails.scheme_eligibility.custom_fields.map((f) => f.title || f.label || f.field_key || "").filter(Boolean)
+                : [])}
+              placeholder="e.g. Must have ration card, Rural residence only"
+            />
           </div>
 
           {/* Section: Required Documents */}

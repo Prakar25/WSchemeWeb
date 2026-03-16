@@ -52,23 +52,20 @@ export default function PasswordInput({
     }, 0);
   };
 
+  const passwordInputId = rest?.id || `password-${defaultName}`;
+  const confirmPasswordInputId = `confirm-${defaultName}`;
+
   const changePasswordVisibility = () => {
-    var x = document.getElementById("myPasswordInput");
-    if (x.type === "password") {
-      x.type = "text";
-    } else {
-      x.type = "password";
+    const x = document.getElementById(passwordInputId);
+    if (x) {
+      x.type = x.type === "password" ? "text" : "password";
     }
   };
 
   const changeConfirmedPasswordVisibility = () => {
-    var y = document.getElementById("myConfirmPasswordInput");
+    const y = document.getElementById(confirmPasswordInputId);
     if (y) {
-      if (y.type === "password") {
-        y.type = "text";
-      } else {
-        y.type = "password";
-      }
+      y.type = y.type === "password" ? "text" : "password";
     }
   };
 
@@ -199,6 +196,7 @@ export default function PasswordInput({
                 }}
                 {...props}
                 {...rest}
+                id={passwordInputId}
                 autoSave="off"
                 className={`placeholder:text-xs md:placeholder:text-sm text-xs md:text-sm ${classes} border focus:outline-none focus:ring-0 focus:border-primary ${
                   errors[defaultName]
@@ -313,6 +311,7 @@ export default function PasswordInput({
                 }}
                 {...props}
                 {...rest}
+                id={confirmPasswordInputId}
                 autoSave="off"
                 className={`placeholder:text-xs md:placeholder:text-sm text-xs md:text-sm ${classes} border focus:outline-none focus:ring-0 focus:border-primary ${
                   errors[defaultName]

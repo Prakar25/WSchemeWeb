@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 import axios from "../../../api/axios";
@@ -108,6 +109,12 @@ const Home = () => {
 
   const handleSearch = () => {
     getSchemesList();
+  };
+
+  const navigate = useNavigate();
+  const handleSchemeClick = (scheme) => {
+    const id = scheme._id || scheme.scheme_id;
+    navigate(`/scheme/${id}`, { state: { scheme } });
   };
 
   return (
@@ -242,7 +249,11 @@ const Home = () => {
             variants={containerVariants}
           >
             {schemesList.map((scheme) => (
-              <SchemeCard key={scheme._id || scheme.scheme_id} scheme={scheme} />
+              <SchemeCard
+                key={scheme._id || scheme.scheme_id}
+                scheme={scheme}
+                onClick={() => handleSchemeClick(scheme)}
+              />
             ))}
           </motion.div>
         )}
@@ -255,11 +266,15 @@ export default Home;
 
 // Scheme Card Component
 
-const SchemeCard = ({ scheme }) => {
+const SchemeCard = ({ scheme, onClick }) => {
   const { scheme_image_file_url, scheme_name, scheme_description } = scheme;
 
   return (
     <motion.div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => e.key === "Enter" && onClick?.()}
       variants={cardVariants}
       whileHover={{
         y: -4,

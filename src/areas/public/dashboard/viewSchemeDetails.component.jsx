@@ -57,6 +57,10 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
   const accountStatusMessage = getAccountStatusMessage(user);
 
   const handleApplyClick = () => {
+    if (!user) {
+      navigate("/login", { state: { returnTo: `/scheme/${scheme._id || scheme.scheme_id}`, scheme } });
+      return;
+    }
     if (!profileComplete) {
       showToast(
         "Please complete your profile before applying for schemes.",
@@ -130,6 +134,14 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
     eligibilityItems.push(
       `${eligibility.lowerAge} to ${eligibility.upperAge} years of age`
     );
+  }
+  // Add eligibility custom fields - display each item's title as a bullet point (purely informative)
+  const customFields = scheme.scheme_eligibility?.custom_fields || scheme.eligibility_custom_fields;
+  if (Array.isArray(customFields) && customFields.length > 0) {
+    customFields.forEach((f) => {
+      const text = typeof f === "string" ? f : (f?.title || f?.label || f?.name || f?.field_key);
+      if (text && String(text).trim()) eligibilityItems.push(String(text).trim());
+    });
   }
   // Add more generic eligibility items if needed
   if (eligibilityItems.length === 0) {
@@ -245,31 +257,38 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                   <p className="text-gray-700 mb-4">
                     You are eligible to apply.
                   </p>
-                  {!profileComplete && (
+                  {!user && (
+                    <p className="text-sm text-gray-600 mb-4">Login to apply for this scheme.</p>
+                  )}
+                  {user && !profileComplete && (
                     <div className="mb-4 p-3 bg-[#68d388]/20 border border-[#68d388]/40 rounded-lg">
                       <p className="text-sm text-black">
                         ⚠ Please complete your profile to apply for this scheme.
                       </p>
                     </div>
                   )}
-                  {profileComplete && !isVerified && accountStatusMessage && (
+                  {user && profileComplete && !isVerified && accountStatusMessage && (
                     <div className="mb-4 p-3 bg-[#68d388]/20 border border-[#68d388]/40 rounded-lg">
                       <p className="text-sm text-black">{accountStatusMessage}</p>
                     </div>
                   )}
-                  {profileComplete && !isVerified && !accountStatusMessage && (
+                  {user && profileComplete && !isVerified && !accountStatusMessage && (
                     <p className="text-sm text-gray-600 mb-4">Verify your account to apply.</p>
                   )}
                   <button
                     onClick={handleApplyClick}
-                    disabled={checkingProfile || !canApply}
+                    disabled={checkingProfile || (user && !canApply)}
                     className={`w-full font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-                      checkingProfile || !canApply
+                      checkingProfile || (user && !canApply)
                         ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                         : "bg-[#d85a30] hover:bg-[#ffb766] text-white"
                     }`}
                   >
-                    {checkingProfile ? "Checking..." : "Apply Now"}
+                    {checkingProfile
+                      ? "Checking..."
+                      : !user
+                        ? "Login to apply"
+                        : "Apply Now"}
                     {!checkingProfile && <FaArrowRight />}
                   </button>
                     </>

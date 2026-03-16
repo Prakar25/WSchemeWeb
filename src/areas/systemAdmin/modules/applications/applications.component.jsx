@@ -9,6 +9,7 @@ import Dashboard from "../../../dashboard-components/dashboard.component";
 import SplitText from "../../../../reusable-components/SplitText/SplitText";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import showToast from "../../../../utils/notification/NotificationModal";
+import { displayMedia } from "../../../../utils/uploadFiles/uploadFileToServerController";
 
 const Applications = () => {
   const [applications, setApplications] = useState([]);
@@ -283,7 +284,13 @@ const Applications = () => {
       return false;
     }
     
-    // NEW: Check if application uses scheme-specific authorization_levels workflow
+    // Backend-provided required_role_levels is authoritative for "who can verify now"
+    // (backend knows the actual stage; authorization_level_index can be stale/mismatched)
+    if (app.required_role_levels && Array.isArray(app.required_role_levels) && app.required_role_levels.length > 0) {
+      return app.required_role_levels.includes(adminRoleLevel);
+    }
+    
+    // Check if application uses scheme-specific authorization_levels workflow
     if (app.authorization_levels && Array.isArray(app.authorization_levels) && app.authorization_levels.length > 0) {
       const currentIndex = app.authorization_level_index !== undefined ? app.authorization_level_index : 0;
       
@@ -296,11 +303,6 @@ const Applications = () => {
       
       // If index is beyond array, application is completed
       return false;
-    }
-    
-    // Use required_role_levels from the application if available (legacy)
-    if (app.required_role_levels && Array.isArray(app.required_role_levels)) {
-      return app.required_role_levels.includes(adminRoleLevel);
     }
     
     // Fallback: Level-based permissions using verification_level (legacy)
@@ -567,8 +569,9 @@ const Applications = () => {
   }, [searchText]);
 
   const getStatusBadge = (status) => {
-    const statusLower = status?.toLowerCase() || "pending";
-    
+    const statusLower = (status || "").toLowerCase();
+    const displayStatus = status || "Pending";
+
     if (statusLower === "approved") {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#c2edda]/30 text-black">
@@ -576,21 +579,21 @@ const Applications = () => {
           Approved
         </span>
       );
-    } else if (statusLower === "rejected") {
+    }
+    if (statusLower === "rejected") {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
           <FaTimesCircle className="text-red-600" />
           Rejected
         </span>
       );
-    } else {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#68d388]/25 text-black">
-          <FaClock className="text-[#68d388]" />
-          Pending
-        </span>
-      );
     }
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#68d388]/25 text-black">
+        <FaClock className="text-[#68d388]" />
+        {displayStatus}
+      </span>
+    );
   };
 
   const formatDate = (dateString) => {
@@ -694,8 +697,10 @@ const Applications = () => {
                 className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary appearance-none bg-white"
               >
                 <option value="all">All Stages</option>
-                <option value="Applied">Applied</option>
-                <option value="Level_7_8_Review">Admin Review</option>
+                <option value="Applied">Application Submitted</option>
+                <option value="CSD_Admin_Review">CSD Admin Review</option>
+                <option value="Post_Operator_Review">Post Operator Review</option>
+                <option value="Admin_Review">Admin Review</option>
                 <option value="District_Head_Review">District Head Review</option>
                 <option value="Department_Review">Department Review</option>
                 <option value="Secretary_Review">Secretary Review</option>
@@ -943,18 +948,28 @@ const Applications = () => {
                                 )}
                               </div>
                               {/* NEW: Show workflow progress if authorization_levels exists */}
-                              {app.authorization_levels && Array.isArray(app.authorization_levels) && app.authorization_levels.length > 0 && (
+                              {app.authorization_levels && Array.isArray(app.authorization_levels) && app.authorization_levels.length > 0 && (() => {
+                                const flippedLevels = [...app.authorization_levels].reverse();
+                                // Use verification_stage/verification_level to determine current step (Post Operator first in flipped order)
+                                let currentDisplayIndex = app.authorization_level_index !== undefined ? (app.authorization_levels.length - 1 - app.authorization_level_index) : 0;
+                                if (app.verification_stage === "Post_Operator_Review" || app.verification_level === 7 || app.verification_level === 8) {
+                                  currentDisplayIndex = 0; // Post Operator is first in flipped display
+                                } else if (app.verification_stage === "Department_Review" || app.verification_level === 4 || app.verification_level === 5) {
+                                  currentDisplayIndex = flippedLevels.indexOf(4) >= 0 ? flippedLevels.indexOf(4) : (flippedLevels.indexOf(5) >= 0 ? flippedLevels.indexOf(5) : currentDisplayIndex);
+                                } else if (app.verification_stage === "Secretary_Review" || app.verification_level === 3) {
+                                  currentDisplayIndex = flippedLevels.indexOf(3) >= 0 ? flippedLevels.indexOf(3) : currentDisplayIndex;
+                                }
+                                return (
                                 <div className="mt-3">
                                   <label className="text-xs font-medium text-gray-500 mb-2 block">Workflow Progress</label>
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    {app.authorization_levels.map((level, index) => {
-                                      const currentIndex = app.authorization_level_index !== undefined ? app.authorization_level_index : 0;
-                                      const isCompleted = index < currentIndex;
-                                      const isCurrent = index === currentIndex;
-                                      const isPending = index > currentIndex;
+                                    {flippedLevels.map((level, displayIndex) => {
+                                      const isCompleted = displayIndex < currentDisplayIndex;
+                                      const isCurrent = displayIndex === currentDisplayIndex;
+                                      const isPending = displayIndex > currentDisplayIndex;
                                       
                                       return (
-                                        <div key={index} className="flex items-center gap-1">
+                                        <div key={displayIndex} className="flex items-center gap-1">
                                           <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold ${
                                             isCompleted 
                                               ? "bg-[#c2edda]/200 text-white" 
@@ -962,12 +977,12 @@ const Applications = () => {
                                               ? "bg-[#c2edda]/200 text-white ring-2 ring-blue-300" 
                                               : "bg-gray-200 text-gray-600"
                                           }`}>
-                                            {isCompleted ? "✓" : index + 1}
+                                            {isCompleted ? "✓" : displayIndex + 1}
                                           </div>
                                           <span className={`text-xs ${isCurrent ? "font-semibold text-[#d85a30]" : isCompleted ? "text-[#d85a30]" : "text-gray-500"}`}>
                                             {getRoleLevelName(level)}
                                           </span>
-                                          {index < app.authorization_levels.length - 1 && (
+                                          {displayIndex < flippedLevels.length - 1 && (
                                             <span className="text-gray-300 mx-1">→</span>
                                           )}
                                         </div>
@@ -975,10 +990,11 @@ const Applications = () => {
                                     })}
                                   </div>
                                   <p className="text-xs text-gray-500 mt-2">
-                                    Step {((app.authorization_level_index !== undefined ? app.authorization_level_index : 0) + 1)} of {app.authorization_levels.length}
+                                    Step {currentDisplayIndex + 1} of {app.authorization_levels.length}
                                   </p>
                                 </div>
-                              )}
+                                );
+                              })()}
                             </div>
                             {app.required_role_levels && app.required_role_levels.length > 0 && (
                               <div>
@@ -1244,7 +1260,7 @@ const Applications = () => {
                                     <p className="font-medium text-gray-900">{doc.document_type || doc.documentType}</p>
                                     {doc.file_url && (
                                       <a
-                                        href={`${import.meta.env.VITE_ENDPOINT_URL || "http://localhost:3000"}/${doc.file_url}`}
+                                        href={displayMedia(doc.file_url)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-[#d85a30] hover:text-[#ffb766] text-sm mt-1 inline-block"

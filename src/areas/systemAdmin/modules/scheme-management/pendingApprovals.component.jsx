@@ -26,7 +26,6 @@ const PendingApprovals = () => {
   const [processingId, setProcessingId] = useState(null);
   const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
   const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
-
   // Role level mapping for display
   const roleLevelNames = {
     8: "Super Admin",
@@ -46,26 +45,17 @@ const PendingApprovals = () => {
     return levels.join(" → ");
   };
 
-  // Check if user can approve/reject
+  // Allow any system admin to view Pending Approvals; backend enforces who can approve/reject
   const canApproveReject = () => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) return false;
-    
+    if (!localStorage.getItem("adminToken")) return false;
+    const stored = localStorage.getItem("user");
+    if (!stored) return false;
     try {
-      const user = JSON.parse(storedUser);
-      const role = user.role || "";
-      const roleLevel = user.roleLevel || user.role_level;
-      
-      // Department Head (roleLevel 5), Admin (roleLevel 7), Super Admin (roleLevel 8 or roleLevel 1)
-      return (
-        role === "Department Head" ||
-        role === "Admin" ||
-        role === "Super Admin" ||
-        roleLevel === 5 ||
-        roleLevel === 7 ||
-        roleLevel === 8 ||
-        roleLevel === 1
-      );
+      const user = JSON.parse(stored);
+      // CSD Admin has their own dashboard; this page is for system admins
+      const role = (user.role || "").trim();
+      if (role === "CSDAdmin") return false;
+      return true;
     } catch (e) {
       return false;
     }
@@ -196,7 +186,7 @@ const PendingApprovals = () => {
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <h2 className="text-xl font-semibold text-red-800 mb-2">Access Denied</h2>
             <p className="text-red-600">
-              You do not have permission to approve or reject schemes. Only Department Head, Admin, or Super Admin can perform this action.
+              You must be logged in as a system admin to access this page.
             </p>
           </div>
         </div>

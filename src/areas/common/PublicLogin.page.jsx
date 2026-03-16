@@ -288,12 +288,6 @@ export default function PublicLogin() {
                 </p>
               )}
             </div>
-            {otpFromServer && (
-              <div className="mb-3 p-2 bg-[#68d388]/20 border border-[#68d388]/40 rounded-md">
-                <p className="text-xs text-black text-center"><strong>Dev Mode:</strong> OTP is {otpFromServer}</p>
-              </div>
-            )}
-
             <form onSubmit={handleSubmit(isRegistering ? handleRegisterVerifyOtp : handleLoginVerifyOtp)}>
               {isRegistering && (
                 <>

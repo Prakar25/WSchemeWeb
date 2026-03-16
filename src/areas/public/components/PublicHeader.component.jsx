@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { FaBell } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
 import axios from "../../../api/axios";
 import { PROFILE_URL } from "../../../api/api_routing_urls";
@@ -143,16 +142,8 @@ export default function PublicHeader() {
             </button>
           </nav>
 
-          {/* Right side - Notification, Profile, and Logout */}
+          {/* Right side - Profile and Logout */}
           <div className="flex items-center gap-4">
-            {/* Notification Bell */}
-            <div className="relative cursor-pointer">
-              <FaBell className="text-black text-xl" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                1
-              </span>
-            </div>
-
             {/* Profile Picture */}
             {user && (
               <button
