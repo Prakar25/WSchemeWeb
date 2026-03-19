@@ -41,8 +41,13 @@ export default function SysAdminSidebar({
   pathname,
   sidebarExpanded,
   setSidebarExpanded,
+  adminProfile,
 }) {
   const navigate = useNavigate();
+
+  const roleLevel =
+    adminProfile?.roleLevel ?? adminProfile?.role_level;
+  const isSuperAdmin = Number(roleLevel) === 1;
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
@@ -67,6 +72,18 @@ export default function SysAdminSidebar({
               isActive={pathname === "/system-admin/dashboard" || pathname.includes("/system-admin/dashboard")}
             />
           </li>
+
+          {isSuperAdmin && (
+            <li>
+              <NavItem
+                to="/system-admin/analytics"
+                pathname={pathname}
+                icon={<MdCampaign size={20} />}
+                label="Analytics"
+                isActive={pathname.includes("/system-admin/analytics")}
+              />
+            </li>
+          )}
 
           <li>
             <NavItem

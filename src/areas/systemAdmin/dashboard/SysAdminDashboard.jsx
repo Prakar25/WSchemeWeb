@@ -80,14 +80,54 @@ export default function SysAdminDashboard() {
 
       if (response.data.status === "success" && response.data.data) {
         const schemesData = response.data.data.schemes || [];
+
+        const getCount = (v) => {
+          if (v === undefined || v === null) return undefined;
+          // Accept numbers and numeric strings like "0" / "1"
+          const n = typeof v === "string" ? Number(v) : v;
+          return Number.isFinite(n) ? n : undefined;
+        };
+
         setSchemes(
           schemesData.map((scheme) => ({
             scheme: scheme.schemeName || scheme.scheme_name || "",
             schemeId: scheme.schemeId || scheme.scheme_id || scheme._id || "",
             total: (scheme.totalBeneficiaries || scheme.total_beneficiaries || 0).toLocaleString(),
-            approved: (scheme.approved || 0).toLocaleString(),
-            pending: (scheme.pending || 0).toLocaleString(),
-            rejected: (scheme.rejected || 0).toLocaleString(),
+
+            // Backend might return these counts under different keys.
+            // Priority:
+            //   1) direct fields: approved/pending/rejected
+            //   2) snake_case fields: approved_beneficiaries/pending_beneficiaries/rejected_beneficiaries
+            //   3) status maps: count_by_status / countByStatus with keys Approved/Pending/Rejected (or lowercased)
+            approved: (
+              getCount(scheme.approved) ??
+              getCount(scheme.approvedBeneficiaries) ??
+              getCount(scheme.approved_beneficiaries) ??
+              getCount((scheme.count_by_status || scheme.countByStatus)?.Approved) ??
+              getCount((scheme.count_by_status || scheme.countByStatus)?.approved) ??
+              getCount((scheme.status_counts || scheme.statusCounts)?.Approved) ??
+              0
+            ).toLocaleString(),
+
+            pending: (
+              getCount(scheme.pending) ??
+              getCount(scheme.pendingBeneficiaries) ??
+              getCount(scheme.pending_beneficiaries) ??
+              getCount((scheme.count_by_status || scheme.countByStatus)?.Pending) ??
+              getCount((scheme.count_by_status || scheme.countByStatus)?.pending) ??
+              getCount((scheme.status_counts || scheme.statusCounts)?.Pending) ??
+              0
+            ).toLocaleString(),
+
+            rejected: (
+              getCount(scheme.rejected) ??
+              getCount(scheme.rejectedBeneficiaries) ??
+              getCount(scheme.rejected_beneficiaries) ??
+              getCount((scheme.count_by_status || scheme.countByStatus)?.Rejected) ??
+              getCount((scheme.count_by_status || scheme.countByStatus)?.rejected) ??
+              getCount((scheme.status_counts || scheme.statusCounts)?.Rejected) ??
+              0
+            ).toLocaleString(),
           }))
         );
       }
@@ -231,15 +271,15 @@ export default function SysAdminDashboard() {
                 <SummaryCard
                   title="Approved"
                   value={formatNumber(statistics.approved)}
-                  bg="bg-[#c2edda]/200"
-                  text="text-white"
+                  bg="bg-[#c2edda] bg-opacity-60"
+                  text="text-black"
                   index={1}
                 />
                 <SummaryCard
                   title="Pending"
                   value={formatNumber(statistics.pending)}
-                  bg="bg-[#68d388]/200"
-                  text="text-white"
+                  bg="bg-[#68d388] bg-opacity-60"
+                  text="text-black"
                   index={2}
                 />
                 <SummaryCard

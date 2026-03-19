@@ -21,6 +21,7 @@ import PublicApplications from "./areas/public/dashboard/PublicApplications.page
 import ApplyToScheme from "./areas/public/dashboard/ApplyToScheme.page";
 
 import SysAdminDashboard from "./areas/systemAdmin/dashboard/SysAdminDashboard";
+import AnalyticsPage from "./areas/systemAdmin/modules/analytics/Analytics.page";
 import SchemesConfig from "./areas/systemAdmin/modules/scheme-management/schemesConfig.component";
 import PendingApprovals from "./areas/systemAdmin/modules/scheme-management/pendingApprovals.component";
 import SchemeBeneficiaries from "./areas/systemAdmin/modules/beneficiaries/SchemeBeneficiaries.page";
@@ -71,6 +72,7 @@ function App() {
           path="/system-admin/dashboard"
           element={<SysAdminDashboard />}
         />
+        <Route exact path="/system-admin/analytics" element={<AnalyticsPage />} />
         {/* <Route exact path="/system-admin/schemes" element={<SchemeConfig />} /> */}
         <Route
           exact

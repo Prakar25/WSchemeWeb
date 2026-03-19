@@ -5,11 +5,12 @@ import { motion } from "framer-motion";
 import { FaArrowLeft, FaSearch, FaUpload } from "react-icons/fa";
 
 import axios from "../../../../api/axios";
-import { APPLICATIONS_SCHEME_URL, ADMIN_PROFILE_URL, DEPARTMENTS_URL } from "../../../../api/api_routing_urls";
+import { APPLICATIONS_SCHEME_URL, APPLICATION_DETAIL_URL, ADMIN_PROFILE_URL, DEPARTMENTS_URL } from "../../../../api/api_routing_urls";
 import Dashboard from "../../../dashboard-components/dashboard.component";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import { formatDateInDDMonYYYY } from "../../../../utils/dateFunctions/formatdate";
 import BulkUploadModal from "../../../../reusable-components/modals/BulkUploadModal.component";
+import { displayMedia } from "../../../../utils/uploadFiles/uploadFileToServerController";
 
 export default function SchemeBeneficiaries() {
   const navigate = useNavigate();
@@ -26,6 +27,11 @@ export default function SchemeBeneficiaries() {
   const [canBulkUpload, setCanBulkUpload] = useState(false);
   const [adminDepartment, setAdminDepartment] = useState(null);
   const [adminDepartmentName, setAdminDepartmentName] = useState(null);
+
+  // Application detail modal state (documents)
+  const [selectedApplicationId, setSelectedApplicationId] = useState(null);
+  const [detailedApplication, setDetailedApplication] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   // Check if admin has bulk upload access
   useEffect(() => {
@@ -158,6 +164,64 @@ export default function SchemeBeneficiaries() {
 
     fetchSchemeBeneficiaries();
   }, [scheme_id]);
+
+  // Fetch application detail (documents) for modal
+  const fetchApplicationDetail = async (applicationId) => {
+    if (!applicationId || applicationId === "N/A") return;
+    try {
+      setLoadingDetail(true);
+      setDetailedApplication(null);
+
+      const response = await axios.get(`${APPLICATION_DETAIL_URL}/${applicationId}`);
+      if (response.status === 200 && response.data) {
+        const appData = response.data.data || response.data.application || response.data;
+        setDetailedApplication(appData);
+      }
+    } catch (err) {
+      console.error("Error fetching application detail:", err);
+      setDetailedApplication(null);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const handleOpenApplicationDetail = (applicationId) => {
+    setSelectedApplicationId(applicationId);
+    fetchApplicationDetail(applicationId);
+  };
+
+  const isPdfFile = (fileUrl) => {
+    return /\.pdf(\?.*)?$/i.test(String(fileUrl || ""));
+  };
+
+  const openDocument = async (fileUrl) => {
+    const fullUrl = displayMedia(fileUrl);
+    if (!fullUrl) return;
+
+    // Workaround: some servers send PDFs as "attachment" which makes browsers download instead of view.
+    // Fetching as a blob and opening the blob URL typically allows inline rendering.
+    if (!isPdfFile(fileUrl)) {
+      window.open(fullUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("adminToken");
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const res = await fetch(fullUrl, {
+        method: "GET",
+        credentials: "include",
+        headers,
+      });
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (e) {
+      // Fallback to normal open
+      window.open(fullUrl, "_blank", "noopener,noreferrer");
+    }
+  };
 
   // Filter applicants based on search query
   const filteredApplicants = applicants.filter((application) => {
@@ -341,7 +405,7 @@ export default function SchemeBeneficiaries() {
                                         applicant.name || 
                                         "N/A";
                         
-                        const applicationId = application.application_id || application._id || application.id || "N/A";
+                        const applicationId = application._id || application.application_id || application.id || "N/A";
                         const verificationStage = (application.verification_stage || application.verificationStage)?.replace(/_/g, " ") || 
                                                   `Level ${application.verification_level || application.verificationLevel || "N/A"}`;
                         const dateApplied = (application.date_applied || application.dateApplied || application.createdAt) 
@@ -357,7 +421,16 @@ export default function SchemeBeneficiaries() {
                             className="hover:bg-[#c2edda]/20 transition-colors"
                           >
                             <td className="py-4 px-4 text-gray-900 font-medium">{fullName}</td>
-                            <td className="py-4 px-4 text-gray-700 font-mono text-xs">{applicationId}</td>
+                            <td className="py-4 px-4 text-gray-700 font-mono text-xs">
+                              <button
+                                type="button"
+                                className="text-[#d85a30] hover:text-[#ffb766] hover:underline"
+                                onClick={() => handleOpenApplicationDetail(applicationId)}
+                                disabled={!applicationId || applicationId === "N/A"}
+                              >
+                                {applicationId}
+                              </button>
+                            </td>
                             <td className="py-4 px-4">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(status)}`}>
                                 {status}
@@ -374,6 +447,109 @@ export default function SchemeBeneficiaries() {
               </div>
             )}
           </>
+        )}
+
+        {/* Application Details Modal (documents) */}
+        {selectedApplicationId && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setSelectedApplicationId(null);
+                setDetailedApplication(null);
+              }
+            }}
+          >
+            <div
+              className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold text-gray-900">Application Documents</h2>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedApplicationId(null);
+                      setDetailedApplication(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {loadingDetail ? (
+                  <div className="flex justify-center items-center py-12">
+                    <Spinner />
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {(() => {
+                      const docs =
+                        detailedApplication?.documents ||
+                        detailedApplication?.documents_submitted ||
+                        [];
+
+                      if (!Array.isArray(docs) || docs.length === 0) {
+                        return (
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <p className="text-sm text-gray-600">No documents found.</p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="space-y-2">
+                          {docs.map((doc, index) => {
+                            const documentType = doc.document_type || doc.documentType;
+                            const fileUrl = doc.file_url || doc.fileUrl;
+                            const uploadedAt = doc.uploaded_at || doc.uploadedAt;
+
+                            return (
+                              <div key={index} className="bg-gray-50 rounded-lg p-4">
+                                {documentType && (
+                                  <p className="font-medium text-gray-900">{documentType}</p>
+                                )}
+
+                                {uploadedAt && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Uploaded: {formatDateInDDMonYYYY(uploadedAt)}
+                                  </p>
+                                )}
+
+                                {fileUrl && (
+                                  isPdfFile(fileUrl) ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => openDocument(fileUrl)}
+                                      className="text-[#d85a30] hover:text-[#ffb766] text-sm mt-2 inline-block"
+                                    >
+                                      View PDF
+                                    </button>
+                                  ) : (
+                                    <a
+                                      href={displayMedia(fileUrl)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[#d85a30] hover:text-[#ffb766] text-sm mt-2 inline-block"
+                                    >
+                                      View Document
+                                    </a>
+                                  )
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Bulk Upload Modal */}

@@ -612,6 +612,39 @@ const Applications = () => {
     }
   };
 
+  const isPdfFile = (fileUrl) => {
+    return /\.pdf(\?.*)?$/i.test(String(fileUrl || ""));
+  };
+
+  const openDocument = async (fileUrl) => {
+    const fullUrl = displayMedia(fileUrl);
+    if (!fullUrl) return;
+
+    // Workaround: some servers send PDFs as "attachment" which makes browsers download instead of view.
+    // Fetching as a blob and opening the blob URL typically allows inline rendering.
+    if (!isPdfFile(fileUrl)) {
+      window.open(fullUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("adminToken");
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const res = await fetch(fullUrl, {
+        method: "GET",
+        credentials: "include",
+        headers,
+      });
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (e) {
+      // Fallback: try normal open if blob fetching fails (e.g. CORS restrictions)
+      window.open(fullUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   const filteredApplications = applications.filter((app) => {
     if (searchText) {
       const searchLower = searchText.toLowerCase();
@@ -1251,28 +1284,59 @@ const Applications = () => {
                           )}
 
                           {/* Documents */}
-                          {app.documents_submitted && app.documents_submitted.length > 0 && (
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-3">Submitted Documents</h3>
-                              <div className="space-y-2">
-                                {app.documents_submitted.map((doc, index) => (
-                                  <div key={index} className="bg-gray-50 rounded-lg p-4">
-                                    <p className="font-medium text-gray-900">{doc.document_type || doc.documentType}</p>
-                                    {doc.file_url && (
-                                      <a
-                                        href={displayMedia(doc.file_url)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-[#d85a30] hover:text-[#ffb766] text-sm mt-1 inline-block"
-                                      >
-                                        View Document
-                                      </a>
-                                    )}
-                                  </div>
-                                ))}
+                          {(() => {
+                            // Backend may return either `documents` (preferred) or `documents_submitted` (legacy).
+                            const docs = app.documents || app.documents_submitted || [];
+                            if (!Array.isArray(docs) || docs.length === 0) return null;
+
+                            return (
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Submitted Documents</h3>
+                                <div className="space-y-2">
+                                  {docs.map((doc, index) => {
+                                    const documentType = doc.document_type || doc.documentType;
+                                    const fileUrl = doc.file_url || doc.fileUrl;
+                                    const uploadedAt = doc.uploaded_at || doc.uploadedAt;
+
+                                    return (
+                                      <div key={index} className="bg-gray-50 rounded-lg p-4">
+                                        {documentType && (
+                                          <p className="font-medium text-gray-900">{documentType}</p>
+                                        )}
+
+                                        {uploadedAt && (
+                                          <p className="text-xs text-gray-500 mt-1">
+                                            Uploaded: {formatDate(uploadedAt)}
+                                          </p>
+                                        )}
+
+                                        {fileUrl && (
+                                          isPdfFile(fileUrl) ? (
+                                            <button
+                                              type="button"
+                                              onClick={() => openDocument(fileUrl)}
+                                              className="text-[#d85a30] hover:text-[#ffb766] text-sm mt-1 inline-block"
+                                            >
+                                              View PDF
+                                            </button>
+                                          ) : (
+                                            <a
+                                              href={displayMedia(fileUrl)}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-[#d85a30] hover:text-[#ffb766] text-sm mt-1 inline-block"
+                                            >
+                                              View Document
+                                            </a>
+                                          )
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            );
+                          })()}
 
                           {/* Verification History */}
                           {app.verification_history && app.verification_history.length > 0 && (

@@ -266,6 +266,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
             pathname={pathname}
             sidebarExpanded={sidebarExpanded}
             setSidebarExpanded={setSidebarExpanded}
+            adminProfile={adminProfile}
           />
         )}
 
