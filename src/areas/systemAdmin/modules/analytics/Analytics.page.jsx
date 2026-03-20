@@ -638,7 +638,7 @@ function DonutChart({ title, approved, pending, rejected }) {
   );
 }
 
-function StageBreakdownBarList({ title, stages }) {
+function StageBreakdownBarList({ title, stages, bioauthenticationCount }) {
   const safeStages = Array.isArray(stages) ? stages : [];
   const topStages = safeStages
     .slice()
@@ -662,6 +662,9 @@ function StageBreakdownBarList({ title, stages }) {
             const stageLabel = s.stageLabel || s.stageKey || s.stage || "N/A";
             const count = safeNumber(s.count);
             const w = Math.round((count / maxCount) * 100);
+            const canonicalStage = s.stage || s.stageKey || "";
+            const isCscAdminReview = canonicalStage === "CSC_Admin_Review";
+            const displayStageLabel = isCscAdminReview ? "CSC Bio-auth Pending" : stageLabel;
             const color =
               s.stageKey && String(s.stageKey).startsWith("Level")
                 ? "#d85a30"
@@ -671,7 +674,14 @@ function StageBreakdownBarList({ title, stages }) {
 
             return (
               <div key={`${stageLabel}-${s.stageKey || ""}`} className="flex items-center gap-3">
-                <div className="w-[210px] text-xs text-slate-600">{stageLabel}</div>
+                <div className="w-[210px] text-xs text-slate-600">
+                  {displayStageLabel}
+                  {isCscAdminReview ? (
+                    <div className="text-[10px] text-slate-400 mt-1">
+                      Includes re-Bioauthentication: {safeNumber(bioauthenticationCount)}
+                    </div>
+                  ) : null}
+                </div>
                 <div className="flex-1 h-4 bg-slate-100 rounded overflow-hidden">
                   <div
                     className="h-full rounded"
@@ -961,6 +971,9 @@ export default function AnalyticsPage() {
             approved: safeNumber(s.approved),
             pending: safeNumber(s.pending),
             rejected: safeNumber(s.rejected),
+            bioauthentication_count: safeNumber(s.bioauthentication_count),
+            csc_review_count: safeNumber(s.csc_review_count),
+            csc_bioauth_pending_count: safeNumber(s.csc_bioauth_pending_count),
           });
         }
 
@@ -1048,6 +1061,8 @@ export default function AnalyticsPage() {
   const approved = statistics ? statistics.approved : 0;
   const pending = statistics ? statistics.pending : 0;
   const rejected = statistics ? statistics.rejected : 0;
+  const bioauthenticationCount = statistics ? statistics.bioauthentication_count : 0;
+  const cscBioauthPendingCount = statistics ? statistics.csc_bioauth_pending_count : 0;
 
   return (
     <Dashboard sidebarType="System Admin">
@@ -1116,12 +1131,22 @@ export default function AnalyticsPage() {
               <PlaceholderKpiCard
                 title="Pending"
                 value={pending}
-                sub="Applied + Under Review + Pending buckets"
+                sub="Applied + Under Review + Pending + re-Bioauthentication buckets"
               />
               <PlaceholderKpiCard
                 title="Rejected"
                 value={rejected}
                 sub="Rejected applications"
+              />
+              <PlaceholderKpiCard
+                title="re-Bioauthentication"
+                value={bioauthenticationCount}
+                sub="Applications queued for CSC Bio-auth"
+              />
+              <PlaceholderKpiCard
+                title="CSC re-Bio-auth Pending"
+                value={cscBioauthPendingCount}
+                sub="CSC review (Level 5/9) incl. re-Bioauthentication"
               />
             </div>
 
@@ -1148,6 +1173,7 @@ export default function AnalyticsPage() {
               <StageBreakdownBarList
                 title="Stage Breakdown"
                 stages={stageBreakdown}
+                bioauthenticationCount={bioauthenticationCount}
               />
               <FraudAlertsList alerts={fraudAlerts} />
             </div>

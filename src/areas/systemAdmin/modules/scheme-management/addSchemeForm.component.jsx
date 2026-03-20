@@ -171,6 +171,9 @@ const AddSchemeForm = ({
     }
   }, [isEdit, editSchemeDetails]);
 
+  // Allowed scheme authorization levels (backend validates to [1, 2, 3, 4] only)
+  const ALLOWED_SCHEME_AUTH_LEVELS = [1, 2, 3, 4];
+
   // Fetch admin roles from GET /api/admin-roles or /api/admin-roles/for-authorization
   const fetchAdminRoles = async () => {
     try {
@@ -186,7 +189,7 @@ const AddSchemeForm = ({
         if (res.status === 200) roles = res.data?.roles || [];
       }
       const options = (Array.isArray(roles) ? roles : [])
-        .filter((r) => r.level >= 1 && r.level <= 8)
+        .filter((r) => ALLOWED_SCHEME_AUTH_LEVELS.includes(r.level))
         .map((role) => ({
           label: `${role.displayName || role.role || "Role"} (Level ${role.level})`,
           value: role.level,
@@ -197,12 +200,8 @@ const AddSchemeForm = ({
         setAuthLevelOptions([
           { label: "Super Admin (Level 1)", value: 1 },
           { label: "Admin (Level 2)", value: 2 },
-          { label: "Department Secretary (Level 3)", value: 3 },
-          { label: "Department Head (Level 4)", value: 4 },
-          { label: "DistrictHQ Head (Level 5)", value: 5 },
-          { label: "Department User (Level 6)", value: 6 },
-          { label: "District Overlookers (Level 7)", value: 7 },
-          { label: "Post Operator (Level 8)", value: 8 },
+          { label: "DistrictHQ Head (Level 3)", value: 3 },
+          { label: "District Overlookers (Level 4)", value: 4 },
         ]);
       } else {
         setAuthLevelOptions(options);
@@ -213,12 +212,8 @@ const AddSchemeForm = ({
       setAuthLevelOptions([
         { label: "Super Admin (Level 1)", value: 1 },
         { label: "Admin (Level 2)", value: 2 },
-        { label: "Department Secretary (Level 3)", value: 3 },
-        { label: "Department Head (Level 4)", value: 4 },
-        { label: "DistrictHQ Head (Level 5)", value: 5 },
-        { label: "Department User (Level 6)", value: 6 },
-        { label: "District Overlookers (Level 7)", value: 7 },
-        { label: "Post Operator (Level 8)", value: 8 },
+        { label: "DistrictHQ Head (Level 3)", value: 3 },
+        { label: "District Overlookers (Level 4)", value: 4 },
       ]);
     } finally {
       setLoadingAuthLevels(false);
@@ -257,8 +252,11 @@ const AddSchemeForm = ({
   useEffect(() => {
     if (authLevelOptions.length === 0) return;
     if (isEdit && editSchemeDetails?.authorization_levels && Array.isArray(editSchemeDetails.authorization_levels)) {
+      const LEGACY_MAP = { 6: 3, 7: 4 }; // Backend migration: 6→3, 7→4
+      const ALLOWED = [1, 2, 3, 4];
       const levels = editSchemeDetails.authorization_levels
-        .filter((l) => l >= 1 && l <= 8)
+        .map((l) => (LEGACY_MAP[l] !== undefined ? LEGACY_MAP[l] : l))
+        .filter((l) => ALLOWED.includes(l))
         .map((level) => ({ level }));
       setAuthLevels(levels);
     }
@@ -443,10 +441,11 @@ const AddSchemeForm = ({
         ? selectedExcludedSchemeIds
         : [];
 
-      // Build authorization_levels from dynamic list ([] allowed for default workflow)
+      // Build authorization_levels from dynamic list - only [1, 2, 3, 4] allowed
+      const ALLOWED_LEVELS = [1, 2, 3, 4];
       const authorization_levels = authLevels
         .map((item) => (item?.level != null && !isNaN(item.level) ? item.level : null))
-        .filter((l) => l !== null && l >= 1 && l <= 8);
+        .filter((l) => l !== null && ALLOWED_LEVELS.includes(l));
 
       // Validate department and category for new schemes
       if (!isEdit) {
@@ -619,7 +618,7 @@ const AddSchemeForm = ({
 
       if (response.status === 200 || response.status === 201) {
         if (!isEdit) {
-          showToast("Scheme created successfully. Pending Department Head approval.", "success");
+          showToast("Scheme created successfully. Pending approval.", "success");
         } else {
           showToast("Scheme has been updated successfully.", "success");
         }

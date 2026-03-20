@@ -12,10 +12,10 @@ function Header({ sidebarOpen, setSidebarOpen }) {
   const navigate = useNavigate();
   const [adminProfile, setAdminProfile] = useState(null);
 
-  // Fetch admin profile if System Admin (JWT sent via axios interceptor)
+  // Fetch admin profile for System Admin or CSC Admin (JWT sent via axios interceptor)
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
-    if (storedRole === "System Admin") {
+    if (storedRole === "System Admin" || storedRole === "CSCAdmin") {
       const fetchAdminProfile = async () => {
         try {
           const response = await axios.get(ADMIN_PROFILE_URL);

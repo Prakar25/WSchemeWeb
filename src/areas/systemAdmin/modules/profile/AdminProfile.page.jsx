@@ -60,12 +60,14 @@ function AdminProfile({ sidebarType = "System Admin" }) {
     const descriptions = {
       1: "Super Admin - Highest authority",
       2: "Admin - High authority",
-      3: "Department Secretary - Senior authority",
-      4: "Department Head - Mid-level authority",
-      5: "Department User - Standard authority",
+      3: "DistrictHQ Head - District authority",
+      4: "District Overlookers - Field authority",
+      5: "CSCAdmin - CSC Admin authority",
+      // Legacy display (backend migration maps 6→3, 7/8→4, 9→5)
       6: "DistrictHQ Head - District authority",
       7: "District Overlookers - Field authority",
-      8: "Post Operator - Basic authority",
+      8: "CSCAdmin - CSC Admin authority",
+      9: "CSCAdmin - CSC Admin authority",
     };
     return descriptions[level] || `Level ${level}`;
   };
@@ -134,7 +136,7 @@ function AdminProfile({ sidebarType = "System Admin" }) {
                       {adminProfile.roleLevel === 1 && (
                         <span className="text-xs text-[#c2edda] font-medium">(Highest)</span>
                       )}
-                      {adminProfile.roleLevel === 8 && (
+                      {adminProfile.roleLevel === 5 && (
                         <span className="text-xs text-gray-300 font-medium">(Lowest)</span>
                       )}
                     </div>
@@ -162,12 +164,19 @@ function AdminProfile({ sidebarType = "System Admin" }) {
                     <p className="text-gray-900 mt-1">{adminProfile.username || "N/A"}</p>
                   </div>
 
-                  {adminProfile.contactNumber && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Contact Number</label>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Contact Number</label>
+                    {adminProfile.contactNumber ? (
                       <p className="text-gray-900 mt-1">{adminProfile.contactNumber}</p>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="mt-1">
+                        <p className="text-amber-700 font-medium">Not set</p>
+                        <p className="text-sm text-amber-600 mt-1">
+                          Add a phone number to complete applications at Admin Review stage. Contact your administrator to update your profile.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Role & Authority */}

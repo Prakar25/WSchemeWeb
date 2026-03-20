@@ -321,10 +321,10 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(userToStore));
       localStorage.setItem("role", user.role || "System Admin");
 
-      // CSDAdmin goes to separate dashboard
+      // CSCAdmin goes to separate dashboard
       const role = (user.role || "").trim();
-      if (role === "CSDAdmin") {
-        navigate("/csd-admin/dashboard", { replace: true });
+      if (role === "CSCAdmin") {
+        navigate("/csd-admin/pending-applications", { replace: true });
       } else {
         navigate("/system-admin/dashboard", { replace: true });
       }

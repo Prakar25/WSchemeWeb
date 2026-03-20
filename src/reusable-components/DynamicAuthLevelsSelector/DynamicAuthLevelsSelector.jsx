@@ -5,12 +5,12 @@ import { FiPlus, FiTrash2 } from "react-icons/fi";
 /**
  * Dynamic Authorization Levels Selector
  * - Add/remove levels
- * - Each dropdown lists all roles (levels 1–8)
+ * - Each dropdown lists roles (levels 1–4: Super Admin, Admin, DistrictHQ Head, District Overlookers)
  * - Order defines the verification workflow
  * - authorization_levels can be [] for default workflow
  */
 const DynamicAuthLevelsSelector = ({
-  levels = [], // Array of { level: number } (level = role level 1-8)
+  levels = [], // Array of { level: number } (level = role level 1-4)
   options = [], // Array of { label, value }
   onChange,
   onAddLevel,
@@ -54,7 +54,7 @@ const DynamicAuthLevelsSelector = ({
       </div>
 
       <p className="text-xs text-gray-600">
-        Define who can authorize applications at each stage. Empty = default workflow. Levels 1–8 only.
+        Define who can authorize applications at each stage. Empty = default workflow. Allowed levels: 1, 2, 3, 4 only.
       </p>
 
       <div className="space-y-3">
@@ -77,7 +77,7 @@ const DynamicAuthLevelsSelector = ({
             >
               <option value="">Select role...</option>
               {options
-                .filter((o) => o.value >= 1 && o.value <= 8)
+                .filter((o) => [1, 2, 3, 4].includes(o.value))
                 .map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}

@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaSearch, FaFilter, FaEye, FaCheckCircle, FaTimesCircle, FaClock, FaArrowRight, FaArrowLeft, FaUserCheck } from "react-icons/fa";
 import axios from "../../../../api/axios";
-import { APPLICATIONS_ADMIN_URL, APPLICATION_DETAIL_URL, APPLICATION_VERIFY_URL, APPLICATION_FORWARD_URL, APPLICATION_NEXT_STAGE_ADMINS_URL, ADMIN_PROFILE_URL, DEPARTMENTS_URL, CATEGORIES_URL } from "../../../../api/api_routing_urls";
+import { APPLICATIONS_ADMIN_URL, APPLICATION_DETAIL_URL, APPLICATION_VERIFY_URL, APPLICATION_FORWARD_URL, APPLICATION_NEXT_STAGE_ADMINS_URL, APPLICATION_SEND_COMPLETION_OTP_URL, ADMIN_PROFILE_URL, DEPARTMENTS_URL, CATEGORIES_URL, APPLICATION_BIOAUTH_QUEUE_URL } from "../../../../api/api_routing_urls";
 import Dashboard from "../../../dashboard-components/dashboard.component";
 import SplitText from "../../../../reusable-components/SplitText/SplitText";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
@@ -32,6 +32,16 @@ const Applications = () => {
   const [loadingNextStageAdmins, setLoadingNextStageAdmins] = useState(false);
   const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
   const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
+  const [adminContactNumber, setAdminContactNumber] = useState(null); // For OTP at Admin_Review
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [sendOtpLoading, setSendOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState(null);
+
+  // Super-admin only: bulk queue applications for Bioauthentication restart
+  const [selectedApplicationIds, setSelectedApplicationIds] = useState([]);
+  const [bioAuthQueueLoading, setBioAuthQueueLoading] = useState(false);
+  const headerCheckboxRef = useRef(null);
 
   // Fetch departments and categories for lookup maps
   useEffect(() => {
@@ -109,9 +119,33 @@ const Applications = () => {
         } else {
           console.warn("⚠ Admin profile missing departmentId - department filtering may not work correctly");
         }
+        setAdminContactNumber(userData.contactNumber || userData.contact_number || null);
       }
     } catch (error) {
       console.error("Error fetching admin profile:", error);
+      // Fallback: use localStorage user so Super Admin bulk actions still show
+      try {
+        const storedUserRaw = localStorage.getItem("user");
+        if (storedUserRaw) {
+          const storedUser = JSON.parse(storedUserRaw);
+          const roleLevel = storedUser.roleLevel || storedUser.role_level || storedUser.role_level;
+          if (roleLevel !== undefined) setAdminRoleLevel(roleLevel);
+
+          let deptId = storedUser.departmentId || storedUser.department_id;
+          if (!deptId && storedUser.department) {
+            const deptValue = String(storedUser.department).trim();
+            const isObjectIdFormat = /^[0-9a-fA-F]{24}$/.test(deptValue);
+            if (isObjectIdFormat) {
+              deptId = deptValue;
+            }
+          }
+          if (deptId) setAdminDepartmentId(String(deptId).trim());
+
+          setAdminContactNumber(storedUser.contactNumber || storedUser.contact_number || null);
+        }
+      } catch (e) {
+        console.error("Error parsing localStorage user fallback:", e);
+      }
     }
   };
 
@@ -305,26 +339,19 @@ const Applications = () => {
       return false;
     }
     
-    // Fallback: Level-based permissions using verification_level (legacy)
+    // Fallback: Level-based permissions (sequential roles 1–5; legacy 6,7,8,9 normalized by backend)
+    const normalizedAdmin = { 6: 3, 7: 4, 8: 5, 9: 5 }[adminRoleLevel] ?? adminRoleLevel;
     switch (verificationLevel) {
-      case 0: // Applied
-      case 7: // Post Operator Review
-      case 8:
-        return adminRoleLevel === 7 || adminRoleLevel === 8;
-      case 1: // Admin Review
-      case 2:
-        return adminRoleLevel === 1 || adminRoleLevel === 2;
-      case 6: // District Head Review
-        return adminRoleLevel === 6;
-      case 4: // Department Review
-      case 5:
-        return adminRoleLevel === 4 || adminRoleLevel === 5;
-      case 3: // Secretary Review
-        return adminRoleLevel === 3;
-      case 99: // Completed
-        return false;
-      default:
-        return false;
+      case 0: // Applied - first stage, depends on scheme auth levels
+        return [1, 2, 3, 4].includes(normalizedAdmin);
+      case 1: case 2: return normalizedAdmin === 1 || normalizedAdmin === 2;
+      case 3: return normalizedAdmin === 3;
+      case 4: return normalizedAdmin === 4;
+      case 5: case 9: return normalizedAdmin === 5; // CSCAdmin (9 legacy)
+      case 6: return normalizedAdmin === 3; // Legacy
+      case 7: return normalizedAdmin === 4; // Legacy
+      case 99: return false;
+      default: return false;
     }
   };
 
@@ -333,12 +360,14 @@ const Applications = () => {
     const roleLevelNames = {
       1: "Super Admin",
       2: "Admin",
-      3: "Department Secretary",
-      4: "Department Head",
-      5: "Department User",
+      3: "DistrictHQ Head",
+      4: "District Overlookers",
+      5: "CSCAdmin",
+      // Legacy display (backend migration maps 6→3, 7/8→4, 9→5)
       6: "DistrictHQ Head",
       7: "District Overlookers",
-      8: "Post Operator",
+      8: "CSCAdmin",
+      9: "CSCAdmin",
     };
     return roleLevelNames[level] || `Level ${level}`;
   };
@@ -346,8 +375,10 @@ const Applications = () => {
   // Get stage name for display (using new verification_level)
   const getStageDisplayName = (app) => {
     // Prefer verification_stage if available (backend provides this)
+    // Support both CSC_Admin_Review (new) and legacy CSD_Admin_Review for backward compatibility
     if (app.verification_stage) {
-      return app.verification_stage.replace(/_/g, " ");
+      const stage = app.verification_stage === "CSD_Admin_Review" ? "CSC Admin Review" : app.verification_stage.replace(/_/g, " ");
+      return stage;
     }
     
     // NEW: If application uses scheme-specific authorization_levels workflow
@@ -367,30 +398,103 @@ const Applications = () => {
       return `Step ${currentIndex + 1} of ${app.authorization_levels.length}: ${levelName}`;
     }
     
-    // Fallback to verification_level (legacy)
+    // Fallback to verification_level (legacy) - sequential levels 1–5
     const level = app.verification_level;
     const levelMap = {
       0: "Applied",
-      7: "Post Operator Review",
-      8: "Post Operator Review",
       1: "Admin Review",
       2: "Admin Review",
+      3: "District Head Review",
+      4: "District Overlookers Review",
+      5: "CSC Admin Review",
       6: "District Head Review",
-      4: "Department Review",
-      5: "Department Review",
-      3: "Secretary Review",
+      7: "District Overlookers Review",
+      9: "CSC Admin Review",
       99: "Completed"
     };
     return levelMap[level] || `Level ${level}`;
   };
 
+  // Check if completing at Admin_Review requires OTP (Verified action that completes the application)
+  const needsCompletionOtp = (app, action) => {
+    if (!app || action !== "Verified") return false;
+    const stage = app.verification_stage || app.verificationStage;
+    return stage === "Admin_Review";
+  };
+
+  // Send OTP for completing application at Admin_Review
+  const handleSendCompletionOtp = async () => {
+    if (!selectedApplication) return;
+    const applicationId = selectedApplication._id || selectedApplication.application_id;
+    if (!applicationId) return;
+
+    if (!adminContactNumber || !adminContactNumber.trim()) {
+      setOtpError("no_phone");
+      showToast("Add a phone number in your profile settings to complete applications at Admin Review stage.", "error");
+      return;
+    }
+
+    try {
+      setSendOtpLoading(true);
+      setOtpError(null);
+      const response = await axios.post(
+        `${APPLICATION_SEND_COMPLETION_OTP_URL}/${applicationId}/send-completion-otp`
+      );
+      if (response.data?.status === "success" || response.status === 200) {
+        setOtpSent(true);
+        showToast(
+          response.data?.message || "OTP sent to your registered mobile number. Enter it to complete the application.",
+          "success"
+        );
+        if (response.data?.otp) {
+          setOtpValue(response.data.otp); // Development: pre-fill OTP for testing
+        }
+      } else {
+        throw new Error(response.data?.message || "Failed to send OTP");
+      }
+    } catch (err) {
+      const data = err.response?.data;
+      const reason = data?.reason;
+      if (reason === "no_phone") {
+        setOtpError("no_phone");
+        showToast("Add a phone number in your profile settings to complete applications.", "error");
+      } else {
+        setOtpError("send_failed");
+        showToast(data?.message || "Failed to send OTP. Please try again.", "error");
+      }
+    } finally {
+      setSendOtpLoading(false);
+    }
+  };
+
   // Verify application with action
   const handleVerify = async (action) => {
     if (!selectedApplication || !action) return;
-    
+    const app = detailedApplication || selectedApplication;
+
+    const requiresOtp = needsCompletionOtp(app, action);
+    if (requiresOtp) {
+      if (!adminContactNumber || !adminContactNumber.trim()) {
+        setOtpError("no_phone");
+        showToast("Add a phone number in your profile settings to complete applications at Admin Review stage.", "error");
+        return;
+      }
+      if (!otpSent) {
+        setOtpError("otp_required");
+        showToast("Please send OTP first, then enter it to complete the application.", "error");
+        return;
+      }
+      if (!otpValue || !otpValue.trim()) {
+        setOtpError("otp_required");
+        showToast("Please enter the OTP sent to your mobile number.", "error");
+        return;
+      }
+    }
+
     try {
       setProcessingAction(true);
       setSelectedAction(action);
+      setOtpError(null);
       const applicationId = selectedApplication._id || selectedApplication.application_id;
 
       const requestBody = {
@@ -399,6 +503,9 @@ const Applications = () => {
       };
       if ((action === "Verified" || action === "Forwarded") && selectedForwardAdmin) {
         requestBody.forward_to_admin_id = selectedForwardAdmin;
+      }
+      if (requiresOtp && otpValue) {
+        requestBody.otp = otpValue.trim();
       }
 
       const response = await axios.post(
@@ -437,16 +544,29 @@ const Applications = () => {
         setSelectedForwardAdmin("");
         setNextStageAdmins([]);
         setStageRequirements(null);
+        setOtpSent(false);
+        setOtpValue("");
         
         // Refresh applications list
         fetchApplications();
       }
     } catch (error) {
       console.error("Error verifying application:", error);
-      console.error("Error response data:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || "Failed to verify application";
-      showToast(errorMessage, "error");
+      const data = error.response?.data;
+      const reason = data?.reason;
+      if (reason === "otp_required") {
+        setOtpError("otp_required");
+        showToast("Please send OTP first, then enter it to complete the application.", "error");
+      } else if (reason === "otp_invalid") {
+        setOtpError("otp_invalid");
+        showToast(data?.message || "Invalid OTP. Please try again.", "error");
+      } else if (reason === "no_phone") {
+        setOtpError("no_phone");
+        showToast("Add a phone number in your profile settings to complete applications.", "error");
+      } else {
+        const errorMessage = data?.message || data?.error || "Failed to verify application";
+        showToast(errorMessage, "error");
+      }
       setSelectedAction("");
     } finally {
       setProcessingAction(false);
@@ -528,6 +648,13 @@ const Applications = () => {
     console.log("selectedApplication changed:", selectedApplication);
   }, [selectedApplication]);
 
+  // Reset OTP state when selected application changes
+  useEffect(() => {
+    setOtpSent(false);
+    setOtpValue("");
+    setOtpError(null);
+  }, [selectedApplication?._id, selectedApplication?.application_id]);
+
   // Auto-open application modal if navigated from alert card
   useEffect(() => {
     if (location.state?.applicationId && location.state?.autoOpen && applications.length > 0 && !selectedApplication) {
@@ -588,6 +715,15 @@ const Applications = () => {
         </span>
       );
     }
+
+    if (statusLower === "bioauthentication") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-900">
+          <FaClock className="text-amber-700" />
+          Bioauthentication
+        </span>
+      );
+    }
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#68d388]/25 text-black">
         <FaClock className="text-[#68d388]" />
@@ -645,38 +781,67 @@ const Applications = () => {
     }
   };
 
-  const filteredApplications = applications.filter((app) => {
-    if (searchText) {
-      const searchLower = searchText.toLowerCase();
-      
-      // Helper to safely get string from user field
-      const getUserString = (app) => {
-        if (app.user_name) return app.user_name.toLowerCase();
-        if (app.userName) return app.userName.toLowerCase();
-        if (app.user_id) {
-          if (typeof app.user_id === 'object') {
-            return (app.user_id.fullName || app.user_id.name || app.user_id._id || "").toLowerCase();
-          }
-          return app.user_id.toLowerCase();
-        }
-        if (app.user) {
-          if (typeof app.user === 'object') {
-            return (app.user.fullName || app.user.name || app.user._id || "").toLowerCase();
-          }
-          return app.user.toLowerCase();
-        }
-        return "";
-      };
-      
-      return (
-        app.scheme_name?.toLowerCase().includes(searchLower) ||
-        getUserString(app).includes(searchLower) ||
-        app.application_id?.toLowerCase().includes(searchLower) ||
-        (app._id && app._id.toLowerCase().includes(searchLower))
-      );
+  // Server-side search/filter already happens in `GET /api/applications`.
+  // Keeping client-side filtering here can hide backend-matched results (field mismatch),
+  // so we render exactly what the server returns.
+  const filteredApplications = applications;
+
+  const canQueueBioauthentication = Number(adminRoleLevel) === 1; // Super Admin only
+  const getApplicationId = (app) => app?._id || app?.application_id || null;
+  const displayedApplicationIds = filteredApplications.map(getApplicationId).filter(Boolean);
+  const isAllSelected =
+    displayedApplicationIds.length > 0 && displayedApplicationIds.every((id) => selectedApplicationIds.includes(id));
+  const isIndeterminate = selectedApplicationIds.length > 0 && !isAllSelected;
+
+  // Keep header checkbox state in sync
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = isIndeterminate;
     }
-    return true;
-  });
+  }, [isIndeterminate]);
+
+  // Reset selection when the admin changes filters/search
+  useEffect(() => {
+    setSelectedApplicationIds([]);
+  }, [statusFilter, stageFilter, searchText]);
+
+  const handleToggleApplication = (applicationId) => {
+    if (!applicationId) return;
+    setSelectedApplicationIds((prev) => {
+      if (prev.includes(applicationId)) return prev.filter((id) => id !== applicationId);
+      return [...prev, applicationId];
+    });
+  };
+
+  const handleQueueForBioauthentication = async () => {
+    if (!canQueueBioauthentication) return;
+    if (!selectedApplicationIds.length) {
+      showToast("Select applications first.", "error");
+      return;
+    }
+
+    try {
+      setBioAuthQueueLoading(true);
+
+      const res = await axios.post(APPLICATION_BIOAUTH_QUEUE_URL, {
+        applicationIds: selectedApplicationIds,
+      });
+
+      if (res.status === 200 || res.status === 201) {
+        showToast("Queued successfully for Bioauthentication.", "success");
+        setSelectedApplicationIds([]);
+        fetchApplications();
+      } else {
+        showToast("Failed to queue applications for Bioauthentication.", "error");
+      }
+    } catch (error) {
+      const errorMessage =
+        error?.response?.data?.message || error?.response?.data?.error || "Failed to queue applications.";
+      showToast(errorMessage, "error");
+    } finally {
+      setBioAuthQueueLoading(false);
+    }
+  };
 
   return (
     <Dashboard sidebarType="System Admin">
@@ -715,6 +880,7 @@ const Applications = () => {
                 <option value="all">All Status</option>
                 <option value="Applied">Applied</option>
                 <option value="Under Review">Under Review</option>
+                <option value="Bioauthentication">Bioauthentication</option>
                 <option value="Approved">Approved</option>
                 <option value="Rejected">Rejected</option>
                 <option value="Pending">Pending</option>
@@ -731,12 +897,9 @@ const Applications = () => {
               >
                 <option value="all">All Stages</option>
                 <option value="Applied">Application Submitted</option>
-                <option value="CSD_Admin_Review">CSD Admin Review</option>
-                <option value="Post_Operator_Review">Post Operator Review</option>
+                <option value="CSC_Admin_Review">CSC Admin Review</option>
                 <option value="Admin_Review">Admin Review</option>
                 <option value="District_Head_Review">District Head Review</option>
-                <option value="Department_Review">Department Review</option>
-                <option value="Secretary_Review">Secretary Review</option>
                 <option value="Completed">Completed</option>
               </select>
             </div>
@@ -761,10 +924,48 @@ const Applications = () => {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            {canQueueBioauthentication && selectedApplicationIds.length > 0 && (
+              <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  {selectedApplicationIds.length} selected (current filter)
+                </div>
+                <button
+                  type="button"
+                  onClick={handleQueueForBioauthentication}
+                  disabled={bioAuthQueueLoading}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-[#d85a30] text-white rounded-lg hover:bg-[#ffb766] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold text-sm"
+                >
+                  {bioAuthQueueLoading ? (
+                    <>
+                      <Spinner /> Processing...
+                    </>
+                  ) : (
+                    <>
+                      <FaUserCheck /> Send for Bioauthentication
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    {canQueueBioauthentication && (
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <input
+                          ref={headerCheckboxRef}
+                          type="checkbox"
+                          checked={isAllSelected}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            if (e.target.checked) setSelectedApplicationIds(displayedApplicationIds);
+                            else setSelectedApplicationIds([]);
+                          }}
+                          className="h-4 w-4 rounded border-gray-300 text-[#d85a30] focus:ring-primary"
+                        />
+                      </th>
+                    )}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Application ID
                     </th>
@@ -798,13 +999,29 @@ const Applications = () => {
                       className="hover:bg-gray-50 transition-colors cursor-pointer"
                       onClick={(e) => {
                         // Don't trigger if clicking on the button
-                        if (e.target.closest('button')) {
+                        if (e.target.closest("button") || e.target.closest('input[type="checkbox"]')) {
                           return;
                         }
                         console.log("Row clicked for app:", app);
                         handleViewApplication(app);
                       }}
                     >
+                      {canQueueBioauthentication && (
+                        <td
+                          className="px-6 py-4 whitespace-nowrap text-sm"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedApplicationIds.includes(getApplicationId(app))}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleToggleApplication(getApplicationId(app));
+                            }}
+                            className="h-4 w-4 rounded border-gray-300 text-[#d85a30] focus:ring-primary"
+                          />
+                        </td>
+                      )}
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {app._id || app.application_id || "N/A"}
                       </td>
@@ -982,21 +1199,16 @@ const Applications = () => {
                               </div>
                               {/* NEW: Show workflow progress if authorization_levels exists */}
                               {app.authorization_levels && Array.isArray(app.authorization_levels) && app.authorization_levels.length > 0 && (() => {
-                                const flippedLevels = [...app.authorization_levels].reverse();
-                                // Use verification_stage/verification_level to determine current step (Post Operator first in flipped order)
-                                let currentDisplayIndex = app.authorization_level_index !== undefined ? (app.authorization_levels.length - 1 - app.authorization_level_index) : 0;
-                                if (app.verification_stage === "Post_Operator_Review" || app.verification_level === 7 || app.verification_level === 8) {
-                                  currentDisplayIndex = 0; // Post Operator is first in flipped display
-                                } else if (app.verification_stage === "Department_Review" || app.verification_level === 4 || app.verification_level === 5) {
-                                  currentDisplayIndex = flippedLevels.indexOf(4) >= 0 ? flippedLevels.indexOf(4) : (flippedLevels.indexOf(5) >= 0 ? flippedLevels.indexOf(5) : currentDisplayIndex);
-                                } else if (app.verification_stage === "Secretary_Review" || app.verification_level === 3) {
-                                  currentDisplayIndex = flippedLevels.indexOf(3) >= 0 ? flippedLevels.indexOf(3) : currentDisplayIndex;
-                                }
+                                // authorization_levels = [1, 2, 3, 4]. Use index directly.
+                                const levels = app.authorization_levels;
+                                const currentDisplayIndex = app.authorization_level_index !== undefined
+                                  ? Math.min(app.authorization_level_index, levels.length - 1)
+                                  : 0;
                                 return (
                                 <div className="mt-3">
                                   <label className="text-xs font-medium text-gray-500 mb-2 block">Workflow Progress</label>
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    {flippedLevels.map((level, displayIndex) => {
+                                    {levels.map((level, displayIndex) => {
                                       const isCompleted = displayIndex < currentDisplayIndex;
                                       const isCurrent = displayIndex === currentDisplayIndex;
                                       const isPending = displayIndex > currentDisplayIndex;
@@ -1015,7 +1227,7 @@ const Applications = () => {
                                           <span className={`text-xs ${isCurrent ? "font-semibold text-[#d85a30]" : isCompleted ? "text-[#d85a30]" : "text-gray-500"}`}>
                                             {getRoleLevelName(level)}
                                           </span>
-                                          {displayIndex < flippedLevels.length - 1 && (
+                                          {displayIndex < levels.length - 1 && (
                                             <span className="text-gray-300 mx-1">→</span>
                                           )}
                                         </div>
@@ -1487,6 +1699,70 @@ const Applications = () => {
                                     </div>
                                   )}
                                 </div>
+
+                                {/* OTP step for completing at Admin_Review */}
+                                {needsCompletionOtp(app, "Verified") && (
+                                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+                                    <h4 className="text-sm font-semibold text-amber-900">OTP verification required</h4>
+                                    {(!adminContactNumber || !adminContactNumber.trim()) ? (
+                                      <p className="text-sm text-amber-800">
+                                        Add a phone number in your{" "}
+                                        <Link to="/system-admin/profile" className="underline font-medium hover:text-amber-900">
+                                          profile settings
+                                        </Link>{" "}
+                                        to complete applications at Admin Review stage.
+                                      </p>
+                                    ) : !otpSent ? (
+                                      <div>
+                                        <button
+                                          type="button"
+                                          onClick={handleSendCompletionOtp}
+                                          disabled={sendOtpLoading}
+                                          className="flex items-center gap-2 px-4 py-2 bg-[#d85a30] text-white rounded-lg hover:bg-[#ffb766] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                                        >
+                                          {sendOtpLoading ? (
+                                            <>
+                                              <Spinner /> Sending OTP...
+                                            </>
+                                          ) : (
+                                            <>Send OTP to my mobile</>
+                                          )}
+                                        </button>
+                                        {otpError === "otp_required" && (
+                                          <p className="text-sm text-amber-700 mt-2">Please send OTP first, then enter it below.</p>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Enter OTP (6 digits)</label>
+                                        <input
+                                          type="text"
+                                          inputMode="numeric"
+                                          maxLength={6}
+                                          value={otpValue}
+                                          onChange={(e) => {
+                                            const v = e.target.value.replace(/\D/g, "");
+                                            setOtpValue(v);
+                                            setOtpError(null);
+                                          }}
+                                          placeholder="123456"
+                                          className="w-full max-w-[160px] px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d85a30] text-sm"
+                                        />
+                                        {otpError === "otp_invalid" && (
+                                          <p className="text-sm text-red-600 mt-1">Invalid OTP. Please try again.</p>
+                                        )}
+                                        <button
+                                          type="button"
+                                          onClick={handleSendCompletionOtp}
+                                          disabled={sendOtpLoading}
+                                          className="text-xs text-[#d85a30] hover:underline mt-2 block"
+                                        >
+                                          Resend OTP
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
 
                                 {/* Action Buttons */}
                                 <div className="grid grid-cols-2 gap-4">

@@ -32,7 +32,6 @@ import PendingAdminsVerification from "./areas/systemAdmin/modules/admin-verific
 import AdvertisementPage from "./areas/systemAdmin/modules/advertisement/Advertisement.page";
 
 import CSDAdminDashboard from "./areas/csdAdmin/dashboard/CSDAdminDashboard";
-import CSDPendingPublicUsers from "./areas/csdAdmin/modules/CSDPendingPublicUsers.page";
 import CSDPendingApplications from "./areas/csdAdmin/modules/CSDPendingApplications.page";
 
 function App() {
@@ -99,11 +98,10 @@ function App() {
         <Route exact path="/system-admin/alerts" element={<Alerts />} />
         <Route exact path="/system-admin/profile" element={<AdminProfile />} />
 
-        {/* CSD Admin Dashboard Routes (CSDAdmin role only) */}
+        {/* CSC Admin Routes (CSCAdmin role only) */}
         <Route exact path="/csd-admin/dashboard" element={<CSDAdminDashboard />} />
-        <Route exact path="/csd-admin/pending-registrations" element={<CSDPendingPublicUsers />} />
         <Route exact path="/csd-admin/pending-applications" element={<CSDPendingApplications />} />
-        <Route exact path="/csd-admin/profile" element={<AdminProfile sidebarType="CSD Admin" />} />
+        <Route exact path="/csd-admin/profile" element={<AdminProfile sidebarType="CSC Admin" />} />
       </Routes>
     </>
   );

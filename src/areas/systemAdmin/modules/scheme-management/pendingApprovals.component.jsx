@@ -26,16 +26,15 @@ const PendingApprovals = () => {
   const [processingId, setProcessingId] = useState(null);
   const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
   const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
-  // Role level mapping for display
+  // Role level mapping for display (authorization_levels: [1, 2, 3, 4])
   const roleLevelNames = {
-    8: "Super Admin",
-    7: "Admin",
-    6: "Department Secretary",
-    5: "Department Head",
-    4: "Department User",
+    1: "Super Admin",
+    2: "Admin",
     3: "DistrictHQ Head",
-    2: "District Overlookers",
-    1: "Post Operator",
+    4: "District Overlookers",
+    // Legacy display
+    6: "DistrictHQ Head",
+    7: "District Overlookers",
   };
 
   // Format authorization levels for display
@@ -54,7 +53,7 @@ const PendingApprovals = () => {
       const user = JSON.parse(stored);
       // CSD Admin has their own dashboard; this page is for system admins
       const role = (user.role || "").trim();
-      if (role === "CSDAdmin") return false;
+      if (role === "CSCAdmin") return false;
       return true;
     } catch (e) {
       return false;

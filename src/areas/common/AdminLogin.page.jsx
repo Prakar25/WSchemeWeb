@@ -42,8 +42,8 @@ export default function AdminLogin() {
       localStorage.setItem("role", user.role || "System Admin");
 
       const role = (user.role || "").trim();
-      if (role === "CSDAdmin") {
-        navigate("/csd-admin/dashboard", { replace: true });
+      if (role === "CSCAdmin") {
+        navigate("/csd-admin/pending-applications", { replace: true });
       } else {
         navigate("/system-admin/dashboard", { replace: true });
       }

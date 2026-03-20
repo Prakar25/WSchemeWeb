@@ -493,15 +493,15 @@ const SchemeCardAdmin = ({
       return "N/A";
     }
     
+    // authorization_levels: [1, 2, 3, 4]
     const roleLevelNames = {
-      8: "Super Admin",
-      7: "Admin",
-      6: "Department Secretary",
-      5: "Department Head",
-      4: "Department User",
+      1: "Super Admin",
+      2: "Admin",
       3: "DistrictHQ Head",
-      2: "District Overlookers",
-      1: "Post Operator",
+      4: "District Overlookers",
+      // Legacy display
+      6: "DistrictHQ Head",
+      7: "District Overlookers",
     };
     
     const levels = schemeObj.authorization_levels.map(level => roleLevelNames[level] || `Level ${level}`);

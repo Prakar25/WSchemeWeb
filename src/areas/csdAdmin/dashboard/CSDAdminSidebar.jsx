@@ -2,7 +2,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
-import { MdOutlineDashboardCustomize, MdPersonAdd, MdAssignment } from "react-icons/md";
+import { MdAssignment } from "react-icons/md";
 import { IoSettingsOutline } from "react-icons/io5";
 import { FiLogOut } from "react-icons/fi";
 
@@ -50,30 +50,10 @@ export default function CSDAdminSidebar({
         <ul>
           <li>
             <NavItem
-              to="/csd-admin/dashboard"
-              pathname={pathname}
-              icon={<MdOutlineDashboardCustomize size={20} />}
-              label="Dashboard"
-              isActive={pathname === "/csd-admin/dashboard" || pathname.includes("/csd-admin/dashboard")}
-            />
-          </li>
-
-          <li>
-            <NavItem
-              to="/csd-admin/pending-registrations"
-              pathname={pathname}
-              icon={<MdPersonAdd size={20} />}
-              label="Pending Registrations"
-              isActive={pathname.includes("/csd-admin/pending-registrations")}
-            />
-          </li>
-
-          <li>
-            <NavItem
               to="/csd-admin/pending-applications"
               pathname={pathname}
               icon={<MdAssignment size={20} />}
-              label="Pending Applications"
+              label="Applications"
               isActive={pathname.includes("/csd-admin/pending-applications")}
             />
           </li>

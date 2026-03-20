@@ -23,7 +23,7 @@ The frontend has an **Admin Registration** page (`/admin-register`) where new ad
   "fullName": "string (required)",
   "email": "string (required)",
   "contactNumber": "string (optional, 10-digit mobile)",
-  "roleLevel": "number (required, 2–8, excludes Super Admin level 1)",
+  "roleLevel": "number (required, 2–5, excludes Super Admin level 1)",
   "departmentId": "string (optional, ObjectId of department)"
 }
 ```
@@ -59,7 +59,7 @@ The frontend has an **Admin Registration** page (`/admin-register`) where new ad
 - `fullName`: required
 - `email`: required, valid email format
 - `contactNumber`: optional, 10-digit Indian mobile if provided
-- `roleLevel`: required, 2–8 (level 1 = Super Admin, created separately)
+- `roleLevel`: required, 2–5 (level 1 = Super Admin, created separately)
 - `departmentId`: optional, if provided must exist in departments collection
 
 **Behaviour:**

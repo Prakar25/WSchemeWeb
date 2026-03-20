@@ -62,16 +62,16 @@ export default function SchemeBeneficiaries() {
           const roleLevel = userData.roleLevel || userData.role_level;
           const role = userData.role || "";
 
-          // Allow bulk upload for: Department Secretary (level 3), Department Head (level 4), Admin (level 2), Super Admin (level 1)
+          // Allow bulk upload for: Super Admin (1), Admin (2), DistrictHQ Head (3), District Overlookers (4)
           const hasAccess =
             roleLevel === 1 || // Super Admin
             roleLevel === 2 || // Admin
-            roleLevel === 3 || // Department Secretary
-            roleLevel === 4 || // Department Head
+            roleLevel === 3 || // DistrictHQ Head
+            roleLevel === 4 || // District Overlookers
             role === "Super Admin" ||
             role === "Admin" ||
-            role === "Department Secretary" ||
-            role === "Department Head";
+            role === "DistrictHQ Head" ||
+            role === "District Overlookers";
 
           setCanBulkUpload(hasAccess);
           console.log("Bulk Upload Access Check:", {

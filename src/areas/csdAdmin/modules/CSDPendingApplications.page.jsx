@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { MdAssignment, MdInfo } from "react-icons/md";
+import { MdAssignment, MdInfo, MdSearch, MdChevronLeft, MdChevronRight } from "react-icons/md";
 import axios from "../../../api/axios";
 import {
   ADMIN_PROFILE_URL,
@@ -17,7 +17,8 @@ import showToast from "../../../utils/notification/NotificationModal";
 import { formatTSWTZDate } from "../../../utils/dateFunctions/formatdate";
 
 export default function CSDPendingApplications() {
-  const [applications, setApplications] = useState([]);
+  const [needsCscVerification, setNeedsCscVerification] = useState([]);
+  const [verifiedOrCompleted, setVerifiedOrCompleted] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canAccess, setCanAccess] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
@@ -26,40 +27,84 @@ export default function CSDPendingApplications() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [processingAction, setProcessingAction] = useState(false);
   const [verificationRemarks, setVerificationRemarks] = useState("");
+  const [aadhaarSearch, setAadhaarSearch] = useState("");
+  const [aadhaarQuery, setAadhaarQuery] = useState(""); // Actual value sent to API (12 digits)
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [pagination, setPagination] = useState(null);
+  const [segregation, setSegregation] = useState(null);
+  const [searchedUser, setSearchedUser] = useState(null);
 
-  const fetchPendingApplications = async () => {
+  const fetchPendingApplications = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(CSD_PENDING_APPLICATIONS_URL);
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("limit", String(limit));
+      if (aadhaarQuery && /^\d{12}$/.test(aadhaarQuery)) {
+        params.set("aadhaarNumber", aadhaarQuery);
+      }
+      const response = await axios.get(`${CSD_PENDING_APPLICATIONS_URL}?${params.toString()}`);
 
       if (response.status === 200 && response.data) {
-        let apps = [];
-        const data = response.data.applications ?? response.data.data ?? response.data;
-        if (Array.isArray(data)) {
-          apps = data;
-        } else if (response.data.status === "success" && response.data.data) {
-          apps = Array.isArray(response.data.data) ? response.data.data : [];
-        } else {
-          apps = response.data.data || response.data.applications || [];
-        }
-        setApplications(Array.isArray(apps) ? apps : []);
+        const data = response.data;
+        const needsVerify = Array.isArray(data.needsCscVerification)
+          ? data.needsCscVerification
+          : Array.isArray(data.needsCscBioAuth)
+            ? data.needsCscBioAuth
+            : [];
+        const verified = Array.isArray(data.verifiedOrCompleted)
+          ? data.verifiedOrCompleted
+          : Array.isArray(data.others)
+            ? data.others
+            : [];
+        setNeedsCscVerification(needsVerify);
+        setVerifiedOrCompleted(verified);
+        setPagination(data.pagination || null);
+        setSegregation(data.segregation || null);
+        setSearchedUser(data.searchedUser || null);
       } else {
-        setApplications([]);
+        setNeedsCscVerification([]);
+        setVerifiedOrCompleted([]);
+        setPagination(null);
+        setSegregation(null);
+        setSearchedUser(null);
       }
     } catch (err) {
       console.error("Error fetching pending applications:", err);
       if (err.response?.status === 403 || err.response?.status === 401) {
         setError(err.response?.data?.message || "You do not have permission to view applications.");
       } else if (err.response?.status === 404) {
-        setError("CSD pending applications endpoint not found.");
+        setError("CSC pending applications endpoint not found.");
       } else {
         setError(err.response?.data?.message || "Failed to fetch pending applications.");
       }
-      setApplications([]);
+      setNeedsCscVerification([]);
+      setVerifiedOrCompleted([]);
+      setPagination(null);
+      setSegregation(null);
+      setSearchedUser(null);
     } finally {
       setLoading(false);
     }
+  }, [page, limit, aadhaarQuery]);
+
+  const handleAadhaarSearch = () => {
+    const digits = (aadhaarSearch || "").replace(/\D/g, "");
+    if (digits.length === 12) {
+      setAadhaarQuery(digits);
+      setPage(1);
+    } else {
+      setAadhaarQuery("");
+      setPage(1);
+    }
+  };
+
+  const clearAadhaarSearch = () => {
+    setAadhaarSearch("");
+    setAadhaarQuery("");
+    setPage(1);
   };
 
   const checkAccess = async () => {
@@ -74,7 +119,7 @@ export default function CSDPendingApplications() {
       if (response.status === 200 && response.data?.user) {
         const user = response.data.user;
         const role = (user.role || "").trim();
-        setCanAccess(role === "CSDAdmin");
+        setCanAccess(role === "CSCAdmin");
       } else {
         setCanAccess(false);
       }
@@ -140,7 +185,7 @@ export default function CSDPendingApplications() {
 
   useEffect(() => {
     if (canAccess) fetchPendingApplications();
-  }, [canAccess]);
+  }, [canAccess, fetchPendingApplications]);
 
   const getApplicantName = (app) =>
     app?.applicantName ??
@@ -156,9 +201,77 @@ export default function CSDPendingApplications() {
     app?.scheme?.name ??
     "—";
 
+  const getStatusText = (app) =>
+    String(app?.status || app?.application_status || app?.verification_status || "pending");
+
+  const needsVerification = (app) => {
+    if (!app) return false;
+    const id = app._id || app.id || app.application_id;
+    return needsCscVerification.some((a) => (a._id || a.id || a.application_id) === id);
+  };
+
+  const renderApplicationsTable = (rows, isVerifiedSlot = false) => (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              Applicant
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              Scheme
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              Applied
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+              Status
+            </th>
+            <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">
+              Details
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {rows.map((app) => {
+            const id = app._id || app.id;
+            return (
+              <tr
+                key={id}
+                onClick={() => fetchApplicationDetail(id)}
+                className="hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <td className="px-4 py-3 text-gray-900 font-medium">
+                  {getApplicantName(app)}
+                </td>
+                <td className="px-4 py-3 text-gray-700">
+                  {getSchemeName(app)}
+                </td>
+                <td className="px-4 py-3 text-gray-700 text-sm">
+                  {app.createdAt ? formatTSWTZDate(app.createdAt) : "—"}
+                </td>
+                <td className="px-4 py-3 text-gray-700 text-sm">
+                  <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${isVerifiedSlot ? "bg-[#c2edda]/40 text-black" : "bg-amber-100 text-amber-800"}`}>
+                    {getStatusText(app)}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#c2edda]/30 text-black text-sm font-medium hover:bg-[#c2edda]/40">
+                    <MdInfo size={16} />
+                    View
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+
   if (checkingAccess) {
     return (
-      <Dashboard sidebarType="CSD Admin">
+      <Dashboard sidebarType="CSC Admin">
         <div className="flex justify-center py-24">
           <Spinner />
         </div>
@@ -168,11 +281,11 @@ export default function CSDPendingApplications() {
 
   if (!canAccess) {
     return (
-      <Dashboard sidebarType="CSD Admin">
+      <Dashboard sidebarType="CSC Admin">
         <div className="p-8">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <h2 className="text-xl font-semibold text-red-800 mb-2">Access Denied</h2>
-            <p className="text-red-600">Only CSDAdmin can access this page.</p>
+            <p className="text-red-600">Only CSCAdmin can access this page.</p>
           </div>
         </div>
       </Dashboard>
@@ -180,19 +293,65 @@ export default function CSDPendingApplications() {
   }
 
   return (
-    <Dashboard sidebarType="CSD Admin">
+    <Dashboard sidebarType="CSC Admin">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MdAssignment className="text-2xl text-[#d85a30]" />
             <h1 className="text-2xl font-bold text-gray-900">
-              <SplitText text="Pending Applications" splitType="chars" delay={30} className="inline-block" />
+              <SplitText text="Applications" splitType="chars" delay={30} className="inline-block" />
             </h1>
+          </div>
+          <div className="flex-1 max-w-md flex items-center gap-2">
+            <div className="relative flex-1">
+              <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                value={aadhaarSearch}
+                onChange={(e) => setAadhaarSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAadhaarSearch()}
+                placeholder="Search via Aadhaar (12 digits)"
+                maxLength={14}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30] outline-none"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleAadhaarSearch}
+              className="px-4 py-2 bg-[#d85a30] text-white rounded-lg text-sm font-medium hover:bg-[#ffb766] whitespace-nowrap"
+            >
+              Search
+            </button>
+            {aadhaarQuery && (
+              <button
+                type="button"
+                onClick={clearAadhaarSearch}
+                className="px-3 py-2 text-gray-600 hover:text-gray-800 text-sm"
+                title="Clear search"
+              >
+                Clear
+              </button>
+            )}
           </div>
         </div>
 
+        {searchedUser && (
+          <div className="p-4 bg-[#c2edda]/20 border border-[#68d388]/40 rounded-lg">
+            <p className="text-sm font-medium text-gray-800">
+              User: {searchedUser.fullName || searchedUser.full_name || "—"} • Aadhaar: {aadhaarQuery}
+            </p>
+            {segregation && (
+              <p className="text-xs text-gray-600 mt-1">
+                Needs Verification: {segregation.needsCscVerificationCount ?? segregation.needsCscBioAuthCount ?? 0} • Verified/Completed: {segregation.verifiedOrCompletedCount ?? segregation.othersCount ?? 0}
+              </p>
+            )}
+          </div>
+        )}
+
         <p className="text-gray-600 text-sm">
-          Scheme applications pending review. Click a row to view details.
+          {aadhaarQuery
+            ? "Applications for this Aadhaar. Click a row to view details."
+            : "CSC queue: applications needing bio-auth. Click a row to view details."}
         </p>
 
         {error && (
@@ -205,71 +364,80 @@ export default function CSDPendingApplications() {
           <div className="flex justify-center py-12">
             <Spinner />
           </div>
-        ) : applications.length === 0 ? (
+        ) : needsCscVerification.length === 0 && verifiedOrCompleted.length === 0 ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-12 text-center">
             <MdAssignment className="mx-auto text-4xl text-gray-400 mb-3" />
-            <p className="text-gray-600 font-medium">No pending applications</p>
+            <p className="text-gray-600 font-medium">
+              {aadhaarQuery ? "No applications found for this Aadhaar" : "No applications available"}
+            </p>
             <p className="text-gray-500 text-sm mt-1">
               {error ? "Access to applications may be restricted." : "New applications will appear here."}
             </p>
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden"
-          >
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                      Applicant
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                      Scheme
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
-                      Applied
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">
-                      Details
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {applications.map((app) => {
-                    const id = app._id || app.id;
-                    return (
-                      <tr
-                        key={id}
-                        onClick={() => fetchApplicationDetail(id)}
-                        className="hover:bg-gray-50 transition-colors cursor-pointer"
-                      >
-                        <td className="px-4 py-3 text-gray-900 font-medium">
-                          {getApplicantName(app)}
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">
-                          {getSchemeName(app)}
-                        </td>
-                        <td className="px-4 py-3 text-gray-700 text-sm">
-                          {app.createdAt
-                            ? formatTSWTZDate(app.createdAt)
-                            : "—"}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#c2edda]/30 text-black text-sm font-medium hover:bg-[#c2edda]/40">
-                            <MdInfo size={16} />
-                            View
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </motion.div>
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden"
+            >
+              <div className="px-4 py-3 border-b border-gray-200 bg-amber-50/50">
+                <p className="text-sm font-semibold text-amber-800">
+                  Needs Verification ({needsCscVerification.length})
+                </p>
+              </div>
+              {needsCscVerification.length > 0 ? (
+                renderApplicationsTable(needsCscVerification, false)
+              ) : (
+                <div className="p-6 text-sm text-gray-500">No applications are pending verification.</div>
+              )}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden"
+            >
+              <div className="px-4 py-3 border-b border-gray-200 bg-[#c2edda]/20">
+                <p className="text-sm font-semibold text-green-800">
+                  Verified / Completed ({verifiedOrCompleted.length})
+                </p>
+              </div>
+              {verifiedOrCompleted.length > 0 ? (
+                renderApplicationsTable(verifiedOrCompleted, true)
+              ) : (
+                <div className="p-6 text-sm text-gray-500">No approved applications in this page.</div>
+              )}
+            </motion.div>
+
+            {pagination && (pagination.totalPages > 1 || pagination.total > limit) && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
+                <p className="text-sm text-gray-600">
+                  Page {pagination.page} of {pagination.totalPages || 1} ({pagination.total ?? needsCscVerification.length + verifiedOrCompleted.length} total)
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={!pagination.hasPrevPage}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                  >
+                    <MdChevronLeft size={18} />
+                    Prev
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={!pagination.hasNextPage}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                  >
+                    Next
+                    <MdChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -318,32 +486,34 @@ export default function CSDPendingApplications() {
                 </pre>
               </div>
             )}
-            <div className="mt-4 pt-4 border-t space-y-3">
-              <label className="block text-sm font-medium text-gray-600">Remarks (optional)</label>
-              <textarea
-                value={verificationRemarks}
-                onChange={(e) => setVerificationRemarks(e.target.value)}
-                placeholder="Add remarks for verification..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                rows={2}
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleVerify("Verified")}
-                  disabled={processingAction}
-                  className="flex-1 px-4 py-2 rounded-md bg-[#d85a30] text-white hover:bg-[#ffb766] font-medium disabled:opacity-60"
-                >
-                  {processingAction ? "Processing..." : "Verify"}
-                </button>
-                <button
-                  onClick={() => handleVerify("Forwarded")}
-                  disabled={processingAction}
-                  className="flex-1 px-4 py-2 rounded-md bg-[#d85a30] text-white hover:bg-[#ffb766] font-medium disabled:opacity-60"
-                >
-                  Forward
-                </button>
+            {needsVerification(selectedApplication) && (
+              <div className="mt-4 pt-4 border-t space-y-3">
+                <label className="block text-sm font-medium text-gray-600">Remarks (optional)</label>
+                <textarea
+                  value={verificationRemarks}
+                  onChange={(e) => setVerificationRemarks(e.target.value)}
+                  placeholder="Add remarks for verification..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  rows={2}
+                />
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleVerify("Verified")}
+                    disabled={processingAction}
+                    className="flex-1 px-4 py-2 rounded-md bg-[#d85a30] text-white hover:bg-[#ffb766] font-medium disabled:opacity-60"
+                  >
+                    {processingAction ? "Processing..." : "Verify"}
+                  </button>
+                  <button
+                    onClick={() => handleVerify("Forwarded")}
+                    disabled={processingAction}
+                    className="flex-1 px-4 py-2 rounded-md bg-[#d85a30] text-white hover:bg-[#ffb766] font-medium disabled:opacity-60"
+                  >
+                    Forward
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ) : null}
       </GenericModal>

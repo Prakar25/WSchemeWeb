@@ -20,12 +20,14 @@ import { formatDateInDDMonYYYY } from "../../../../utils/dateFunctions/formatdat
 const ROLE_LEVEL_NAMES = {
   1: "Super Admin",
   2: "Admin",
-  3: "Department Secretary",
-  4: "Department Head",
-  5: "DistrictHQ Head",
-  6: "Department User",
+  3: "DistrictHQ Head",
+  4: "District Overlookers",
+  5: "CSCAdmin",
+  // Legacy display (backend migration maps 6→3, 7/8→4, 9→5)
+  6: "DistrictHQ Head",
   7: "District Overlookers",
-  8: "Post Operator",
+  8: "CSCAdmin",
+  9: "CSCAdmin",
 };
 
 export default function PendingAdminsVerification() {
@@ -73,12 +75,12 @@ export default function PendingAdminsVerification() {
         const user = response.data.user;
         const roleLevel = user.roleLevel ?? user.role_level;
         const role = (user.role || "").toLowerCase();
-        // Only Super Admin (1) or Department Secretary (3) can verify
+        // Only Super Admin (1) or Admin (2) can verify new admin registrations
         const allowed =
           roleLevel === 1 ||
-          roleLevel === 3 ||
+          roleLevel === 2 ||
           role === "super admin" ||
-          role === "department secretary";
+          role === "admin";
         setCanAccess(!!allowed);
       } else {
         setCanAccess(false);
@@ -184,7 +186,7 @@ export default function PendingAdminsVerification() {
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <h2 className="text-xl font-semibold text-red-800 mb-2">Access Denied</h2>
             <p className="text-red-600">
-              Only Super Admin or Department Secretary can verify pending admin registrations.
+              Only Super Admin or Admin can verify pending admin registrations.
             </p>
           </div>
         </div>

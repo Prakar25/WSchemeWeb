@@ -10,7 +10,8 @@ import {
 import axios from "../../../api/axios";
 import { APPLICATIONS_USER_URL } from "../../../api/api_routing_urls";
 import { getStoredUser } from "../../../utils/user.utils";
-import { formatDateInDDMonYYYY } from "../../../utils/dateFunctions/formatdate";
+import { formatDateInDDMonYYYY, formatTSWTZDate } from "../../../utils/dateFunctions/formatdate";
+import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 
 import Footer from "../footer.component";
 import SplitText from "../../../reusable-components/SplitText/SplitText";
@@ -19,6 +20,7 @@ import PublicHeader from "../components/PublicHeader.component";
 export default function PublicApplications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedApplication, setSelectedApplication] = useState(null);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -51,6 +53,31 @@ export default function PublicApplications() {
 
     fetchApplications();
   }, []);
+
+  const handleViewDetails = (app) => {
+    setSelectedApplication(app);
+  };
+
+  const closeModal = () => {
+    setSelectedApplication(null);
+  };
+
+  const isPdfFile = (fileUrl) => /\.pdf(\?.*)?$/i.test(String(fileUrl || ""));
+
+  const openDocument = (fileUrl) => {
+    const fullUrl = displayMedia(fileUrl);
+    if (fullUrl) window.open(fullUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const d = new Date(dateString);
+      return isNaN(d.getTime()) ? String(dateString) : formatTSWTZDate(dateString);
+    } catch {
+      return String(dateString);
+    }
+  };
 
   // Get status config
   const statusConfig = {
@@ -138,7 +165,11 @@ export default function PublicApplications() {
                       const verificationStage = app.verification_stage_display || app.verification_stage || "N/A";
 
                     return (
-                        <tr key={app._id || app.applicationId || index} className="hover:bg-gray-50">
+                        <tr
+                          key={app._id || app.applicationId || index}
+                          className="hover:bg-gray-50 cursor-pointer"
+                          onClick={() => handleViewDetails(app)}
+                        >
                           <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900">
                               {app.schemeName || app.scheme_name || "N/A"}
@@ -168,8 +199,12 @@ export default function PublicApplications() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                             {dateApplied}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button className="text-[#d85a30] hover:text-[#ffb766] font-semibold">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() => handleViewDetails(app)}
+                            className="text-[#d85a30] hover:text-[#ffb766] font-semibold"
+                          >
                             View Details
                           </button>
                         </td>
@@ -184,6 +219,182 @@ export default function PublicApplications() {
 
         </div>
       </main>
+
+      {/* Application Detail Modal - uses list data (public user's own applications) */}
+      {selectedApplication && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
+          onClick={(e) => e.target === e.currentTarget && closeModal()}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Application Details</h2>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+
+              {selectedApplication && (
+                <div className="space-y-6">
+                  {/* Scheme name */}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Scheme</h3>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {selectedApplication.schemeName || selectedApplication.scheme_name || "N/A"}
+                    </p>
+                  </div>
+
+                  {/* Status & Verification Stage */}
+                  <div className="flex flex-wrap gap-3">
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Status: </span>
+                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
+                        selectedApplication.status === "Approved" ? "bg-[#c2edda]/40 text-black" :
+                        selectedApplication.status === "Rejected" ? "bg-red-100 text-red-800" :
+                        "bg-[#68d388]/25 text-black"
+                      }`}>
+                        {selectedApplication.status || "Pending"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Stage: </span>
+                      <span className="text-sm text-gray-900">
+                        {selectedApplication.verification_stage_display || 
+                         (selectedApplication.verification_stage || "N/A").replace(/_/g, " ")}
+                      </span>
+                    </div>
+                    {selectedApplication.date_applied && (
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Applied: </span>
+                        <span className="text-sm text-gray-900">{formatDate(selectedApplication.date_applied)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Form Data */}
+                  {selectedApplication.form_data && Object.keys(selectedApplication.form_data).length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Information You Submitted</h3>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {Object.entries(selectedApplication.form_data).map(([key, value]) => (
+                            <div key={key}>
+                              <label className="text-sm font-medium text-gray-500 block">
+                                {key.replace(/_/g, " ")}
+                              </label>
+                              <p className="text-gray-900 text-sm">
+                                {value === null || value === undefined ? "—" :
+                                 typeof value === "object"
+                                   ? (Array.isArray(value) ? value.join(", ") : JSON.stringify(value))
+                                   : String(value)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Documents */}
+                  {(() => {
+                    const docs = selectedApplication.documents || selectedApplication.documents_submitted || [];
+                    if (!Array.isArray(docs) || docs.length === 0) return null;
+                    return (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Submitted Documents</h3>
+                        <div className="space-y-2">
+                          {docs.map((doc, idx) => {
+                            const docType = doc.document_type || doc.documentType;
+                            const fileUrl = doc.file_url || doc.fileUrl;
+                            const uploadedAt = doc.uploaded_at || doc.uploadedAt;
+                            return (
+                              <div key={idx} className="bg-gray-50 rounded-lg p-3">
+                                {docType && <p className="font-medium text-gray-900">{docType}</p>}
+                                {uploadedAt && <p className="text-xs text-gray-500">Uploaded: {formatDate(uploadedAt)}</p>}
+                                {fileUrl && (
+                                  isPdfFile(fileUrl) ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => openDocument(fileUrl)}
+                                      className="text-[#d85a30] hover:text-[#ffb766] text-sm mt-1"
+                                    >
+                                      View PDF
+                                    </button>
+                                  ) : (
+                                    <a
+                                      href={displayMedia(fileUrl)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[#d85a30] hover:text-[#ffb766] text-sm mt-1 inline-block"
+                                    >
+                                      View Document
+                                    </a>
+                                  )
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Verification Progress */}
+                  {selectedApplication.verification_history && selectedApplication.verification_history.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Verification Progress</h3>
+                      <div className="space-y-3">
+                        {selectedApplication.verification_history.map((h, idx) => (
+                          <div key={idx} className="border-l-4 border-[#d85a30] pl-3 py-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <span className="font-medium text-gray-900">{h.verified_by_name || "—"}</span>
+                                <span className="text-xs text-gray-500 ml-1">
+                                  ({h.verified_by_role || "—"} {h.verified_by_role_level ? `• Level ${h.verified_by_role_level}` : ""})
+                                </span>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
+                                    h.action === "Verified" || h.action === "Forwarded" ? "bg-[#c2edda]/30" :
+                                    h.action === "Rejected" ? "bg-red-100 text-red-800" : "bg-gray-100"
+                                  }`}>
+                                    {h.action}
+                                  </span>
+                                  {h.stage && <span className="text-xs text-gray-500">{h.stage.replace(/_/g, " ")}</span>}
+                                </div>
+                                {h.remarks && <p className="text-sm text-gray-600 mt-1 italic">"{h.remarks}"</p>}
+                              </div>
+                              <span className="text-xs text-gray-500 whitespace-nowrap">{formatDate(h.verified_at)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Current verifier */}
+                  {selectedApplication.current_verifier && (
+                    <div className="pt-2 border-t">
+                      <span className="text-sm font-medium text-gray-500">Currently with: </span>
+                      <span className="text-sm text-gray-900">
+                        {selectedApplication.current_verifier.name || selectedApplication.current_verifier.role || "—"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

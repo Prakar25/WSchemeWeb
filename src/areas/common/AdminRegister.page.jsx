@@ -45,14 +45,12 @@ export default function AdminRegister() {
             }));
           setRoles(availableRoles);
         } else {
+          // Fallback: sequential role levels 2–5 (level 1 = Super Admin, created separately)
           setRoles([
             { value: 2, label: "Admin (Level 2)", role: "Admin" },
-            { value: 3, label: "Department Secretary (Level 3)", role: "Department Secretary" },
-            { value: 4, label: "Department Head (Level 4)", role: "Department Head" },
-            { value: 5, label: "DistrictHQ Head (Level 5)", role: "DistrictHQ Head" },
-            { value: 6, label: "Department User (Level 6)", role: "Department User" },
-            { value: 7, label: "District Overlookers (Level 7)", role: "District Overlookers" },
-            { value: 8, label: "Post Operator (Level 8)", role: "Post Operator" },
+            { value: 3, label: "DistrictHQ Head (Level 3)", role: "DistrictHQ Head" },
+            { value: 4, label: "District Overlookers (Level 4)", role: "District Overlookers" },
+            { value: 5, label: "CSCAdmin (Level 5)", role: "CSCAdmin" },
           ]);
         }
 
@@ -65,8 +63,9 @@ export default function AdminRegister() {
         console.error("Error fetching options:", err);
         setRoles([
           { value: 2, label: "Admin (Level 2)" },
-          { value: 3, label: "Department Secretary (Level 3)" },
-          { value: 4, label: "Department Head (Level 4)" },
+          { value: 3, label: "DistrictHQ Head (Level 3)" },
+          { value: 4, label: "District Overlookers (Level 4)" },
+          { value: 5, label: "CSCAdmin (Level 5)" },
         ]);
       } finally {
         setLoadingOptions(false);

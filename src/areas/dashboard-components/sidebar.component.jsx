@@ -14,9 +14,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
   const [adminProfile, setAdminProfile] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch admin profile for System Admin or CSD Admin (JWT sent via axios interceptor)
+  // Fetch admin profile for System Admin or CSC Admin (JWT sent via axios interceptor)
   useEffect(() => {
-    if (sidebarType === "System Admin" || sidebarType === "CSD Admin") {
+    if (sidebarType === "System Admin" || sidebarType === "CSC Admin") {
       const fetchAdminProfile = async () => {
         try {
           const response = await axios.get(ADMIN_PROFILE_URL);
@@ -164,7 +164,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
             </svg>
           </button>
 
-          {sidebarType === "System Admin" || sidebarType === "CSD Admin" ? (
+          {sidebarType === "System Admin" || sidebarType === "CSC Admin" ? (
             <NavLink end to="#" className="block w-full">
               {sidebarExpanded && (
                 <div className="flex items-center gap-3">
@@ -202,7 +202,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
                           {adminProfile.roleLevel === 1 && (
                             <span className="text-xs text-[#c2edda] font-medium">(Highest)</span>
                           )}
-                          {adminProfile.roleLevel === 8 && (
+                          {adminProfile.roleLevel === 5 && (
                             <span className="text-xs text-gray-300 font-medium">(Lowest)</span>
                           )}
                         </div>
@@ -270,7 +270,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
           />
         )}
 
-        {sidebarType === "CSD Admin" && (
+        {sidebarType === "CSC Admin" && (
           <CSDAdminSidebar
             pathname={pathname}
             sidebarExpanded={sidebarExpanded}

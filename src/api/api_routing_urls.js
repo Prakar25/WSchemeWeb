@@ -58,9 +58,11 @@ export const APPLICATIONS_ADMIN_URL = "/applications"; // Admin endpoint to get 
 export const APPLICATIONS_SCHEME_URL = "/applications/scheme"; // GET /applications/scheme/:scheme_id - Get all applicants for a scheme
 export const APPLICATION_DETAIL_URL = "/applications"; // GET /applications/:applicationId - Get application details
 export const APPLICATION_VERIFY_URL = "/applications"; // POST /applications/:applicationId/verify - Verify application (Verified, Forwarded, Returned, Rejected)
+export const APPLICATION_SEND_COMPLETION_OTP_URL = "/applications"; // POST /applications/:id/send-completion-otp - Send OTP for completing at Admin_Review
 export const APPLICATION_FORWARD_URL = "/applications"; // POST /applications/:applicationId/forward - Forward application to specific admin
 export const APPLICATION_ASSIGN_URL = "/applications"; // POST /applications/:applicationId/assign - Assign application to admin
 export const APPLICATION_NEXT_STAGE_ADMINS_URL = "/applications"; // GET /applications/:applicationId/next-stage-admins - Get admins for next stage
+export const APPLICATION_BIOAUTH_QUEUE_URL = "/applications/bioauthentication/queue"; // POST /applications/bioauthentication/queue - Queue apps for bio-auth restart
 
 // Bulk Upload URLs
 export const BULK_UPLOAD_PREVIEW_URL = "/bulk-upload/preview"; // POST /bulk-upload/preview - Upload file and get preview
@@ -68,8 +70,6 @@ export const BULK_UPLOAD_CONFIRM_URL = "/bulk-upload/confirm"; // POST /bulk-upl
 
 //#endregion
 
-//#region CSD Admin URLs (CSDAdmin role only)
-export const CSD_PENDING_PUBLIC_USERS_URL = "/csd/pending-public-users";
-export const CSD_VERIFY_PUBLIC_USER_URL = "/csd/verify-public-user";
-export const CSD_PENDING_APPLICATIONS_URL = "/csd/pending-applications"; // Applications with verification_level 9, status !== "Rejected"
+//#region CSC Admin URLs (CSCAdmin role only)
+export const CSD_PENDING_APPLICATIONS_URL = "/csd/pending-applications"; // Applications with verification_level 5 (or 9 legacy), status !== "Rejected"
 //#endregion
