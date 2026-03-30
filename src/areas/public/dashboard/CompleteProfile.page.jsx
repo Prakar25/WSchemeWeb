@@ -18,6 +18,7 @@ import Spinner from "../../../reusable-components/spinner/spinner.component";
 import Footer from "../footer.component";
 import PublicHeader from "../components/PublicHeader.component";
 import { FiUpload, FiX, FiCheck, FiTrash2, FiPlus } from "react-icons/fi";
+import { getCountries, getStatesForCountry, getDistrictsForState, normalizeLocationValue } from "../../../utils/locationOptions";
 
 export default function CompleteProfile() {
   const navigate = useNavigate();
@@ -52,6 +53,7 @@ export default function CompleteProfile() {
   });
 
   const [familyDetails, setFamilyDetails] = useState([]);
+  const [locationUi, setLocationUi] = useState({ country: "India", state: "", district: "" });
 
   // Load user profile on mount
   useEffect(() => {
@@ -110,6 +112,11 @@ export default function CompleteProfile() {
         setValue("state", userData.address?.state || "");
         setValue("pincode", userData.address?.pincode || "");
         setValue("country", userData.address?.country || "India");
+        setLocationUi({
+          country: normalizeLocationValue(userData.address?.country || "India") || "India",
+          state: normalizeLocationValue(userData.address?.state || ""),
+          district: normalizeLocationValue(userData.address?.district || ""),
+        });
 
         if (Array.isArray(userData.familyDetails) && userData.familyDetails.length > 0) {
           setFamilyDetails(userData.familyDetails.map((f) => ({
@@ -502,39 +509,85 @@ export default function CompleteProfile() {
                 setValue={setValue}
               />
 
-              <Input
-                defaultName="district"
-                register={register}
-                name="District"
-                required={false}
-                pattern={null}
-                errors={errors}
-                placeholder="District"
-                setError={setError}
-                clearError={clearErrors}
-                autoComplete="address-level1"
-                type="text"
-                classes="rounded-md px-3 py-2 text-sm w-full"
-                onChangeInput={null}
-                setValue={setValue}
-              />
+              {/* Country / State / District as dropdowns (consistent everywhere) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                <select
+                  value={locationUi.country}
+                  onChange={(e) => {
+                    const nextCountry = e.target.value;
+                    setLocationUi((p) => ({ ...p, country: nextCountry, state: "", district: "" }));
+                    setValue("country", nextCountry);
+                    setValue("state", "");
+                    setValue("district", "");
+                  }}
+                  className={`w-full rounded-md px-3 py-2 text-sm border ${
+                    errors.country ? "border-red-500" : "border-gray-300"
+                  } focus:outline-none focus:ring-2 focus:ring-primary bg-white`}
+                >
+                  {getCountries().map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-              <Input
-                defaultName="state"
-                register={register}
-                name="State"
-                required={false}
-                pattern={null}
-                errors={errors}
-                placeholder="State"
-                setError={setError}
-                clearError={clearErrors}
-                autoComplete="address-level1"
-                type="text"
-                classes="rounded-md px-3 py-2 text-sm w-full"
-                onChangeInput={null}
-                setValue={setValue}
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                <select
+                  value={locationUi.state}
+                  onChange={(e) => {
+                    const nextState = e.target.value;
+                    setLocationUi((p) => ({ ...p, state: nextState, district: "" }));
+                    setValue("state", nextState);
+                    setValue("district", "");
+                  }}
+                  className={`w-full rounded-md px-3 py-2 text-sm border ${
+                    errors.state ? "border-red-500" : "border-gray-300"
+                  } focus:outline-none focus:ring-2 focus:ring-primary bg-white`}
+                >
+                  <option value="">Select State</option>
+                  {/* Preserve existing state if it isn't in the list */}
+                  {locationUi.state &&
+                    !getStatesForCountry(locationUi.country).includes(locationUi.state) && (
+                      <option value={locationUi.state}>{locationUi.state}</option>
+                    )}
+                  {getStatesForCountry(locationUi.country).map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">District</label>
+                <select
+                  value={locationUi.district}
+                  onChange={(e) => {
+                    const nextDistrict = e.target.value;
+                    setLocationUi((p) => ({ ...p, district: nextDistrict }));
+                    setValue("district", nextDistrict);
+                  }}
+                  disabled={!locationUi.state}
+                  className={`w-full rounded-md px-3 py-2 text-sm border ${
+                    errors.district ? "border-red-500" : "border-gray-300"
+                  } focus:outline-none focus:ring-2 focus:ring-primary bg-white disabled:bg-gray-50 disabled:cursor-not-allowed`}
+                >
+                  <option value="">{locationUi.state ? "Select District" : "Select State first"}</option>
+                  {/* Preserve existing district if it isn't in the list */}
+                  {locationUi.district &&
+                    !getDistrictsForState(locationUi.state).includes(locationUi.district) && (
+                      <option value={locationUi.district}>{locationUi.district}</option>
+                    )}
+                  {getDistrictsForState(locationUi.state).map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <Input
                 defaultName="pincode"
@@ -553,22 +606,8 @@ export default function CompleteProfile() {
                 setValue={setValue}
               />
 
-              <Input
-                defaultName="country"
-                register={register}
-                name="Country"
-                required={false}
-                pattern={null}
-                errors={errors}
-                placeholder="Country"
-                setError={setError}
-                clearError={clearErrors}
-                autoComplete="country"
-                type="text"
-                classes="rounded-md px-3 py-2 text-sm w-full"
-                onChangeInput={null}
-                setValue={setValue}
-              />
+              {/* Keep country as dropdown only (no free-text input) */}
+              <input type="hidden" {...register("country")} value={locationUi.country} />
             </div>
             </Step>
 

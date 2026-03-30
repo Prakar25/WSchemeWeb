@@ -157,8 +157,16 @@ const SchemesList = ({
   }, [schemesList, searchQuery]);
 
   const onClickEdit = (schemeObj) => {
+    const rawImagePath = schemeObj?.scheme_image_file_url;
+    const resolvedImageUrl = rawImagePath ? displayMedia(rawImagePath) : "";
+    console.log("[Edit scheme] image path", {
+      schemeId: schemeObj?._id,
+      schemeName: schemeObj?.scheme_name,
+      scheme_image_file_url: rawImagePath,
+      resolvedImageUrl,
+    });
     setEditSchemeDetails(schemeObj);
-    setEditSchemeDeleteImagePath(schemeObj?.scheme_image_file_url);
+    setEditSchemeDeleteImagePath(rawImagePath);
     setCurrentPage(!currentPage);
   };
 
@@ -504,7 +512,12 @@ const SchemeCardAdmin = ({
       7: "District Overlookers",
     };
     
-    const levels = schemeObj.authorization_levels.map(level => roleLevelNames[level] || `Level ${level}`);
+    // Display flow from lower authority → higher authority (e.g. District Overlookers → Super Admin)
+    // Backend often stores higher authority first; for display we sort desc (4→1, 8→4, etc.)
+    const levels = schemeObj.authorization_levels
+      .slice()
+      .sort((a, b) => Number(b) - Number(a))
+      .map((level) => roleLevelNames[level] || `Level ${level}`);
     return levels.join(" → ");
   };
 

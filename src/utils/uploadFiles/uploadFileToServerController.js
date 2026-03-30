@@ -8,18 +8,24 @@ const BASE_URL =
     ? import.meta.env.VITE_ENDPOINT_URL
     : import.meta.env.VITE_ENDPOINT_URL_ONLINE;
 
-// Base URL for document/media view links. Use env with no trailing slash, e.g.:
-// VITE_MEDIA_ENDPOINT_URL=http://localhost:3000 or VITE_API_URL=http://localhost:3000
+const stripTrailingSlash = (s) => String(s || "").replace(/\/$/, "");
+
+/** Static uploads live on the API host root (e.g. /public/uploads), not under /api. */
+const stripApiSuffix = (s) => stripTrailingSlash(s).replace(/\/api$/i, "");
+
+// Base URL for document/media view links (no trailing slash). Prefer explicit media env; otherwise
+// fall through to API URL and strip a trailing `/api` so static paths are /public/uploads/… not /api/public/…
 const getMediaBaseUrl = () => {
-  const url =
-    import.meta.env.VITE_NODE_ENV === "development"
+  const isDev = import.meta.env.VITE_NODE_ENV === "development";
+  const base =
+    (isDev
       ? import.meta.env.VITE_MEDIA_ENDPOINT_URL ||
         import.meta.env.VITE_API_URL ||
         import.meta.env.VITE_ENDPOINT_URL
       : import.meta.env.VITE_MEDIA_ENDPOINT_URL_ONLINE ||
         import.meta.env.VITE_API_URL ||
-        import.meta.env.VITE_ENDPOINT_URL_ONLINE;
-  return (url || "").replace(/\/$/, "");
+        import.meta.env.VITE_ENDPOINT_URL_ONLINE) || "";
+  return stripApiSuffix(stripTrailingSlash(base));
 };
 
 export const uploadFileToServer = async (file, folderName) => {
@@ -54,17 +60,34 @@ export const uploadFileToServer = async (file, folderName) => {
 };
 
 /**
+ * DB often stores filesystem-relative paths like "public/uploads/...".
+ * With express.static("public"), those files are served at "/uploads/..." (no "public" in URL).
+ * If we keep "public" in the URL, production returns 404. Optional override: VITE_MEDIA_KEEP_PUBLIC_PREFIX=true
+ */
+const pathForStaticUrl = (filePath) => {
+  const raw = String(filePath).trim();
+  if (/^https?:\/\//i.test(raw)) return raw;
+  const keepPublic = import.meta.env.VITE_MEDIA_KEEP_PUBLIC_PREFIX === "true";
+  let p = raw.replace(/^\/+/, "");
+  if (!keepPublic && /^public\//i.test(p)) {
+    p = p.replace(/^public\//i, "");
+  }
+  return p.startsWith("/") ? p : `/${p}`;
+};
+
+/**
  * Build document/view URL for "View" links.
- * Correct: baseUrl + filePath → e.g. http://localhost:3000/public/uploads/...
- * Wrong: baseUrl with trailing slash + filePath with leading slash → //public/... → "Route not found"
- * Env: set VITE_MEDIA_ENDPOINT_URL or VITE_API_URL with no trailing slash.
+ * Env: VITE_MEDIA_ENDPOINT_URL(_ONLINE) = origin only, no trailing slash (e.g. https://welfareconnect.in).
  */
 export const displayMedia = (filePath) => {
   if (!filePath) return "";
+  const raw = String(filePath).trim();
+  if (/^https?:\/\//i.test(raw)) return raw;
+
   const baseUrl = getMediaBaseUrl();
-  if (!baseUrl) return String(filePath).startsWith("/") ? filePath : `/${filePath}`;
-  // documentUrl = baseUrl + filePath (filePath usually has leading slash from backend)
-  return baseUrl + (String(filePath).startsWith("/") ? filePath : `/${filePath}`);
+  const pathPart = pathForStaticUrl(raw);
+  if (!baseUrl) return pathPart;
+  return baseUrl.replace(/\/$/, "") + pathPart;
 };
 
 export const originalFilename = (filePath) => {

@@ -13,6 +13,7 @@ import PublicHeader from "../components/PublicHeader.component";
 import Footer from "../footer.component";
 import DocDropzone from "../../../reusable-components/FileUploader/PDFImageDropZoneUploader/PDFImageDropZoneUploader.component";
 import Spinner from "../../../reusable-components/spinner/spinner.component";
+import { getCountries, getStatesForCountry, getDistrictsForState, normalizeLocationValue } from "../../../utils/locationOptions";
 
 export default function ApplyToScheme() {
   const navigate = useNavigate();
@@ -119,9 +120,10 @@ export default function ApplyToScheme() {
     { key: "house", label: "House No.", type: "text", profileKeys: ["address.house"], getFromProfile: (p) => getAddr(p, "house") },
     { key: "street", label: "Street", type: "text", profileKeys: ["address.street"], getFromProfile: (p) => getAddr(p, "street") },
     { key: "locality", label: "Locality", type: "text", profileKeys: ["address.locality"], getFromProfile: (p) => getAddr(p, "locality") },
-    { key: "district", label: "City / District", type: "text", profileKeys: ["address.district"], getFromProfile: (p) => getAddr(p, "district") },
-    { key: "state", label: "State", type: "text", profileKeys: ["address.state"], getFromProfile: (p) => getAddr(p, "state") },
+    { key: "district", label: "City / District", type: "district", profileKeys: ["address.district"], getFromProfile: (p) => getAddr(p, "district") },
+    { key: "state", label: "State", type: "state", profileKeys: ["address.state"], getFromProfile: (p) => getAddr(p, "state") },
     { key: "pincode", label: "Pincode", type: "text", profileKeys: ["address.pincode"], getFromProfile: (p) => getAddr(p, "pincode") },
+    { key: "country", label: "Country", type: "country", profileKeys: ["address.country"], getFromProfile: (p) => getAddr(p, "country") || "India" },
     { key: "constituency", label: "Constituency", type: "text", profileKeys: ["constituency", "demographics.constituency", "address.constituency"] },
     { key: "gpu", label: "GPU", type: "text", profileKeys: ["gpu", "demographics.gpu", "address.gpu"] },
     { key: "ward", label: "Ward", type: "text", profileKeys: ["ward", "demographics.ward", "address.ward"] },
@@ -595,6 +597,62 @@ export default function ApplyToScheme() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {f.label} {isRequired && <span className="text-red-500">*</span>}
                     </label>
+                    {f.type === "country" && (
+                      <select
+                        value={normalizeLocationValue(val) || "India"}
+                        disabled={isPrePopulated}
+                        onChange={!isPrePopulated ? (e) => {
+                          handleFieldChange("country", e.target.value);
+                          // Reset dependent fields
+                          handleFieldChange("state", "");
+                          handleFieldChange("district", "");
+                        } : undefined}
+                        className={inputClass}
+                      >
+                        {getCountries().map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    )}
+                    {f.type === "state" && (
+                      <select
+                        value={normalizeLocationValue(val)}
+                        disabled={isPrePopulated}
+                        onChange={!isPrePopulated ? (e) => {
+                          handleFieldChange("state", e.target.value);
+                          handleFieldChange("district", "");
+                        } : undefined}
+                        className={inputClass}
+                      >
+                        <option value="">Select State</option>
+                        {normalizeLocationValue(val) &&
+                          !getStatesForCountry(formData.country || "India").includes(normalizeLocationValue(val)) && (
+                            <option value={normalizeLocationValue(val)}>{normalizeLocationValue(val)}</option>
+                          )}
+                        {getStatesForCountry(formData.country || "India").map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    )}
+                    {f.type === "district" && (
+                      <select
+                        value={normalizeLocationValue(val)}
+                        disabled={isPrePopulated || !(formData.state || fromProfile && f.key === "district" ? (formData.state || getAddr(user, "state")) : formData.state)}
+                        onChange={!isPrePopulated ? (e) => handleFieldChange("district", e.target.value) : undefined}
+                        className={inputClass}
+                      >
+                        <option value="">
+                          {(formData.state || getAddr(user, "state")) ? "Select District" : "Select State first"}
+                        </option>
+                        {normalizeLocationValue(val) &&
+                          !getDistrictsForState(formData.state || getAddr(user, "state")).includes(normalizeLocationValue(val)) && (
+                            <option value={normalizeLocationValue(val)}>{normalizeLocationValue(val)}</option>
+                          )}
+                        {getDistrictsForState(formData.state || getAddr(user, "state")).map((d) => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </select>
+                    )}
                     {f.type === "text" && (
                       <input
                         type="text"

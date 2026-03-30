@@ -40,7 +40,10 @@ const PendingApprovals = () => {
   // Format authorization levels for display
   const formatAuthorizationLevels = (authLevels) => {
     if (!authLevels || !Array.isArray(authLevels)) return "N/A";
-    const levels = authLevels.map((level) => roleLevelNames[level] || `Level ${level}`);
+    const levels = authLevels
+      .slice()
+      .sort((a, b) => Number(b) - Number(a))
+      .map((level) => roleLevelNames[level] || `Level ${level}`);
     return levels.join(" → ");
   };
 

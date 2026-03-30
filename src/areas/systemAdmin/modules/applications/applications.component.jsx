@@ -390,12 +390,15 @@ const Applications = () => {
         return "Completed";
       }
       
-      // Get current level in workflow
-      const currentLevel = app.authorization_levels[currentIndex];
+      // Display flow from lower authority → higher authority.
+      const displayLevels = app.authorization_levels.slice().sort((a, b) => Number(b) - Number(a));
+      const currentLevelRaw = app.authorization_levels[currentIndex];
+      const displayIndex = Math.max(0, displayLevels.indexOf(currentLevelRaw));
+      const currentLevel = displayLevels[displayIndex] ?? currentLevelRaw;
       const levelName = getRoleLevelName(currentLevel);
       
       // Show progress: "Step X of Y: Role Name"
-      return `Step ${currentIndex + 1} of ${app.authorization_levels.length}: ${levelName}`;
+      return `Step ${displayIndex + 1} of ${app.authorization_levels.length}: ${levelName}`;
     }
     
     // Fallback to verification_level (legacy) - sequential levels 1–5
@@ -1199,11 +1202,11 @@ const Applications = () => {
                               </div>
                               {/* NEW: Show workflow progress if authorization_levels exists */}
                               {app.authorization_levels && Array.isArray(app.authorization_levels) && app.authorization_levels.length > 0 && (() => {
-                                // authorization_levels = [1, 2, 3, 4]. Use index directly.
-                                const levels = app.authorization_levels;
-                                const currentDisplayIndex = app.authorization_level_index !== undefined
-                                  ? Math.min(app.authorization_level_index, levels.length - 1)
-                                  : 0;
+                                const rawLevels = app.authorization_levels;
+                                const levels = rawLevels.slice().sort((a, b) => Number(b) - Number(a));
+                                const currentIndexRaw = app.authorization_level_index !== undefined ? app.authorization_level_index : 0;
+                                const currentLevelRaw = rawLevels[Math.min(currentIndexRaw, rawLevels.length - 1)];
+                                const currentDisplayIndex = Math.max(0, levels.indexOf(currentLevelRaw));
                                 return (
                                 <div className="mt-3">
                                   <label className="text-xs font-medium text-gray-500 mb-2 block">Workflow Progress</label>
