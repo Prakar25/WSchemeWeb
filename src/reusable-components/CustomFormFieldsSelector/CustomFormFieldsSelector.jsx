@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
-import React from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { FormSelectInput } from "../inputs/FormSelect/FormSelect";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
@@ -116,7 +116,8 @@ const CustomFormFieldsSelector = ({
                       className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-[#d85a30]/40 focus:border-[#d85a30] placeholder:text-gray-400"
                     />
                   </div>
-                  <select
+                  <FormSelectInput
+                    size="compact"
                     value={field.type ?? field.field_type ?? "text"}
                     onChange={(e) =>
                       updateField(index, {
@@ -126,12 +127,12 @@ const CustomFormFieldsSelector = ({
                       })
                     }
                     disabled={disabled}
-                    className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-[#d85a30]/40 focus:border-[#d85a30] bg-white"
+                    className="!w-20 min-w-[5rem]"
                   >
                     {FIELD_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>{t.label}</option>
                     ))}
-                  </select>
+                  </FormSelectInput>
                   <label className="flex items-center gap-1.5 cursor-pointer text-xs text-gray-600">
                     <input
                       type="checkbox"
@@ -152,7 +153,8 @@ const CustomFormFieldsSelector = ({
                       className="flex-1 min-w-[100px] max-w-[180px] px-2.5 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-[#d85a30]/40 focus:border-[#d85a30] placeholder:text-gray-400"
                     />
                   )}
-                  <select
+                  <FormSelectInput
+                    size="compact"
                     value={field.depends_on?.field_key ?? ""}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -163,13 +165,13 @@ const CustomFormFieldsSelector = ({
                     }}
                     disabled={disabled}
                     title="Show only when"
-                    className="w-28 px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-[#d85a30]/40 focus:border-[#d85a30] bg-white text-gray-600"
+                    className="!w-28 min-w-[7rem] text-gray-600"
                   >
                     <option value="">Always</option>
                     {parentOptions.map((o) => (
                       <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
-                  </select>
+                  </FormSelectInput>
                   {field.depends_on?.field_key && parentType === "checkbox" && (
                     <label className="flex items-center gap-1 cursor-pointer text-xs text-gray-600">
                       <input
@@ -185,18 +187,19 @@ const CustomFormFieldsSelector = ({
                     </label>
                   )}
                   {field.depends_on?.field_key && parentType === "select" && parentField?.options && (
-                    <select
+                    <FormSelectInput
+                      size="compact"
                       value={field.depends_on.value ?? ""}
                       onChange={(e) =>
                         updateField(index, { depends_on: { ...field.depends_on, value: e.target.value } })
                       }
                       disabled={disabled}
-                      className="w-24 px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-[#d85a30]/40 focus:border-[#d85a30] bg-white"
+                      className="!w-24 min-w-[6rem]"
                     >
                       {(String(parentField.options || "").split(",").map((o) => o.trim()).filter(Boolean)).map((opt) => (
                         <option key={opt} value={opt}>{opt}</option>
                       ))}
-                    </select>
+                    </FormSelectInput>
                   )}
                   {field.depends_on?.field_key && parentType !== "checkbox" && parentType !== "select" && (
                     <input

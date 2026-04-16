@@ -21,6 +21,7 @@ import AdsSection from "../../../reusable-components/FlowingMenu/AdsSection";
 import PublicHeader from "../components/PublicHeader.component";
 import { useNavigate } from "react-router-dom";
 import { FiAlertCircle, FiX } from "react-icons/fi";
+import { FormSelectInput } from "../../../reusable-components/inputs/FormSelect/FormSelect";
 
 export default function PublicDashboard() {
   const navigate = useNavigate();
@@ -491,28 +492,28 @@ export default function PublicDashboard() {
                   />
                 </div>
                 {/* Age Group Filter */}
-                <select
+                <FormSelectInput
                   value={ageGroupFilter}
                   onChange={(e) => setAgeGroupFilter(e.target.value)}
-                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30]/50 focus:border-[#d85a30] bg-white min-w-[160px]"
+                  className="!rounded-xl !border-slate-200 !py-3 min-w-[160px]"
                 >
                   {AGE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
-                </select>
+                </FormSelectInput>
                 {/* Category Filter */}
-                <select
+                <FormSelectInput
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30]/50 focus:border-[#d85a30] bg-white min-w-[160px]"
+                  className="!rounded-xl !border-slate-200 !py-3 min-w-[160px]"
                 >
-                <option value="All">All Categories</option>
-                <option value="Pension">Pension</option>
-                <option value="Education">Education</option>
-                <option value="Health">Health</option>
-              </select>
+                  <option value="All">All Categories</option>
+                  <option value="Pension">Pension</option>
+                  <option value="Education">Education</option>
+                  <option value="Health">Health</option>
+                </FormSelectInput>
               </div>
             </div>
           </div>

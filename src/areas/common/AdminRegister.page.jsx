@@ -7,6 +7,7 @@ import { ADMIN_REGISTER_URL, ADMIN_ROLES_FOR_AUTHORIZATION_URL, DEPARTMENTS_URL 
 import Input from "../../reusable-components/inputs/InputTextBox/Input";
 import SplitText from "../../reusable-components/SplitText/SplitText";
 import PasswordInput from "../../reusable-components/inputs/InputTextBox/PasswordInput";
+import FormSelect from "../../reusable-components/inputs/FormSelect/FormSelect";
 import showToast from "../../utils/notification/NotificationModal";
 
 export default function AdminRegister() {
@@ -212,31 +213,28 @@ export default function AdminRegister() {
             setValue={setValue}
           />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Department
-            </label>
-            <select
-              {...register("departmentId")}
-              className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#d85a30]"
-              disabled={loadingOptions}
-            >
-              <option value="">{loadingOptions ? "Loading..." : "Select your department (optional)"}</option>
-              {departments.map((d) => (
-                <option key={d.value} value={d.value}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <FormSelect
+            label="Department"
+            {...register("departmentId")}
+            disabled={loadingOptions}
+          >
+            <option value="">{loadingOptions ? "Loading..." : "Select your department (optional)"}</option>
+            {departments.map((d) => (
+              <option key={d.value} value={d.value}>
+                {d.label}
+              </option>
+            ))}
+          </FormSelect>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Role <span className="text-red-600">*</span>
-            </label>
-            <select
+            <FormSelect
+              label={
+                <>
+                  Role <span className="text-red-600">*</span>
+                </>
+              }
               {...register("roleLevel", { required: "Please select a role" })}
-              className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#d85a30]"
+              invalid={!!errors.roleLevel}
               disabled={loadingOptions}
             >
               <option value="">{loadingOptions ? "Loading..." : "Select your role"}</option>
@@ -245,7 +243,7 @@ export default function AdminRegister() {
                   {r.label}
                 </option>
               ))}
-            </select>
+            </FormSelect>
             {errors.roleLevel && (
               <p className="text-red-600 text-xs mt-1">{errors.roleLevel.message}</p>
             )}

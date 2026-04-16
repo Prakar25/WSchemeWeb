@@ -19,6 +19,7 @@ import Footer from "../footer.component";
 import PublicHeader from "../components/PublicHeader.component";
 import { FiUpload, FiX, FiCheck, FiTrash2, FiPlus } from "react-icons/fi";
 import { getCountries, getStatesForCountry, getDistrictsForState, normalizeLocationValue } from "../../../utils/locationOptions";
+import FormSelect from "../../../reusable-components/inputs/FormSelect/FormSelect";
 
 export default function CompleteProfile() {
   const navigate = useNavigate();
@@ -386,20 +387,16 @@ export default function CompleteProfile() {
                 })()}
               />
 
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Gender
-                </label>
-                <select
-                  {...register("gender")}
-                  className="w-full rounded-md px-3 py-2 text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#d85a30]"
-                >
-                  <option value="">Select Gender</option>
-                  <option value="M">Male</option>
-                  <option value="F">Female</option>
-                  <option value="O">Other</option>
-                </select>
-              </div>
+              <FormSelect
+                label="Gender"
+                labelClassName="text-sm font-medium text-black"
+                {...register("gender")}
+              >
+                <option value="">Select Gender</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+                <option value="O">Other</option>
+              </FormSelect>
 
               <Input
                 defaultName="email"
@@ -510,84 +507,70 @@ export default function CompleteProfile() {
               />
 
               {/* Country / State / District as dropdowns (consistent everywhere) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                <select
-                  value={locationUi.country}
-                  onChange={(e) => {
-                    const nextCountry = e.target.value;
-                    setLocationUi((p) => ({ ...p, country: nextCountry, state: "", district: "" }));
-                    setValue("country", nextCountry);
-                    setValue("state", "");
-                    setValue("district", "");
-                  }}
-                  className={`w-full rounded-md px-3 py-2 text-sm border ${
-                    errors.country ? "border-red-500" : "border-gray-300"
-                  } focus:outline-none focus:ring-2 focus:ring-primary bg-white`}
-                >
-                  {getCountries().map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <FormSelect
+                label="Country"
+                value={locationUi.country}
+                onChange={(e) => {
+                  const nextCountry = e.target.value;
+                  setLocationUi((p) => ({ ...p, country: nextCountry, state: "", district: "" }));
+                  setValue("country", nextCountry);
+                  setValue("state", "");
+                  setValue("district", "");
+                }}
+                invalid={!!errors.country}
+              >
+                {getCountries().map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </FormSelect>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                <select
-                  value={locationUi.state}
-                  onChange={(e) => {
-                    const nextState = e.target.value;
-                    setLocationUi((p) => ({ ...p, state: nextState, district: "" }));
-                    setValue("state", nextState);
-                    setValue("district", "");
-                  }}
-                  className={`w-full rounded-md px-3 py-2 text-sm border ${
-                    errors.state ? "border-red-500" : "border-gray-300"
-                  } focus:outline-none focus:ring-2 focus:ring-primary bg-white`}
-                >
-                  <option value="">Select State</option>
-                  {/* Preserve existing state if it isn't in the list */}
-                  {locationUi.state &&
-                    !getStatesForCountry(locationUi.country).includes(locationUi.state) && (
-                      <option value={locationUi.state}>{locationUi.state}</option>
-                    )}
-                  {getStatesForCountry(locationUi.country).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <FormSelect
+                label="State"
+                value={locationUi.state}
+                onChange={(e) => {
+                  const nextState = e.target.value;
+                  setLocationUi((p) => ({ ...p, state: nextState, district: "" }));
+                  setValue("state", nextState);
+                  setValue("district", "");
+                }}
+                invalid={!!errors.state}
+              >
+                <option value="">Select State</option>
+                {locationUi.state &&
+                  !getStatesForCountry(locationUi.country).includes(locationUi.state) && (
+                    <option value={locationUi.state}>{locationUi.state}</option>
+                  )}
+                {getStatesForCountry(locationUi.country).map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </FormSelect>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">District</label>
-                <select
-                  value={locationUi.district}
-                  onChange={(e) => {
-                    const nextDistrict = e.target.value;
-                    setLocationUi((p) => ({ ...p, district: nextDistrict }));
-                    setValue("district", nextDistrict);
-                  }}
-                  disabled={!locationUi.state}
-                  className={`w-full rounded-md px-3 py-2 text-sm border ${
-                    errors.district ? "border-red-500" : "border-gray-300"
-                  } focus:outline-none focus:ring-2 focus:ring-primary bg-white disabled:bg-gray-50 disabled:cursor-not-allowed`}
-                >
-                  <option value="">{locationUi.state ? "Select District" : "Select State first"}</option>
-                  {/* Preserve existing district if it isn't in the list */}
-                  {locationUi.district &&
-                    !getDistrictsForState(locationUi.state).includes(locationUi.district) && (
-                      <option value={locationUi.district}>{locationUi.district}</option>
-                    )}
-                  {getDistrictsForState(locationUi.state).map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <FormSelect
+                label="District"
+                value={locationUi.district}
+                onChange={(e) => {
+                  const nextDistrict = e.target.value;
+                  setLocationUi((p) => ({ ...p, district: nextDistrict }));
+                  setValue("district", nextDistrict);
+                }}
+                disabled={!locationUi.state}
+                invalid={!!errors.district}
+              >
+                <option value="">{locationUi.state ? "Select District" : "Select State first"}</option>
+                {locationUi.district &&
+                  !getDistrictsForState(locationUi.state).includes(locationUi.district) && (
+                    <option value={locationUi.district}>{locationUi.district}</option>
+                  )}
+                {getDistrictsForState(locationUi.state).map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </FormSelect>
 
               <Input
                 defaultName="pincode"

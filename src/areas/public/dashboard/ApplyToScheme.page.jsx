@@ -14,6 +14,7 @@ import Footer from "../footer.component";
 import DocDropzone from "../../../reusable-components/FileUploader/PDFImageDropZoneUploader/PDFImageDropZoneUploader.component";
 import Spinner from "../../../reusable-components/spinner/spinner.component";
 import { getCountries, getStatesForCountry, getDistrictsForState, normalizeLocationValue } from "../../../utils/locationOptions";
+import { FormSelectInput } from "../../../reusable-components/inputs/FormSelect/FormSelect";
 
 export default function ApplyToScheme() {
   const navigate = useNavigate();
@@ -588,7 +589,7 @@ export default function ApplyToScheme() {
                 const isPrePopulated = !!fromProfile;
                 const val = formData[f.key] ?? fromProfile ?? "";
                 const isRequired = f.key === "beneficiary_name";
-                const inputClass = `w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-primary ${
+                const inputClass = `w-full px-3 py-2 text-sm rounded-md border focus:outline-none focus:ring-2 focus:ring-primary ${
                   errors[f.key] ? "border-red-500" : "border-gray-300"
                 } ${isPrePopulated ? "bg-gray-50 cursor-not-allowed" : ""}`;
 
@@ -598,31 +599,32 @@ export default function ApplyToScheme() {
                       {f.label} {isRequired && <span className="text-red-500">*</span>}
                     </label>
                     {f.type === "country" && (
-                      <select
+                      <FormSelectInput
                         value={normalizeLocationValue(val) || "India"}
                         disabled={isPrePopulated}
                         onChange={!isPrePopulated ? (e) => {
                           handleFieldChange("country", e.target.value);
-                          // Reset dependent fields
                           handleFieldChange("state", "");
                           handleFieldChange("district", "");
                         } : undefined}
-                        className={inputClass}
+                        invalid={!!errors[f.key]}
+                        className={isPrePopulated ? "!bg-gray-50 !cursor-not-allowed" : ""}
                       >
                         {getCountries().map((c) => (
                           <option key={c} value={c}>{c}</option>
                         ))}
-                      </select>
+                      </FormSelectInput>
                     )}
                     {f.type === "state" && (
-                      <select
+                      <FormSelectInput
                         value={normalizeLocationValue(val)}
                         disabled={isPrePopulated}
                         onChange={!isPrePopulated ? (e) => {
                           handleFieldChange("state", e.target.value);
                           handleFieldChange("district", "");
                         } : undefined}
-                        className={inputClass}
+                        invalid={!!errors[f.key]}
+                        className={isPrePopulated ? "!bg-gray-50 !cursor-not-allowed" : ""}
                       >
                         <option value="">Select State</option>
                         {normalizeLocationValue(val) &&
@@ -632,14 +634,15 @@ export default function ApplyToScheme() {
                         {getStatesForCountry(formData.country || "India").map((s) => (
                           <option key={s} value={s}>{s}</option>
                         ))}
-                      </select>
+                      </FormSelectInput>
                     )}
                     {f.type === "district" && (
-                      <select
+                      <FormSelectInput
                         value={normalizeLocationValue(val)}
                         disabled={isPrePopulated || !(formData.state || fromProfile && f.key === "district" ? (formData.state || getAddr(user, "state")) : formData.state)}
                         onChange={!isPrePopulated ? (e) => handleFieldChange("district", e.target.value) : undefined}
-                        className={inputClass}
+                        invalid={!!errors[f.key]}
+                        className={isPrePopulated ? "!bg-gray-50 !cursor-not-allowed" : ""}
                       >
                         <option value="">
                           {(formData.state || getAddr(user, "state")) ? "Select District" : "Select State first"}
@@ -651,7 +654,7 @@ export default function ApplyToScheme() {
                         {getDistrictsForState(formData.state || getAddr(user, "state")).map((d) => (
                           <option key={d} value={d}>{d}</option>
                         ))}
-                      </select>
+                      </FormSelectInput>
                     )}
                     {f.type === "text" && (
                       <input
@@ -756,10 +759,10 @@ export default function ApplyToScheme() {
                       )}
 
                       {fieldType === "select" && (
-                        <select
+                        <FormSelectInput
                           value={formData[key] ?? ""}
                           onChange={(e) => handleFieldChange(key, e.target.value)}
-                          className={inputClass}
+                          invalid={!!errors[key]}
                         >
                           <option value="">Select {label}</option>
                           {(Array.isArray(field.options)
@@ -770,7 +773,7 @@ export default function ApplyToScheme() {
                               {opt}
                             </option>
                           ))}
-                        </select>
+                        </FormSelectInput>
                       )}
 
                       {fieldType === "date" && (

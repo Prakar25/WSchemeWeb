@@ -12,10 +12,12 @@
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.2.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/vite": "^4.1.17",
     "@tinymce/tinymce-react": "^6.3.0",
     "axios": "^1.13.2",
+    "clsx": "^2.1.1",
     "framer-motion": "^12.23.26",
     "gsap": "^3.14.2",
     "moment": "^2.30.1",

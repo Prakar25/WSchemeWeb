@@ -19,6 +19,7 @@ import {
 } from "../../../reusable-components/AlertDialog";
 import { SCHEMES_CONFIG_URL, CATEGORIES_SIMPLE_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
+import { FormSelectInput } from "../../../reusable-components/inputs/FormSelect/FormSelect";
 
 // Static age options (interval of 10, 20–70, then 70+)
 const AGE_OPTIONS = [
@@ -152,8 +153,8 @@ const Home = () => {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-black text-xs font-medium mb-1.5">Age Group</label>
-              <select
-                className="w-full border border-[#68d388]/40 rounded-xl px-4 py-3 text-black bg-white focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30] transition-all"
+              <FormSelectInput
+                className="!rounded-xl !border-[#68d388]/40 !py-3 text-black !bg-white transition-all"
                 value={ageGroup}
                 onChange={(e) => setAgeGroup(e.target.value)}
               >
@@ -162,12 +163,12 @@ const Home = () => {
                     {opt.label}
                   </option>
                 ))}
-              </select>
+              </FormSelectInput>
             </div>
             <div>
               <label className="block text-black text-xs font-medium mb-1.5">Category</label>
-              <select
-                className="w-full border border-[#68d388]/40 rounded-xl px-4 py-3 text-black bg-white focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30] transition-all"
+              <FormSelectInput
+                className="!rounded-xl !border-[#68d388]/40 !py-3 text-black !bg-white transition-all"
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
               >
@@ -178,7 +179,7 @@ const Home = () => {
                     {cat.category_name || cat.name || cat.categoryName || cat._id}
                   </option>
                 ))}
-              </select>
+              </FormSelectInput>
             </div>
           </div>
           <button

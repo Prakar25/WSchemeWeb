@@ -10,6 +10,7 @@ import SplitText from "../../../../reusable-components/SplitText/SplitText";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import showToast from "../../../../utils/notification/NotificationModal";
 import { displayMedia } from "../../../../utils/uploadFiles/uploadFileToServerController";
+import { FormSelectInput } from "../../../../reusable-components/inputs/FormSelect/FormSelect";
 
 const Applications = () => {
   const [applications, setApplications] = useState([]);
@@ -873,12 +874,12 @@ const Applications = () => {
             </div>
 
             {/* Status Filter */}
-            <div className="relative">
-              <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <select
+            <div className="relative min-w-[200px]">
+              <FaFilter className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <FormSelectInput
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary appearance-none bg-white"
+                className="!rounded-lg !py-2 pl-10"
               >
                 <option value="all">All Status</option>
                 <option value="Applied">Applied</option>
@@ -887,16 +888,16 @@ const Applications = () => {
                 <option value="Approved">Approved</option>
                 <option value="Rejected">Rejected</option>
                 <option value="Pending">Pending</option>
-              </select>
+              </FormSelectInput>
             </div>
 
             {/* Verification Stage Filter */}
-            <div className="relative">
-              <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <select
+            <div className="relative min-w-[220px]">
+              <FaFilter className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <FormSelectInput
                 value={stageFilter}
                 onChange={(e) => setStageFilter(e.target.value)}
-                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary appearance-none bg-white"
+                className="!rounded-lg !py-2 pl-10"
               >
                 <option value="all">All Stages</option>
                 <option value="Applied">Application Submitted</option>
@@ -904,7 +905,7 @@ const Applications = () => {
                 <option value="Admin_Review">Admin Review</option>
                 <option value="District_Head_Review">District Head Review</option>
                 <option value="Completed">Completed</option>
-              </select>
+              </FormSelectInput>
             </div>
           </div>
         </div>
@@ -1653,10 +1654,10 @@ const Applications = () => {
                                     </div>
                                   ) : nextStageAdmins.length > 0 ? (
                                     <>
-                                      <select
+                                      <FormSelectInput
                                         value={selectedForwardAdmin}
                                         onChange={(e) => setSelectedForwardAdmin(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                                        className="!rounded-lg"
                                       >
                                         <option value="">Auto-assign (system will assign automatically)</option>
                                         {nextStageAdmins
@@ -1687,7 +1688,7 @@ const Applications = () => {
                                           </option>
                                             );
                                           })}
-                                      </select>
+                                      </FormSelectInput>
                                       <p className="text-xs text-[#d85a30] mt-2">
                                         {nextStageAdmins.length} admin(s) with higher authority available (Level {nextStageAdmins.map(a => a.roleLevel).filter((v, i, a) => a.indexOf(v) === i).sort().join(", ")})
                                       </p>

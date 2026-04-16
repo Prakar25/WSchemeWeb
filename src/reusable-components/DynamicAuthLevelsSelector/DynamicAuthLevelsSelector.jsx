@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
-import React from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { FormSelectInput } from "../inputs/FormSelect/FormSelect";
 
 /**
  * Dynamic Authorization Levels Selector
@@ -64,7 +64,7 @@ const DynamicAuthLevelsSelector = ({
             className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
           >
             <span className="text-sm font-medium text-gray-500 w-24">Level {index + 1}</span>
-            <select
+            <FormSelectInput
               value={item.level ?? ""}
               onChange={(e) => {
                 const val = e.target.value ? Number(e.target.value) : null;
@@ -73,7 +73,7 @@ const DynamicAuthLevelsSelector = ({
                 onChange(updated);
               }}
               disabled={loading || disabled}
-              className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
+              className="flex-1 min-w-0 !rounded-md"
             >
               <option value="">Select role...</option>
               {options
@@ -83,7 +83,7 @@ const DynamicAuthLevelsSelector = ({
                     {opt.label}
                   </option>
                 ))}
-            </select>
+            </FormSelectInput>
             <button
               type="button"
               onClick={() => onRemoveLevel(index)}

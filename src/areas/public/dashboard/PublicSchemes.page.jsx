@@ -11,6 +11,7 @@ import ViewSchemeDetails from "./viewSchemeDetails.component";
 import Footer from "../footer.component";
 import SplitText from "../../../reusable-components/SplitText/SplitText";
 import PublicHeader from "../components/PublicHeader.component";
+import { FormSelectInput } from "../../../reusable-components/inputs/FormSelect/FormSelect";
 
 export default function PublicSchemes() {
   const navigate = useNavigate();
@@ -155,16 +156,16 @@ export default function PublicSchemes() {
         <div className="bg-white rounded-lg shadow-md p-6 mb-8 border border-gray-200">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Category Filter */}
-            <select
+            <FormSelectInput
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30]"
+              className="!rounded-md"
             >
               <option value="All">Category</option>
               <option value="Pension">Pension</option>
               <option value="Education">Education</option>
               <option value="Health">Health</option>
-            </select>
+            </FormSelectInput>
 
             {/* Search Bar */}
             <div className="relative">
