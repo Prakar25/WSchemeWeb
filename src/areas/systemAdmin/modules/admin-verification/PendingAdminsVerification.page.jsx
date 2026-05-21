@@ -16,6 +16,7 @@ import GenericModal from "../../../../reusable-components/modals/GenericModal.co
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import showToast from "../../../../utils/notification/NotificationModal";
 import { formatDateInDDMonYYYY } from "../../../../utils/dateFunctions/formatdate";
+import { useConfirm } from "../../../../reusable-components/ConfirmDialog/ConfirmDialogProvider";
 
 const ROLE_LEVEL_NAMES = {
   1: "Super Admin",
@@ -31,6 +32,7 @@ const ROLE_LEVEL_NAMES = {
 };
 
 export default function PendingAdminsVerification() {
+  const confirm = useConfirm();
   const [pendingAdmins, setPendingAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canAccess, setCanAccess] = useState(false);
@@ -115,6 +117,14 @@ export default function PendingAdminsVerification() {
   }, [canAccess]);
 
   const handleApprove = async (adminId) => {
+    const ok = await confirm({
+      title: "Approve admin registration?",
+      description: "This admin will be able to log in after approval.",
+      confirmText: "Yes, approve",
+      cancelText: "Cancel",
+      tone: "neutral",
+    });
+    if (!ok) return;
     try {
       setProcessingId(adminId);
       const response = await axios.post(ADMIN_VERIFY_ADMIN_URL, {
@@ -137,6 +147,18 @@ export default function PendingAdminsVerification() {
   const handleRejectSubmit = async () => {
     if (!selectedAdmin) return;
     const adminId = selectedAdmin._id || selectedAdmin.id;
+    if (!rejectionReason || !rejectionReason.trim()) {
+      showToast("Rejection reason is required.", "error");
+      return;
+    }
+    const ok = await confirm({
+      title: "Reject admin registration?",
+      description: "They will not be able to log in after rejection.",
+      confirmText: "Yes, reject",
+      cancelText: "Cancel",
+      tone: "danger",
+    });
+    if (!ok) return;
     try {
       setProcessingId(adminId);
       const response = await axios.post(ADMIN_VERIFY_ADMIN_URL, {
@@ -308,13 +330,15 @@ export default function PendingAdminsVerification() {
               Reject <strong>{selectedAdmin.fullName || selectedAdmin.username}</strong>? They will not be able to log in.
             </p>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Rejection reason (optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rejection reason <span className="text-red-600">*</span>
+              </label>
               <textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 rows={3}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                placeholder="Reason for rejection (optional)"
+                placeholder="Enter rejection reason..."
               />
             </div>
             <div className="flex justify-end gap-2 mt-6">
@@ -332,7 +356,7 @@ export default function PendingAdminsVerification() {
               <button
                 type="button"
                 onClick={handleRejectSubmit}
-                disabled={!!processingId}
+                disabled={!!processingId || !rejectionReason.trim()}
                 className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
               >
                 {processingId ? "Rejecting..." : "Reject"}

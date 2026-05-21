@@ -6,7 +6,7 @@ import { ADMIN_PROFILE_URL } from "../../api/api_routing_urls";
 
 import PublicSidebar from "../public/dashboard/PublicSidebar";
 import SysAdminSidebar from "../systemAdmin/dashboard/SysAdminSidebar";
-import CSDAdminSidebar from "../csdAdmin/dashboard/CSDAdminSidebar";
+import CSCAdminSidebar from "../cscAdmin/dashboard/CSCAdminSidebar";
 
 function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
   const [user, setUser] = useState(null);
@@ -271,7 +271,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen, sidebarType }) {
         )}
 
         {sidebarType === "CSC Admin" && (
-          <CSDAdminSidebar
+          <CSCAdminSidebar
             pathname={pathname}
             sidebarExpanded={sidebarExpanded}
             setSidebarExpanded={setSidebarExpanded}

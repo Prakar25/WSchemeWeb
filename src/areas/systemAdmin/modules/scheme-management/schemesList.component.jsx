@@ -15,6 +15,8 @@ import HeadingAndButton from "../../../../reusable-components/HeadingAndButton";
 import DeleteModal from "../../../../reusable-components/modals/DeleteModal.component";
 import GenericModal from "../../../../reusable-components/modals/GenericModal.component";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
+import { FormSelectInput } from "../../../../reusable-components/inputs/FormSelect/FormSelect";
+import { getDistrictsForState, normalizeLocationValue } from "../../../../utils/locationOptions";
 
 import showToast from "../../../../utils/notification/NotificationModal";
 import { formatDateInDDMonYYYY } from "../../../../utils/dateFunctions/formatdate";
@@ -92,6 +94,8 @@ const SchemesList = ({
   const [applicantsError, setApplicantsError] = useState(null);
   const [countByStatus, setCountByStatus] = useState({});
   const [totalApplicants, setTotalApplicants] = useState(0);
+  const [applicantSearch, setApplicantSearch] = useState("");
+  const [applicantDistrict, setApplicantDistrict] = useState("all");
 
   // Fetch departments and categories for lookup maps
   useEffect(() => {
@@ -196,6 +200,32 @@ const SchemesList = ({
       setApplicantsLoading(false);
     }
   };
+
+  const getApplicantDistrict = (application) => {
+    const applicant = application.applicant || application.user || {};
+    const addr = applicant.address || application.address || {};
+    const d = addr.district || addr.district_name || applicant.district || application.district || "";
+    return String(d || "").trim();
+  };
+
+  const applicantDistrictOptions = getDistrictsForState("Sikkim");
+
+  const filteredApplicants = applicants.filter((application) => {
+    const district = normalizeLocationValue(getApplicantDistrict(application));
+    if (applicantDistrict !== "all") {
+      if (!district) return false;
+      if (district.toLowerCase() !== String(applicantDistrict).toLowerCase()) return false;
+    }
+
+    if (!applicantSearch.trim()) return true;
+    const q = applicantSearch.toLowerCase();
+    const applicant = application.applicant || {};
+    const fullName = String(applicant.full_name || applicant.fullName || applicant.name || "").toLowerCase();
+    const appId = String(application.application_id || application._id || application.id || "").toLowerCase();
+    const status = String(application.application_status || application.status || "").toLowerCase();
+    const aadhaar = String(applicant.aadhaar_number || applicant.aadhaarNumber || applicant.aadhaar || "").toLowerCase();
+    return fullName.includes(q) || appId.includes(q) || status.includes(q) || aadhaar.includes(q);
+  });
 
   // Handle view applicants click - navigate to scheme beneficiaries page
   const navigate = useNavigate();
@@ -362,13 +392,51 @@ const SchemesList = ({
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {applicants.map((application, index) => {
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Search</label>
+                        <div className="relative">
+                          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            value={applicantSearch}
+                            onChange={(e) => setApplicantSearch(e.target.value)}
+                            placeholder="Search by name, Aadhaar, application ID, or status..."
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">District</label>
+                        <FormSelectInput
+                          value={applicantDistrict}
+                          onChange={(e) => setApplicantDistrict(e.target.value)}
+                          className="!rounded-md"
+                        >
+                          <option value="all">All Districts</option>
+                          {applicantDistrictOptions.map((d) => (
+                            <option key={d} value={d}>
+                              {d}
+                            </option>
+                          ))}
+                        </FormSelectInput>
+                      </div>
+                    </div>
+
+                    {(applicantSearch || applicantDistrict !== "all") && (
+                      <p className="text-sm text-gray-600">
+                        Showing {filteredApplicants.length} applicant{filteredApplicants.length !== 1 ? "s" : ""}
+                      </p>
+                    )}
+
+                    {filteredApplicants.map((application, index) => {
                       const applicant = application.applicant || {};
                       const status = application.application_status || "Unknown";
                       const statusColors = {
                         "Applied": "bg-[#68d388]/25 text-black",
                         "Under Review": "bg-[#c2edda]/30 text-black",
                         "Approved": "bg-[#c2edda]/30 text-black",
+                        "Benefit Transferred": "bg-blue-100 text-blue-800",
                         "Rejected": "bg-red-100 text-red-800",
                         "Pending": "bg-gray-100 text-gray-800",
                       };

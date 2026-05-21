@@ -11,6 +11,10 @@ import {
   PUBLIC_AUTH_LOGIN_SEND_OTP_URL,
   PUBLIC_AUTH_LOGIN_VERIFY_OTP_URL,
 } from "../../api/api_routing_urls";
+import {
+  resolveSessionMobileFromUser,
+  setStoredApplicantContext,
+} from "../../utils/user.utils";
 
 import Input from "../../reusable-components/inputs/InputTextBox/Input";
 import SplitText from "../../reusable-components/SplitText/SplitText";
@@ -138,6 +142,22 @@ const Login = () => {
         // Store user data
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("role", "Public User");
+        // New: persist applicant context when present (household/person flow)
+        const accountUserId = user?._id || user?.userId || null; // PublicUser._id (OTP account)
+        const householdId = user?.householdId || user?.household_id || null;
+        const primaryBeneficiaryPersonId =
+          user?.primaryBeneficiaryPersonId ||
+          user?.primary_beneficiary_person_id ||
+          user?.primaryBeneficiaryPerson?._id ||
+          null;
+        setStoredApplicantContext({
+          accountUserId,
+          householdId,
+          activeApplicantId: primaryBeneficiaryPersonId || accountUserId,
+          mobileNumber: resolveSessionMobileFromUser(user, mobileNumber),
+        });
+        // Force applicant picker to show after login
+        sessionStorage.removeItem("applicantSelectorShown");
 
         // Reset form state
         reset();
@@ -216,6 +236,22 @@ const Login = () => {
         // Store user data
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("role", "Public User");
+        // New: persist applicant context when present (household/person flow)
+        const accountUserId = user?._id || user?.userId || null; // PublicUser._id (OTP account)
+        const householdId = user?.householdId || user?.household_id || null;
+        const primaryBeneficiaryPersonId =
+          user?.primaryBeneficiaryPersonId ||
+          user?.primary_beneficiary_person_id ||
+          user?.primaryBeneficiaryPerson?._id ||
+          null;
+        setStoredApplicantContext({
+          accountUserId,
+          householdId,
+          activeApplicantId: primaryBeneficiaryPersonId || accountUserId,
+          mobileNumber: resolveSessionMobileFromUser(user, mobileNumber),
+        });
+        // Force applicant picker to show after registration
+        sessionStorage.removeItem("applicantSelectorShown");
 
         // Reset form state
         reset();
@@ -324,7 +360,7 @@ const Login = () => {
       // CSCAdmin goes to separate dashboard
       const role = (user.role || "").trim();
       if (role === "CSCAdmin") {
-        navigate("/csd-admin/pending-applications", { replace: true });
+        navigate("/csc-admin/pending-applications", { replace: true });
       } else {
         navigate("/system-admin/dashboard", { replace: true });
       }

@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import React, { useRef, useState } from "react";
 import { Editor } from "@tinymce/tinymce-react";
-import sanitizeHtml from "sanitize-html";
+import { sanitizeRichTextHtml } from "../../utils/sanitizeRichText";
 
 import Error from "../outputs/Error";
 
@@ -81,7 +81,7 @@ export default function RichTextArea({
             "body { font-family: Helvetica, Arial, sans-serif; font-size: 14px; }",
         }}
         onEditorChange={(value) => {
-          const clean = sanitizeHtml(value);
+          const clean = sanitizeRichTextHtml(value);
           setIsEdited(true);
           setValue(defaultName, clean || "");
         }}

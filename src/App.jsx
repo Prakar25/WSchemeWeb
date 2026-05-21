@@ -19,6 +19,7 @@ import CompleteProfile from "./areas/public/dashboard/CompleteProfile.page";
 import PublicSchemes from "./areas/public/dashboard/PublicSchemes.page";
 import PublicApplications from "./areas/public/dashboard/PublicApplications.page";
 import ApplyToScheme from "./areas/public/dashboard/ApplyToScheme.page";
+import HouseholdMembersPage from "./areas/public/dashboard/HouseholdMembers.page";
 
 import SysAdminDashboard from "./areas/systemAdmin/dashboard/SysAdminDashboard";
 import AnalyticsPage from "./areas/systemAdmin/modules/analytics/Analytics.page";
@@ -31,8 +32,11 @@ import AdminProfile from "./areas/systemAdmin/modules/profile/AdminProfile.page"
 import PendingAdminsVerification from "./areas/systemAdmin/modules/admin-verification/PendingAdminsVerification.page";
 import AdvertisementPage from "./areas/systemAdmin/modules/advertisement/Advertisement.page";
 
-import CSDAdminDashboard from "./areas/csdAdmin/dashboard/CSDAdminDashboard";
-import CSDPendingApplications from "./areas/csdAdmin/modules/CSDPendingApplications.page";
+import CSCAdminDashboard from "./areas/cscAdmin/dashboard/CSCAdminDashboard";
+import CSCPendingApplications from "./areas/cscAdmin/modules/CSCPendingApplications.page";
+
+import PublicUserGuard from "./routing/PublicUserGuard";
+import PublicGuestOnly from "./routing/PublicGuestOnly";
 
 function App() {
   const { pathname } = useLocation();
@@ -52,18 +56,28 @@ function App() {
           <Route exact path="/" element={<Home />} />
           <Route exact path="/scheme/:schemeId" element={<PublicSchemeDetailsPage />} />
 
-          <Route exact path="/login" element={<PublicLogin />} />
+          <Route
+            path="/login"
+            element={
+              <PublicGuestOnly>
+                <PublicLogin />
+              </PublicGuestOnly>
+            }
+          />
           <Route exact path="/admin-login" element={<AdminLogin />} />
           <Route exact path="/admin-register" element={<AdminRegister />} />
         </Route>
 
-        {/* Public User Dashboard Routes */}
-        <Route exact path="/user/dashboard" element={<PublicDashboard />} />
-        <Route exact path="/user/profile" element={<PublicProfile />} />
-        <Route exact path="/user/complete-profile" element={<CompleteProfile />} />
-        <Route exact path="/user/schemes" element={<PublicSchemes />} />
-        <Route exact path="/user/applications" element={<PublicApplications />} />
-        <Route exact path="/user/apply-to-scheme" element={<ApplyToScheme />} />
+        {/* Public User Dashboard — auth required; Back cannot leave /user without logout */}
+        <Route path="/user" element={<PublicUserGuard />}>
+          <Route path="dashboard" element={<PublicDashboard />} />
+          <Route path="profile" element={<PublicProfile />} />
+          <Route path="complete-profile" element={<CompleteProfile />} />
+          <Route path="schemes" element={<PublicSchemes />} />
+          <Route path="applications" element={<PublicApplications />} />
+          <Route path="apply-to-scheme" element={<ApplyToScheme />} />
+          <Route path="household-members" element={<HouseholdMembersPage />} />
+        </Route>
 
         {/* System Admin Dashboard Routes */}
         <Route
@@ -99,9 +113,9 @@ function App() {
         <Route exact path="/system-admin/profile" element={<AdminProfile />} />
 
         {/* CSC Admin Routes (CSCAdmin role only) */}
-        <Route exact path="/csd-admin/dashboard" element={<CSDAdminDashboard />} />
-        <Route exact path="/csd-admin/pending-applications" element={<CSDPendingApplications />} />
-        <Route exact path="/csd-admin/profile" element={<AdminProfile sidebarType="CSC Admin" />} />
+        <Route exact path="/csc-admin/dashboard" element={<CSCAdminDashboard />} />
+        <Route exact path="/csc-admin/pending-applications" element={<CSCPendingApplications />} />
+        <Route exact path="/csc-admin/profile" element={<AdminProfile sidebarType="CSC Admin" />} />
       </Routes>
     </>
   );

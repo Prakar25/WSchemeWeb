@@ -1,10 +1,21 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiEye, FiEyeOff, FiEdit2, FiFileText } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiEdit2, FiFileText, FiLogOut, FiUsers } from "react-icons/fi";
 import axios from "../../../api/axios";
 import { PUBLIC_PROFILE_GET_URL } from "../../../api/api_routing_urls";
-import { getStoredUser, formatDobForAge } from "../../../utils/user.utils";
+import {
+  clearPublicAuthState,
+  getStoredUser,
+  formatDobForAge,
+  getKycLevel,
+  isProfileKycFull,
+  getCscVerificationStatus,
+  getKycMissingFields,
+  formatKycMissingFieldsList,
+  getCscStatusMessage,
+} from "../../../utils/user.utils";
+import { useActiveApplicantId } from "../../../hooks/useActiveApplicantId";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 import Footer from "../footer.component";
 import SplitText from "../../../reusable-components/SplitText/SplitText";
@@ -12,6 +23,7 @@ import PublicHeader from "../components/PublicHeader.component";
 
 export default function PublicProfile() {
   const navigate = useNavigate();
+  const activeApplicantId = useActiveApplicantId();
   const [user, setUser] = useState(null);
   const [showAadhaar, setShowAadhaar] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -23,7 +35,8 @@ export default function PublicProfile() {
       return;
     }
 
-    const userId = storedUser._id || storedUser.userId;
+    const userId =
+      activeApplicantId || storedUser._id || storedUser.userId;
     if (!userId) {
       setUser(storedUser);
       setLoading(false);
@@ -50,7 +63,13 @@ export default function PublicProfile() {
     };
 
     fetchProfile().finally(() => setLoading(false));
-  }, []);
+  }, [activeApplicantId]);
+
+  const handleLogout = () => {
+    clearPublicAuthState();
+    localStorage.removeItem("sidebar-expanded");
+    navigate("/login", { replace: true });
+  };
 
   const fullName = user?.demographics?.fullName || user?.fullName || "User Name";
   const email = user?.contact?.email?.value ?? user?.contactEmail ?? "-";
@@ -130,14 +149,24 @@ export default function PublicProfile() {
           <h1 className="text-3xl font-bold text-gray-900">
             <SplitText text="My Profile" splitType="chars" delay={40} className="inline-block" />
           </h1>
-          <button
-            type="button"
-            onClick={() => navigate("/user/complete-profile")}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#d85a30] text-white rounded-lg hover:bg-[#ffb766] font-medium transition-colors"
-          >
-            <FiEdit2 size={18} />
-            Edit profile
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/user/household-members")}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+            >
+              <FiUsers size={18} />
+              Household Members
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/user/complete-profile")}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#d85a30] text-white rounded-lg hover:bg-[#ffb766] font-medium transition-colors"
+            >
+              <FiEdit2 size={18} />
+              Edit profile
+            </button>
+          </div>
         </div>
 
         {/* Profile Header Card */}
@@ -180,29 +209,47 @@ export default function PublicProfile() {
               )}
 
               <div className="flex flex-wrap items-center gap-2">
-                {user.kycLevel && (
+                {(getKycLevel(user) || isProfileKycFull(user)) && (
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                      user.kycLevel === "FULL"
+                      isProfileKycFull(user)
                         ? "bg-[#c2edda]/30 text-black"
-                        : user.kycLevel === "PARTIAL"
+                        : getKycLevel(user) === "PARTIAL"
                           ? "bg-[#68d388]/25 text-black"
                           : "bg-gray-100 text-gray-700"
                     }`}
                   >
-                    KYC: {user.kycLevel}
+                    Profile KYC: {isProfileKycFull(user) ? "FULL" : getKycLevel(user) || "Incomplete"}
                   </span>
                 )}
-                {user.status?.verificationStatus && (
-                  <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm font-medium">
-                    {user.status.verificationStatus === "verified"
-                      ? "✔ Verified"
-                      : user.status.verificationStatus === "pending"
-                        ? "Pending verification"
-                        : user.status.verificationStatus}
+                {getCscVerificationStatus(user) && (
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                      getCscVerificationStatus(user) === "verified"
+                        ? "bg-[#c2edda]/30 text-black"
+                        : getCscVerificationStatus(user) === "pending"
+                          ? "bg-amber-100 text-amber-900"
+                          : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    CSC:{" "}
+                    {getCscVerificationStatus(user) === "verified"
+                      ? "Verified"
+                      : getCscVerificationStatus(user) === "pending"
+                        ? "Pending"
+                        : getCscVerificationStatus(user)}
                   </span>
                 )}
               </div>
+              {!isProfileKycFull(user) && getKycMissingFields(user).length > 0 && (
+                <p className="text-sm text-gray-600 mt-2">
+                  Still needed for profile KYC:{" "}
+                  {formatKycMissingFieldsList(getKycMissingFields(user))}
+                </p>
+              )}
+              {getCscStatusMessage(user) && (
+                <p className="text-sm text-gray-700 mt-2">{getCscStatusMessage(user)}</p>
+              )}
             </div>
           </div>
         </div>
@@ -290,6 +337,21 @@ export default function PublicProfile() {
           <p className="mt-4 text-sm text-gray-500">
             You can add or update documents from the Edit profile page.
           </p>
+        </div>
+
+        <div className="mt-8 bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">Account</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Sign out of WelfareConnect on this device. Use the applicant menu in the header to switch household members.
+          </p>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-red-600 bg-red-600 text-white font-medium hover:bg-red-700 hover:border-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:ring-offset-2"
+          >
+            <FiLogOut size={18} />
+            Log out
+          </button>
         </div>
       </main>
 

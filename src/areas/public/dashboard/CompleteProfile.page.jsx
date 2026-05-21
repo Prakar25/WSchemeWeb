@@ -10,19 +10,32 @@ import {
   PUBLIC_PROFILE_DELETE_DOCUMENT_URL,
 } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
-import { getStoredUser } from "../../../utils/user.utils";
+import {
+  getStoredUser,
+  getKycLevel,
+  isProfileKycFull,
+  isCscVerified,
+  getKycMissingFields,
+  formatKycMissingFieldsList,
+  getKycStatusMessage,
+  getCscStatusMessage,
+} from "../../../utils/user.utils";
+import { useActiveApplicantId } from "../../../hooks/useActiveApplicantId";
 import showToast from "../../../utils/notification/NotificationModal";
 import Input from "../../../reusable-components/inputs/InputTextBox/Input";
 import DatePicker from "../../../reusable-components/inputs/DatePicker/DatePicker";
 import Spinner from "../../../reusable-components/spinner/spinner.component";
 import Footer from "../footer.component";
 import PublicHeader from "../components/PublicHeader.component";
-import { FiUpload, FiX, FiCheck, FiTrash2, FiPlus } from "react-icons/fi";
+import { FiUpload, FiX, FiCheck, FiTrash2 } from "react-icons/fi";
 import { getCountries, getStatesForCountry, getDistrictsForState, normalizeLocationValue } from "../../../utils/locationOptions";
 import FormSelect from "../../../reusable-components/inputs/FormSelect/FormSelect";
+import { useConfirm } from "../../../reusable-components/ConfirmDialog/ConfirmDialogProvider";
 
 export default function CompleteProfile() {
   const navigate = useNavigate();
+  const confirm = useConfirm();
+  const activeApplicantId = useActiveApplicantId();
   const [user, setUser] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -53,7 +66,6 @@ export default function CompleteProfile() {
     certificateOfIdentification: null,
   });
 
-  const [familyDetails, setFamilyDetails] = useState([]);
   const [locationUi, setLocationUi] = useState({ country: "India", state: "", district: "" });
 
   // Load user profile on mount
@@ -64,7 +76,8 @@ export default function CompleteProfile() {
       return;
     }
 
-    const storedUserId = storedUser._id || storedUser.userId;
+    const storedUserId =
+      activeApplicantId || storedUser._id || storedUser.userId;
     if (!storedUserId) {
       showToast("User ID not found. Please login again.", "error");
       navigate("/login");
@@ -73,7 +86,7 @@ export default function CompleteProfile() {
 
     setUserId(storedUserId);
     loadProfile(storedUserId);
-  }, [navigate]);
+  }, [navigate, activeApplicantId]);
 
   // Load profile from API
   const loadProfile = async (userIdToLoad) => {
@@ -119,14 +132,6 @@ export default function CompleteProfile() {
           district: normalizeLocationValue(userData.address?.district || ""),
         });
 
-        if (Array.isArray(userData.familyDetails) && userData.familyDetails.length > 0) {
-          setFamilyDetails(userData.familyDetails.map((f) => ({
-            name: f.name || "",
-            relationWithApplicant: f.relationWithApplicant || "",
-            age: f.age ?? "",
-            occupation: f.occupation ?? "",
-          })));
-        }
       }
     } catch (error) {
       console.error("Error loading profile:", error);
@@ -162,9 +167,20 @@ export default function CompleteProfile() {
   const deleteDocument = async (docType) => {
     if (!userId) return;
 
-    if (!window.confirm(`Are you sure you want to delete the ${docType === "aadhaarCard" ? "Aadhaar Card" : docType === "birthCertificate" ? "Birth Certificate" : "Certificate of Identification"}?`)) {
-      return;
-    }
+    const docLabel =
+      docType === "aadhaarCard"
+        ? "Aadhaar Card"
+        : docType === "birthCertificate"
+          ? "Birth Certificate"
+          : "Certificate of Identification";
+    const ok = await confirm({
+      title: `Delete ${docLabel}?`,
+      description: "This document will be removed from your profile.",
+      confirmText: "Yes, delete",
+      cancelText: "Cancel",
+      tone: "danger",
+    });
+    if (!ok) return;
 
     setDeletingDocs((prev) => ({ ...prev, [docType]: true }));
 
@@ -230,16 +246,6 @@ export default function CompleteProfile() {
       if (documents.aadhaarCard) formData.append("aadhaarCard", documents.aadhaarCard);
       if (documents.birthCertificate) formData.append("birthCertificate", documents.birthCertificate);
       if (documents.certificateOfIdentification) formData.append("certificateOfIdentification", documents.certificateOfIdentification);
-
-      const validFamilyDetails = familyDetails
-        .filter((f) => f.name?.trim() && f.relationWithApplicant?.trim() && (f.age === 0 || (f.age != null && f.age !== "")))
-        .map((f) => ({
-          name: f.name.trim(),
-          relationWithApplicant: f.relationWithApplicant.trim(),
-          age: Number(f.age),
-          occupation: (f.occupation || "").trim(),
-        }));
-      formData.append("familyDetails", JSON.stringify(validFamilyDetails));
 
       const response = await axios.post(PUBLIC_PROFILE_SUBMIT_COMPLETE_URL, formData, {
         params: { userId },
@@ -307,9 +313,13 @@ export default function CompleteProfile() {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-black">Complete Your Profile</h1>
           <div className="flex items-center gap-3">
-            {user?.kycLevel && (
-              <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getKycLevelColor(user.kycLevel)}`}>
-                KYC Level: {user.kycLevel}
+            {(getKycLevel(user) || isProfileKycFull(user)) && (
+              <span
+                className={`px-4 py-2 rounded-full text-sm font-semibold ${getKycLevelColor(
+                  isProfileKycFull(user) ? "FULL" : getKycLevel(user)
+                )}`}
+              >
+                Profile KYC: {isProfileKycFull(user) ? "FULL" : getKycLevel(user)}
               </span>
             )}
             <button
@@ -322,11 +332,32 @@ export default function CompleteProfile() {
           </div>
         </div>
 
-        {user?.kycLevel === "FULL" && (
-          <div className="mb-6 p-4 bg-[#c2edda]/50 border border-[#c2edda] rounded-lg">
-            <p className="text-black text-sm">
-              ✓ Your profile is complete! You can now apply for schemes.
+        {!isProfileKycFull(user) && getKycMissingFields(user).length > 0 && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-black text-sm font-medium">Profile KYC — still needed:</p>
+            <p className="text-black text-sm mt-1">
+              {formatKycMissingFieldsList(getKycMissingFields(user))}
             </p>
+            {getKycStatusMessage(user) && (
+              <p className="text-black/80 text-sm mt-2">{getKycStatusMessage(user)}</p>
+            )}
+          </div>
+        )}
+
+        {isProfileKycFull(user) && (
+          <div className="mb-6 p-4 bg-[#c2edda]/50 border border-[#c2edda] rounded-lg space-y-2">
+            <p className="text-black text-sm font-medium">
+              ✓ Profile KYC is complete for this member.
+            </p>
+            {!isCscVerified(user) && (
+              <p className="text-black text-sm">
+                CSC verification is still required before you can apply for schemes.
+                {getCscStatusMessage(user) ? ` ${getCscStatusMessage(user)}` : ""}
+              </p>
+            )}
+            {isCscVerified(user) && (
+              <p className="text-black text-sm">CSC verification is complete. You can apply for schemes.</p>
+            )}
           </div>
         )}
 
@@ -592,109 +623,6 @@ export default function CompleteProfile() {
               {/* Keep country as dropdown only (no free-text input) */}
               <input type="hidden" {...register("country")} value={locationUi.country} />
             </div>
-            </Step>
-
-            <Step>
-              <h2 className="text-xl font-semibold text-black mb-6">Family Details</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Add family members (optional). Each entry needs name, relation, and age.
-              </p>
-              <div className="space-y-3">
-                {familyDetails.map((member, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-lg border border-gray-200 bg-gray-50/50 flex flex-wrap items-end gap-3"
-                  >
-                    <div className="flex-1 min-w-[120px]">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
-                      <input
-                        type="text"
-                        value={member.name}
-                        onChange={(e) =>
-                          setFamilyDetails((prev) => {
-                            const next = [...prev];
-                            next[idx] = { ...next[idx], name: e.target.value };
-                            return next;
-                          })
-                        }
-                        placeholder="Name"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-[120px]">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Relation</label>
-                      <input
-                        type="text"
-                        value={member.relationWithApplicant}
-                        onChange={(e) =>
-                          setFamilyDetails((prev) => {
-                            const next = [...prev];
-                            next[idx] = { ...next[idx], relationWithApplicant: e.target.value };
-                            return next;
-                          })
-                        }
-                        placeholder="e.g. Spouse, Son, Daughter"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
-                      />
-                    </div>
-                    <div className="w-20">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Age</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={member.age === "" ? "" : member.age}
-                        onChange={(e) =>
-                          setFamilyDetails((prev) => {
-                            const next = [...prev];
-                            const val = e.target.value === "" ? "" : Number(e.target.value);
-                            next[idx] = { ...next[idx], age: val };
-                            return next;
-                          })
-                        }
-                        placeholder="Age"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-[100px]">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Occupation</label>
-                      <input
-                        type="text"
-                        value={member.occupation}
-                        onChange={(e) =>
-                          setFamilyDetails((prev) => {
-                            const next = [...prev];
-                            next[idx] = { ...next[idx], occupation: e.target.value };
-                            return next;
-                          })
-                        }
-                        placeholder="Optional"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#d85a30] focus:border-[#d85a30]"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setFamilyDetails((prev) => prev.filter((_, i) => i !== idx))}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                      aria-label="Remove"
-                    >
-                      <FiTrash2 size={18} />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFamilyDetails((prev) => [
-                      ...prev,
-                      { name: "", relationWithApplicant: "", age: "", occupation: "" },
-                    ])
-                  }
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#d85a30] border border-[#d85a30]/40 rounded-lg hover:bg-[#d85a30]/5 transition-colors"
-                >
-                  <FiPlus size={16} />
-                  Add family member
-                </button>
-              </div>
             </Step>
 
             <Step>

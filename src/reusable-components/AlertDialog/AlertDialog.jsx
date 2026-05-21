@@ -31,10 +31,18 @@ function useAlertDialog() {
 }
 
 export function AlertDialog({ children, ...props }) {
-  const [open, setOpen] = React.useState(false);
+  const isControlled = typeof props.open === "boolean";
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
+  const open = isControlled ? props.open : uncontrolledOpen;
+  const setOpen = isControlled ? props.onClose : setUncontrolledOpen;
   return (
     <AlertDialogContext.Provider value={{ open, setOpen }}>
-      <Dialog open={open} onClose={() => setOpen(false)} className="relative z-50" {...props}>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        className="relative z-[20000]"
+        {...props}
+      >
         {children}
       </Dialog>
     </AlertDialogContext.Provider>
@@ -69,10 +77,10 @@ export function AlertDialogPopup({ children, from = "bottom", className = "", ..
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-[20000] bg-black/50 backdrop-blur-sm"
         aria-hidden="true"
       />
-      <div className="fixed inset-0 z-50 flex min-h-full items-center justify-center p-4">
+      <div className="fixed inset-0 z-[20000] flex min-h-full items-center justify-center p-4">
         <DialogPanel
           as={motion.div}
           initial={variant.initial}

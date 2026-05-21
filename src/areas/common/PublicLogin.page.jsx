@@ -11,6 +11,10 @@ import {
   PUBLIC_AUTH_LOGIN_SEND_OTP_URL,
   PUBLIC_AUTH_LOGIN_VERIFY_OTP_URL,
 } from "../../api/api_routing_urls";
+import {
+  resolveSessionMobileFromUser,
+  setStoredApplicantContext,
+} from "../../utils/user.utils";
 
 import Input from "../../reusable-components/inputs/InputTextBox/Input";
 import SplitText from "../../reusable-components/SplitText/SplitText";
@@ -82,6 +86,20 @@ export default function PublicLogin() {
       if (status === "success" && user) {
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("role", "Public User");
+        const accountUserId = user?._id || user?.userId || null;
+        const householdId = user?.householdId || user?.household_id || null;
+        const primaryBeneficiaryPersonId =
+          user?.primaryBeneficiaryPersonId ||
+          user?.primary_beneficiary_person_id ||
+          user?.primaryBeneficiaryPerson?._id ||
+          null;
+        setStoredApplicantContext({
+          accountUserId,
+          householdId,
+          activeApplicantId: primaryBeneficiaryPersonId || accountUserId,
+          mobileNumber: resolveSessionMobileFromUser(user, mobileNumber),
+        });
+        sessionStorage.removeItem("applicantSelectorShown");
         reset();
         setOtpSent(false);
         setMobileNumber("");
@@ -134,6 +152,20 @@ export default function PublicLogin() {
       if (status === "success" && user) {
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("role", "Public User");
+        const accountUserId = user?._id || user?.userId || null;
+        const householdId = user?.householdId || user?.household_id || null;
+        const primaryBeneficiaryPersonId =
+          user?.primaryBeneficiaryPersonId ||
+          user?.primary_beneficiary_person_id ||
+          user?.primaryBeneficiaryPerson?._id ||
+          null;
+        setStoredApplicantContext({
+          accountUserId,
+          householdId,
+          activeApplicantId: primaryBeneficiaryPersonId || accountUserId,
+          mobileNumber: resolveSessionMobileFromUser(user, mobileNumber),
+        });
+        sessionStorage.removeItem("applicantSelectorShown");
         reset();
         setOtpSent(false);
         setIsRegistering(false);

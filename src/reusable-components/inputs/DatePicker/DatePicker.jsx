@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from "react";
 import { useController } from "react-hook-form";
-import { FaCalendarAlt } from "react-icons/fa";
+import { CalendarDaysIcon } from "@heroicons/react/24/outline";
 import Error from "../../outputs/Error";
 
 export default function DatePicker({
@@ -152,7 +152,7 @@ export default function DatePicker({
           onChange={handleDateChange}
           onBlur={onBlur}
           {...rest}
-          className={`placeholder:text-xs lg:placeholder:text-sm text-xs md:text-sm ${classes} border focus:outline-none focus:ring-0 focus:border-secondary pr-10 cursor-pointer ${
+          className={`placeholder:text-xs lg:placeholder:text-sm text-xs md:text-sm ${classes} relative z-0 border focus:outline-none focus:ring-0 focus:border-secondary pr-11 cursor-pointer text-gray-900 [color-scheme:light] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2 [&::-webkit-calendar-picker-indicator]:top-1/2 [&::-webkit-calendar-picker-indicator]:h-5 [&::-webkit-calendar-picker-indicator]:w-5 [&::-webkit-calendar-picker-indicator]:-translate-y-1/2 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 ${
             errors[defaultName]
               ? "border-red-700"
               : "border-gray-400"
@@ -171,11 +171,11 @@ export default function DatePicker({
         <button
           type="button"
           onClick={handleCalendarIconClick}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-primary focus:outline-none cursor-pointer z-10"
+          className="pointer-events-auto absolute right-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md border border-gray-200 bg-white text-[#d85a30] shadow-sm hover:bg-gray-50 hover:text-[#b84a28] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d85a30] focus-visible:ring-offset-1"
           tabIndex={-1}
           aria-label="Open date picker"
         >
-          <FaCalendarAlt className="w-5 h-5" />
+          <CalendarDaysIcon className="h-5 w-5 shrink-0" aria-hidden />
         </button>
       </div>
 

@@ -13,11 +13,13 @@ import GenericModal from "../../../../reusable-components/modals/GenericModal.co
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 
 import showToast from "../../../../utils/notification/NotificationModal";
+import { useConfirm } from "../../../../reusable-components/ConfirmDialog/ConfirmDialogProvider";
 import { formatDateInDDMonYYYY } from "../../../../utils/dateFunctions/formatdate";
 import { displayMedia } from "../../../../utils/uploadFiles/uploadFileToServerController";
 import Dashboard from "../../../dashboard-components/dashboard.component";
 
 const PendingApprovals = () => {
+  const confirm = useConfirm();
   const [pendingSchemes, setPendingSchemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedScheme, setSelectedScheme] = useState(null);
@@ -54,7 +56,7 @@ const PendingApprovals = () => {
     if (!stored) return false;
     try {
       const user = JSON.parse(stored);
-      // CSD Admin has their own dashboard; this page is for system admins
+      // CSC Admin has their own dashboard; this page is for system admins
       const role = (user.role || "").trim();
       if (role === "CSCAdmin") return false;
       return true;
@@ -123,6 +125,16 @@ const PendingApprovals = () => {
   }, []);
 
   const handleApprove = async (schemeId) => {
+    const scheme = pendingSchemes.find((s) => (s._id || s.scheme_id) === schemeId);
+    const schemeName = scheme?.scheme_name || "this scheme";
+    const ok = await confirm({
+      title: "Approve scheme?",
+      description: `Approve “${schemeName}” and publish it for users?`,
+      confirmText: "Yes, approve",
+      cancelText: "Cancel",
+      tone: "neutral",
+    });
+    if (!ok) return;
     try {
       setProcessingId(schemeId);
       
@@ -143,6 +155,19 @@ const PendingApprovals = () => {
 
   const handleReject = async () => {
     if (!selectedScheme) return;
+    if (!rejectionReason || !rejectionReason.trim()) {
+      showToast("Rejection reason is required.", "error");
+      return;
+    }
+    const schemeName = selectedScheme?.scheme_name || "this scheme";
+    const ok = await confirm({
+      title: "Reject scheme?",
+      description: `Reject “${schemeName}”? You can keep an optional rejection reason.`,
+      confirmText: "Yes, reject",
+      cancelText: "Cancel",
+      tone: "danger",
+    });
+    if (!ok) return;
     
     try {
       setProcessingId(selectedScheme._id || selectedScheme.scheme_id);
@@ -384,7 +409,7 @@ const PendingApprovals = () => {
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Rejection Reason (Optional)
+                  Rejection Reason <span className="text-red-600">*</span>
                 </label>
                 <textarea
                   value={rejectionReason}
@@ -408,7 +433,10 @@ const PendingApprovals = () => {
                 </button>
                 <button
                   onClick={handleReject}
-                  disabled={processingId === (selectedScheme._id || selectedScheme.scheme_id)}
+                  disabled={
+                    processingId === (selectedScheme._id || selectedScheme.scheme_id) ||
+                    !rejectionReason.trim()
+                  }
                   className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {processingId === (selectedScheme._id || selectedScheme.scheme_id) ? (

@@ -6,7 +6,17 @@ import { FaArrowLeft, FaUpload, FaCheckCircle, FaTimes, FaCalendarAlt } from "re
 import axios from "../../../api/axios";
 import { APPLICATIONS_APPLY_URL, DEPARTMENTS_URL, CATEGORIES_URL, SCHEMES_CONFIG_URL } from "../../../api/api_routing_urls";
 import { uploadFileToServer } from "../../../utils/uploadFiles/uploadFileToServerController";
-import { getStoredUser, isProfileComplete, getVerificationStatus, getAccountStatusMessage, calculateAge, formatDobForAge } from "../../../utils/user.utils";
+import {
+  getStoredUser,
+  isProfileComplete,
+  isCscVerified,
+  getProfileCompletionStatus,
+  getCscStatusMessage,
+  calculateAge,
+  formatDobForAge,
+  setStoredActiveApplicantProfile,
+} from "../../../utils/user.utils";
+import { useActiveApplicantId } from "../../../hooks/useActiveApplicantId";
 import showToast from "../../../utils/notification/NotificationModal";
 import { PUBLIC_PROFILE_GET_URL } from "../../../api/api_routing_urls";
 import PublicHeader from "../components/PublicHeader.component";
@@ -19,6 +29,16 @@ import { FormSelectInput } from "../../../reusable-components/inputs/FormSelect/
 export default function ApplyToScheme() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const goBackFromApply = () => {
+    const from = location.state?.from;
+    if (typeof from === "string" && from.startsWith("/user")) {
+      navigate(from);
+      return;
+    }
+    navigate("/user/schemes");
+  };
+  const activeApplicantId = useActiveApplicantId();
   const [scheme, setScheme] = useState(location.state?.scheme ?? null);
   const [loadingScheme, setLoadingScheme] = useState(false);
 
@@ -197,9 +217,8 @@ export default function ApplyToScheme() {
       return;
     }
 
-    // Get user from localStorage
     const storedUser = getStoredUser();
-    if (!storedUser?._id && !storedUser?.userId) {
+    if (!activeApplicantId) {
       showToast("Please login first.", "error");
       navigate("/login");
       return;
@@ -208,9 +227,10 @@ export default function ApplyToScheme() {
     // Check profile completion
     const checkProfileCompletion = async () => {
       try {
-        const userId = storedUser._id || storedUser.userId;
+        const userId = activeApplicantId;
         const response = await axios.get(PUBLIC_PROFILE_GET_URL, {
           params: { userId },
+          withCredentials: true,
         });
 
         if (response.data.status === "success" && response.data.user) {
@@ -220,19 +240,17 @@ export default function ApplyToScheme() {
             ? { ...userData, ...profile, address: userData?.address ?? profile?.address }
             : userData;
           setUser(merged);
-          localStorage.setItem("user", JSON.stringify(merged));
+          setStoredActiveApplicantProfile(merged);
 
-          if (!isProfileComplete(userData)) {
-            showToast(
-              "Please complete your profile before applying for schemes.",
-              "error"
-            );
+          if (!isProfileComplete(merged)) {
+            showToast(getProfileCompletionStatus(merged).message, "error");
             navigate("/user/complete-profile");
             return;
           }
-          if (getVerificationStatus(userData) !== "verified") {
+          if (!isCscVerified(merged)) {
             showToast(
-              getAccountStatusMessage(userData) || "Please verify your account at the nearest CSD Center before applying.",
+              getCscStatusMessage(merged) ||
+                "CSC verification is pending. Visit your nearest CSC to complete bio-auth before applying.",
               "error"
             );
             navigate("/user/dashboard");
@@ -240,16 +258,14 @@ export default function ApplyToScheme() {
           }
         } else {
           if (!isProfileComplete(storedUser)) {
-            showToast(
-              "Please complete your profile before applying for schemes.",
-              "error"
-            );
+            showToast(getProfileCompletionStatus(storedUser).message, "error");
             navigate("/user/complete-profile");
             return;
           }
-          if (getVerificationStatus(storedUser) !== "verified") {
+          if (!isCscVerified(storedUser)) {
             showToast(
-              getAccountStatusMessage(storedUser) || "Please verify your account before applying.",
+              getCscStatusMessage(storedUser) ||
+                "CSC verification is pending. You cannot apply until CSC verification is complete.",
               "error"
             );
             navigate("/user/dashboard");
@@ -260,16 +276,14 @@ export default function ApplyToScheme() {
       } catch (error) {
         console.error("Error checking profile:", error);
         if (!isProfileComplete(storedUser)) {
-          showToast(
-            "Please complete your profile before applying for schemes.",
-            "error"
-          );
+          showToast(getProfileCompletionStatus(storedUser).message, "error");
           navigate("/user/complete-profile");
           return;
         }
-        if (getVerificationStatus(storedUser) !== "verified") {
+        if (!isCscVerified(storedUser)) {
           showToast(
-            getAccountStatusMessage(storedUser) || "Please verify your account before applying.",
+            getCscStatusMessage(storedUser) ||
+              "CSC verification is pending. You cannot apply until CSC verification is complete.",
             "error"
           );
           navigate("/user/dashboard");
@@ -288,7 +302,7 @@ export default function ApplyToScheme() {
       setShowDocUploader((prev) => ({ ...prev, [docType]: false }));
     });
     setDocuments(initialDocs);
-  }, [scheme, navigate, requiredDocuments]);
+  }, [scheme, navigate, requiredDocuments, activeApplicantId]);
 
   // Pre-fill common fields from profile when user loads (only for empty fields)
   useEffect(() => {
@@ -390,7 +404,7 @@ export default function ApplyToScheme() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!user?._id && !user?.userId) {
+    if (!activeApplicantId) {
       showToast("User information not found. Please login again.", "error");
       return;
     }
@@ -441,7 +455,8 @@ export default function ApplyToScheme() {
       }
 
       const payload = {
-        user_id: user._id || user.userId,
+        // New: send applicant person id when available
+        user_id: activeApplicantId,
         scheme_id: scheme._id || scheme.scheme_id,
         form_data: Object.keys(filteredFormData).length > 0 ? filteredFormData : {},
         documents_submitted: documentsSubmitted.length > 0 ? documentsSubmitted : [],
@@ -469,7 +484,11 @@ export default function ApplyToScheme() {
       const data = error.response?.data;
 
       if (status === 403) {
-        errorMessage = data?.message || getAccountStatusMessage(user) || "You must complete verification before applying to schemes.";
+        errorMessage =
+          data?.message ||
+          getCscStatusMessage(user) ||
+          getProfileCompletionStatus(user).message ||
+          "You must complete profile KYC and CSC verification before applying.";
       } else if (data) {
         if (data.message && data.reason) {
           errorMessage = `${data.message}: ${data.reason}`;
@@ -513,7 +532,7 @@ export default function ApplyToScheme() {
         {/* Header */}
         <div className="mb-6">
           <button
-            onClick={() => navigate(-1)}
+            onClick={goBackFromApply}
             className="flex items-center gap-2 text-[#d85a30] hover:text-[#ffb766] font-medium mb-4"
           >
             <FaArrowLeft /> Back
@@ -936,7 +955,7 @@ export default function ApplyToScheme() {
           <div className="flex gap-4">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={goBackFromApply}
               className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
             >
               Cancel

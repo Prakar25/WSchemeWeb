@@ -10,9 +10,29 @@ import {
 } from "react-icons/fa";
 
 import axios from "../../../api/axios";
-import { SCHEMES_CONFIG_URL, PROFILE_URL, DEPARTMENTS_URL, CATEGORIES_URL, APPLICATIONS_USER_URL, PUBLIC_PROFILE_GET_URL } from "../../../api/api_routing_urls";
+import {
+  SCHEMES_CONFIG_URL,
+  PROFILE_URL,
+  DEPARTMENTS_URL,
+  CATEGORIES_URL,
+  APPLICATIONS_USER_URL,
+  PUBLIC_PROFILE_GET_URL,
+  PUBLIC_PROFILE_HOUSEHOLD_MEMBERS_URL,
+} from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
-import { getStoredUser, isProfileComplete } from "../../../utils/user.utils";
+import {
+  getStoredAccountUserId,
+  getStoredUser,
+  isProfileComplete,
+  getProfileCompletionStatus,
+  getCscStatusMessage,
+  getProfileKycBadgeLabel,
+  getCscBadgeLabel,
+  maskAadhaar,
+  setActiveApplicantSelection,
+  setStoredActiveApplicantProfile,
+} from "../../../utils/user.utils";
+import { useActiveApplicantId } from "../../../hooks/useActiveApplicantId";
 import { formatDateInDDMonYYYY } from "../../../utils/dateFunctions/formatdate";
 import ViewSchemeDetails from "./viewSchemeDetails.component";
 import Footer from "../footer.component";
@@ -46,6 +66,10 @@ export default function PublicDashboard() {
   const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
   const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+  const [showApplicantSelector, setShowApplicantSelector] = useState(false);
+  const [householdMembers, setHouseholdMembers] = useState([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  const activeApplicantId = useActiveApplicantId();
 
   // Fetch departments and categories for lookup maps
   useEffect(() => {
@@ -80,157 +104,144 @@ export default function PublicDashboard() {
     fetchLookups();
   }, []);
 
+  // Post-login: applicant modal once + household list for picker
+  useEffect(() => {
+    const accountUserId = getStoredAccountUserId();
+    const alreadyShown = sessionStorage.getItem("applicantSelectorShown") === "1";
+    if (alreadyShown) return;
+    sessionStorage.setItem("applicantSelectorShown", "1");
+
+    setShowApplicantSelector(true);
+    if (!accountUserId) return;
+
+    (async () => {
+      try {
+        setLoadingMembers(true);
+        const res = await axios.get(PUBLIC_PROFILE_HOUSEHOLD_MEMBERS_URL, {
+          params: { userId: accountUserId },
+          withCredentials: true,
+        });
+        const data = res.data || {};
+        const list =
+          data.status === "success" && Array.isArray(data.members) ? data.members : [];
+        setHouseholdMembers(list);
+      } catch {
+        setHouseholdMembers([]);
+      } finally {
+        setLoadingMembers(false);
+      }
+    })();
+  }, []);
+
+  // Re-load dashboard data when switching active applicant or age filter
   useEffect(() => {
     const storedUser = getStoredUser();
-    
-    // Fetch user profile from API
+
     const fetchUserProfile = async () => {
-      if (!storedUser?._id && !storedUser?.userId) {
-        console.error("No user ID found");
-        // Use stored user as fallback
-        if (storedUser) {
-          setUser(storedUser);
-        }
+      if (!activeApplicantId) {
+        if (storedUser) setUser(storedUser);
         return;
       }
 
       try {
-        const userId = storedUser._id || storedUser.userId;
-        if (!userId) {
-          // No user ID, use stored user as fallback
-          if (storedUser) {
-            setUser(storedUser);
-            // Check if profile is incomplete
-            if (!isProfileComplete(storedUser)) {
-              setShowProfilePrompt(true);
-            }
-          }
-          return;
-        }
-        
-        // Try new profile endpoint first
+        const userId = activeApplicantId;
         try {
           const profileResponse = await axios.get(PUBLIC_PROFILE_GET_URL, {
             params: { userId },
+            withCredentials: true,
           });
-          
+
           if (profileResponse.data.status === "success" && profileResponse.data.user) {
             const userData = profileResponse.data.user;
             setUser(userData);
-            localStorage.setItem("user", JSON.stringify(userData));
-            
-            // Check if profile is incomplete
-            if (!isProfileComplete(userData)) {
-              setShowProfilePrompt(true);
-            }
+            setStoredActiveApplicantProfile(userData);
+            setShowProfilePrompt(!isProfileComplete(userData));
             return;
           }
         } catch (profileError) {
-          // Silently handle errors - backend might not have endpoint yet or server error
-          // Only try old endpoint if it's not a network/server error
-          if (profileError.response?.status && profileError.response.status !== 500 && profileError.response.status !== 404) {
-            // Only log unexpected errors (not 500, not 404, not network)
-            if (profileError.code !== "ERR_NETWORK") {
-              console.log("New profile endpoint failed, trying old endpoint");
-            }
+          if (
+            profileError.response?.status &&
+            profileError.response.status !== 500 &&
+            profileError.response.status !== 404 &&
+            profileError.code !== "ERR_NETWORK"
+          ) {
+            console.log("New profile endpoint failed, trying old endpoint");
           }
         }
-        
-        // Fallback to old profile endpoint (only if new one didn't work)
+
         try {
-          const response = await axios.get(`${PROFILE_URL}/${userId}`);
-          
+          const response = await axios.get(`${PROFILE_URL}/${userId}`, {
+            withCredentials: true,
+          });
+
           if (response && response.status === 200 && response.data?.user) {
             const userData = response.data.user;
             setUser(userData);
-            // Check if profile is incomplete
-            if (!isProfileComplete(userData)) {
-              setShowProfilePrompt(true);
-            }
+            setShowProfilePrompt(!isProfileComplete(userData));
             return;
           }
-        } catch (oldEndpointError) {
-          // Silently handle - will fall back to localStorage
+        } catch {
+          /* fall through */
         }
-        
-        // Fallback to stored user if API fails
+
         if (storedUser) {
           setUser(storedUser);
-          if (!isProfileComplete(storedUser)) {
-            setShowProfilePrompt(true);
-          }
+          setShowProfilePrompt(!isProfileComplete(storedUser));
         }
-      } catch (error) {
-        // Silently fall back to stored user for any error
+      } catch {
         if (storedUser) {
           setUser(storedUser);
-          if (!isProfileComplete(storedUser)) {
-            setShowProfilePrompt(true);
-          }
+          setShowProfilePrompt(!isProfileComplete(storedUser));
         }
       }
     };
 
-    fetchUserProfile();
-
-    // Fetch schemes with user_id if available
-    // Public users should only see approved schemes
     const getSchemesList = async () => {
       try {
-        const userId = user?._id || user?.userId || storedUser?._id || storedUser?.userId;
         const params = new URLSearchParams();
         params.append("approved_only", "true");
         if (ageGroupFilter && ageGroupFilter !== "all") {
           params.append("age_group", ageGroupFilter);
         }
-        if (userId) {
-          params.append("user_id", userId);
-          params.append("filter_type", "applicant"); // Use applicant filter when user_id is provided
+        if (activeApplicantId) {
+          params.append("user_id", activeApplicantId);
+          params.append("filter_type", "applicant");
         } else {
-          params.append("filter_type", "scheme"); // Use scheme filter when no user_id
+          params.append("filter_type", "scheme");
         }
-        
+
         const url = `${SCHEMES_CONFIG_URL}?${params.toString()}`;
         const response = await axios.get(url);
         if (response.status === 200) {
           const schemes = Array.isArray(response.data) ? response.data : [];
-          // Additional client-side filter to ensure only approved schemes
-          const approvedSchemes = schemes.filter(scheme => 
-            !scheme.approval_status || scheme.approval_status === "approved"
+          const approvedSchemes = schemes.filter(
+            (scheme) => !scheme.approval_status || scheme.approval_status === "approved"
           );
           setSchemesList(approvedSchemes);
         }
       } catch (error) {
-        // Silently handle errors - backend might be down or endpoint not available
-        // Only log unexpected errors (not network/server errors)
         if (error.code !== "ERR_NETWORK" && error.response?.status !== 500) {
           console.error("getSchemesList", error);
         }
       }
     };
 
-    getSchemesList();
-
-    // Fetch user applications
     const fetchApplications = async () => {
+      if (!activeApplicantId) {
+        setApplications([]);
+        return;
+      }
       try {
-        const userId = user?._id || user?.userId || storedUser?._id || storedUser?.userId;
-        if (!userId) {
-          setApplications([]);
-          return;
-        }
-
-        const response = await axios.get(`${APPLICATIONS_USER_URL}/${userId}`);
+        const response = await axios.get(`${APPLICATIONS_USER_URL}/${activeApplicantId}`, {
+          withCredentials: true,
+        });
         if (response.status === 200 && response.data?.status === "success") {
           const apps = response.data.data || [];
-          // Show only recent applications (limit to 3 for dashboard)
           setApplications(apps.slice(0, 3));
         } else {
           setApplications([]);
         }
       } catch (error) {
-        // Silently handle errors - backend might be down or endpoint not available
-        // Only log unexpected errors (not network/server errors)
         if (error.code !== "ERR_NETWORK" && error.response?.status !== 500) {
           console.error("Error fetching applications:", error);
         }
@@ -238,10 +249,15 @@ export default function PublicDashboard() {
       }
     };
 
-    if (user || storedUser) {
-      fetchApplications();
-    }
-  }, [user, ageGroupFilter]);
+    fetchUserProfile();
+    getSchemesList();
+    fetchApplications();
+  }, [activeApplicantId, ageGroupFilter]);
+
+  const selectApplicant = (m) => {
+    if (!setActiveApplicantSelection(m)) return;
+    setShowApplicantSelector(false);
+  };
 
   // Mask Aadhaar number for display
   const maskAadhaar = (aadhaar) => {
@@ -334,6 +350,107 @@ export default function PublicDashboard() {
     <div className="min-h-screen flex flex-col relative">
       <PublicHeader />
 
+      {/* Applicant selector modal */}
+      {showApplicantSelector && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4"
+          onClick={(e) => e.target === e.currentTarget && setShowApplicantSelector(false)}
+        >
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
+            <div className="p-5 border-b border-gray-200 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Who are you applying for today?</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Choose who you are applying for today. You can change this later from the
+                  Applicant menu in the header.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowApplicantSelector(false)}
+                className="text-gray-500 hover:text-gray-800 text-xl leading-none"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-5">
+              {loadingMembers ? (
+                <div className="text-sm text-gray-600">Loading members…</div>
+              ) : householdMembers.length === 0 ? (
+                <div className="space-y-3">
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <p className="text-gray-900 font-semibold">No household members found yet.</p>
+                    <p className="text-gray-600 text-sm mt-1">
+                      You can continue with your primary profile or add members later.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowApplicantSelector(false);
+                        navigate("/user/complete-profile");
+                      }}
+                      className="px-4 py-2 rounded-lg bg-[#d85a30] text-white font-semibold hover:bg-[#ffb766]"
+                    >
+                      Complete / Edit profile
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowApplicantSelector(false);
+                        navigate("/user/household-members");
+                      }}
+                      className="px-4 py-2 rounded-lg bg-gray-100 text-gray-900 font-semibold hover:bg-gray-200"
+                    >
+                      Go to Household Members
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {householdMembers.map((m, idx) => {
+                    const name = m?.fullName || m?.demographics?.fullName || m?.name || "—";
+                    const aadhaar = m?.aadhaarNumber || m?.aadhaar_number || m?.uid_no || null;
+                    const kycLabel = getProfileKycBadgeLabel(m);
+                    const cscLabel = getCscBadgeLabel(m);
+                    return (
+                      <button
+                        key={m?._id || m?.personId || idx}
+                        type="button"
+                        onClick={() => selectApplicant(m)}
+                        className="w-full text-left border border-gray-200 rounded-xl p-4 hover:border-[#d85a30] hover:bg-[#c2edda]/10 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="font-bold text-gray-900">{name}</div>
+                            <div className="text-sm text-gray-600 mt-0.5">
+                              Aadhaar: {aadhaar ? maskAadhaar(aadhaar) : "—"}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#c2edda]/30 text-black">
+                              Profile: {kycLabel}
+                            </span>
+                            {cscLabel && (
+                              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
+                                {cscLabel}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Ads – full width, half viewport height, just below top bar */}
       <div className="w-full overflow-hidden flex-shrink-0" style={{ height: "4.375vh", minHeight: "35px" }}>
         <AdsSection className="w-full h-full" height="100%" />
@@ -354,8 +471,8 @@ export default function PublicDashboard() {
           </p>
         </div>
 
-        {/* Verification status message (when not verified) */}
-        {user?.accountStatusMessage && (
+        {/* CSC verification (household) — separate from profile KYC */}
+        {getCscStatusMessage(user) && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -366,7 +483,12 @@ export default function PublicDashboard() {
               <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-[#c2edda] flex items-center justify-center">
                 <FiAlertCircle className="text-[#d85a30] text-xl" />
               </div>
-              <p className="text-black text-sm font-medium pt-1.5">{user.accountStatusMessage}</p>
+              <div className="pt-1">
+                <p className="text-black text-xs font-semibold uppercase tracking-wide mb-1">
+                  CSC verification
+                </p>
+                <p className="text-black text-sm font-medium">{getCscStatusMessage(user)}</p>
+              </div>
             </div>
           </motion.div>
         )}
@@ -385,10 +507,10 @@ export default function PublicDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-black mb-1 font-montserrat">
-                    Complete Your Profile
+                    Complete profile KYC
                   </h3>
                   <p className="text-black/90 text-sm mb-4">
-                    Your profile is incomplete. Complete it to apply for schemes and access all features.
+                    {getProfileCompletionStatus(user).message}
                   </p>
                   <button
                     onClick={() => navigate("/user/complete-profile")}

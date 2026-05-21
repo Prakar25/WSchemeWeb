@@ -8,8 +8,10 @@ import Dashboard from "../../../dashboard-components/dashboard.component";
 import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import showToast from "../../../../utils/notification/NotificationModal";
 import { displayMedia, uploadFileToServer } from "../../../../utils/uploadFiles/uploadFileToServerController";
+import { useConfirm } from "../../../../reusable-components/ConfirmDialog/ConfirmDialogProvider";
 
 export default function AdvertisementPage() {
+  const confirm = useConfirm();
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -59,7 +61,14 @@ export default function AdvertisementPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this ad?")) return;
+    const ok = await confirm({
+      title: "Delete advertisement?",
+      description: "This advertisement will be deleted permanently.",
+      confirmText: "Yes, delete",
+      cancelText: "Cancel",
+      tone: "danger",
+    });
+    if (!ok) return;
     try {
       await axios.delete(`${ADS_ADMIN_DELETE_URL}/${id}`);
       showToast("Ad deleted.", "success");

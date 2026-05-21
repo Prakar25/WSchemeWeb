@@ -11,14 +11,18 @@ import Spinner from "../../../../reusable-components/spinner/spinner.component";
 import showToast from "../../../../utils/notification/NotificationModal";
 import { displayMedia } from "../../../../utils/uploadFiles/uploadFileToServerController";
 import { FormSelectInput } from "../../../../reusable-components/inputs/FormSelect/FormSelect";
+import { useConfirm } from "../../../../reusable-components/ConfirmDialog/ConfirmDialogProvider";
+import { getDistrictsForState } from "../../../../utils/locationOptions";
 
 const Applications = () => {
+  const confirm = useConfirm();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // all, pending, approved, rejected
   const [stageFilter, setStageFilter] = useState("all"); // all, Level_7_8_Review, District_Head_Review, etc.
+  const [districtFilter, setDistrictFilter] = useState("all");
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [detailedApplication, setDetailedApplication] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -376,9 +380,12 @@ const Applications = () => {
   // Get stage name for display (using new verification_level)
   const getStageDisplayName = (app) => {
     // Prefer verification_stage if available (backend provides this)
-    // Support both CSC_Admin_Review (new) and legacy CSD_Admin_Review for backward compatibility
+    // Support both CSC_Admin_Review (new) and legacy CSD_Admin_Review (old) for backward compatibility
     if (app.verification_stage) {
-      const stage = app.verification_stage === "CSD_Admin_Review" ? "CSC Admin Review" : app.verification_stage.replace(/_/g, " ");
+      const stage =
+        app.verification_stage === "CSD_Admin_Review"
+          ? "CSC Admin Review"
+          : app.verification_stage.replace(/_/g, " ");
       return stage;
     }
     
@@ -592,6 +599,7 @@ const Applications = () => {
       if (searchText) params.append("search", searchText);
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (stageFilter !== "all") params.append("verification_stage", stageFilter);
+      if (districtFilter !== "all") params.append("district", districtFilter);
       // Optional query parameters (as per API documentation):
       // - user_id: Filter by user ID (ObjectId)
       // - scheme_id: Filter by scheme ID (ObjectId)
@@ -645,7 +653,7 @@ const Applications = () => {
 
   useEffect(() => {
     fetchApplications();
-  }, [statusFilter, stageFilter]);
+  }, [statusFilter, stageFilter, districtFilter]);
 
   // Debug: Log when selectedApplication changes
   useEffect(() => {
@@ -886,6 +894,7 @@ const Applications = () => {
                 <option value="Under Review">Under Review</option>
                 <option value="Bioauthentication">Bioauthentication</option>
                 <option value="Approved">Approved</option>
+                <option value="Benefit Transferred">Benefit Transferred</option>
                 <option value="Rejected">Rejected</option>
                 <option value="Pending">Pending</option>
               </FormSelectInput>
@@ -905,6 +914,23 @@ const Applications = () => {
                 <option value="Admin_Review">Admin Review</option>
                 <option value="District_Head_Review">District Head Review</option>
                 <option value="Completed">Completed</option>
+              </FormSelectInput>
+            </div>
+
+            {/* District Filter */}
+            <div className="relative min-w-[220px]">
+              <FaFilter className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <FormSelectInput
+                value={districtFilter}
+                onChange={(e) => setDistrictFilter(e.target.value)}
+                className="!rounded-lg !py-2 pl-10"
+              >
+                <option value="all">All Districts</option>
+                {getDistrictsForState("Sikkim").map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
               </FormSelectInput>
             </div>
           </div>
@@ -1632,7 +1658,8 @@ const Applications = () => {
                                 {/* Remarks Input */}
                                 <div>
                                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Remarks / Notes <span className="text-gray-500">(Optional)</span>
+                                    Remarks / Notes{" "}
+                                    {selectedAction === "Rejected" && <span className="text-red-600">*</span>}
                                   </label>
                                   <textarea
                                     value={verificationRemarks}
@@ -1772,7 +1799,18 @@ const Applications = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                   {/* Accept Button */}
                                   <button
-                                    onClick={() => handleVerify("Verified")}
+                                    onClick={async () => {
+                                      const ok = await confirm({
+                                        title: "Accept & forward application?",
+                                        description:
+                                          "This will approve the application at your level and forward it to the next stage (or complete it if this is the final stage).",
+                                        confirmText: "Yes, accept",
+                                        cancelText: "Cancel",
+                                        tone: "neutral",
+                                      });
+                                      if (!ok) return;
+                                      await handleVerify("Verified");
+                                    }}
                                     disabled={processingAction}
                                     className="flex items-center justify-center gap-2 px-6 py-4 bg-[#d85a30] text-white rounded-lg hover:bg-[#ffb766] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold text-base shadow-lg hover:shadow-xl"
                                   >
@@ -1789,7 +1827,22 @@ const Applications = () => {
 
                                   {/* Reject Button */}
                                   <button
-                                    onClick={() => handleVerify("Rejected")}
+                                    onClick={async () => {
+                                      if (!verificationRemarks || !verificationRemarks.trim()) {
+                                        showToast("Rejection reason is required.", "error");
+                                        return;
+                                      }
+                                      const ok = await confirm({
+                                        title: "Reject application?",
+                                        description:
+                                          "This will reject the application. You can include optional remarks/notes before proceeding.",
+                                        confirmText: "Yes, reject",
+                                        cancelText: "Cancel",
+                                        tone: "danger",
+                                      });
+                                      if (!ok) return;
+                                      await handleVerify("Rejected");
+                                    }}
                                     disabled={processingAction}
                                     className="flex items-center justify-center gap-2 px-6 py-4 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold text-base shadow-lg hover:shadow-xl"
                                   >

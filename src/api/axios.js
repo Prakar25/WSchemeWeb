@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getPublicSessionAnchorParams } from "../utils/user.utils";
 
 const BASE_URL =
   import.meta.env.VITE_NODE_ENV === "development"
@@ -9,12 +10,36 @@ const axiosInstance = axios.create({
   baseURL: BASE_URL,
 });
 
-// JWT: Attach Bearer token to all admin requests
+/** Public dashboard routes that require OTP session anchor (publicUserId / mobileNumber). */
+function urlNeedsPublicSessionAnchor(url = "") {
+  const path = String(url).split("?")[0];
+  if (path.includes("/public-profile")) return true;
+  if (path.includes("/applications/user")) return true;
+  if (path.includes("/applications/apply")) return true;
+  if (path.startsWith("/profile") || path.includes("/profile/")) return true;
+  return false;
+}
+
+function shouldAttachPublicSession(config) {
+  if (localStorage.getItem("adminToken")) return false;
+  const role = localStorage.getItem("role");
+  const hasPublicSession =
+    role === "Public User" || Boolean(getStoredPublicUserId());
+  if (!hasPublicSession) return false;
+  return urlNeedsPublicSessionAnchor(config.url || "");
+}
+
+// JWT + public session anchor on protected requests
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("adminToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else if (shouldAttachPublicSession(config)) {
+      const anchor = getPublicSessionAnchorParams();
+      if (anchor.publicUserId || anchor.mobileNumber) {
+        config.params = { ...anchor, ...(config.params || {}) };
+      }
     }
     return config;
   },
@@ -32,7 +57,7 @@ axiosInstance.interceptors.response.use(
       sessionStorage.removeItem("admin_username");
       sessionStorage.removeItem("admin_password");
       const isAdminRoute = window.location.pathname.startsWith("/system-admin") ||
-        window.location.pathname.startsWith("/csd-admin");
+        window.location.pathname.startsWith("/csc-admin");
       if (isAdminRoute) {
         window.location.href = "/admin-login";
       }

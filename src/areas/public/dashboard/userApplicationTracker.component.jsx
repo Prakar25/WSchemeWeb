@@ -9,7 +9,7 @@ import {
 
 import axios from "../../../api/axios";
 import { APPLICATIONS_USER_URL } from "../../../api/api_routing_urls";
-import { getStoredUser } from "../../../utils/user.utils";
+import { useActiveApplicantId } from "../../../hooks/useActiveApplicantId";
 import { formatDateInDDMonYYYY } from "../../../utils/dateFunctions/formatdate";
 
 import Dashboard from "../../dashboard-components/dashboard.component";
@@ -36,6 +36,7 @@ const statusConfig = {
 };
 
 export default function UserApplicationTracker() {
+  const activeApplicantId = useActiveApplicantId();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,16 +44,15 @@ export default function UserApplicationTracker() {
     const fetchApplications = async () => {
       try {
         setLoading(true);
-        const user = getStoredUser();
-        
-        if (!user || (!user._id && !user.userId)) {
-          console.error("No user ID found");
+        if (!activeApplicantId) {
           setApplications([]);
           return;
         }
 
-        const userId = user._id || user.userId;
-        const response = await axios.get(`${APPLICATIONS_USER_URL}/${userId}`);
+        const userId = activeApplicantId;
+        const response = await axios.get(`${APPLICATIONS_USER_URL}/${userId}`, {
+          withCredentials: true,
+        });
 
         if (response.status === 200 && response.data?.status === "success") {
           const apps = response.data.data || [];
@@ -69,7 +69,7 @@ export default function UserApplicationTracker() {
     };
 
     fetchApplications();
-  }, []);
+  }, [activeApplicantId]);
 
   return (
     <Dashboard sidebarType="Public User">

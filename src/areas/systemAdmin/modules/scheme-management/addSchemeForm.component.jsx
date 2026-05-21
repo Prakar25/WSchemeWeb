@@ -33,6 +33,7 @@ import RichTextArea from "../../../../reusable-components/richtexteditor/RichTex
 import ArrayInput from "../../../../reusable-components/inputs/ArrayInput/ArrayInput";
 
 import showToast from "../../../../utils/notification/NotificationModal";
+import { useConfirm } from "../../../../reusable-components/ConfirmDialog/ConfirmDialogProvider";
 import {
   uploadFileToServer,
   displayMedia,
@@ -53,6 +54,7 @@ const AddSchemeForm = ({
   setEditSchemeDeleteImagePath,
   handleDeleteFile,
 }) => {
+  const confirm = useConfirm();
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
   const [showSchemeDz, setShowSchemeDz] = useState(false);
   const [docScheme, setDocScheme] = useState(null);
@@ -582,6 +584,20 @@ const AddSchemeForm = ({
       // console.log("sendDataObj inside onSubmit()", sendDataObj);
 
       let response = "";
+
+      const ok = await confirm({
+        title: isEdit ? "Update scheme?" : "Create new scheme?",
+        description: isEdit
+          ? "This will update the scheme details for all users. Continue?"
+          : "This will create a new scheme and send it for approval. Continue?",
+        confirmText: isEdit ? "Yes, update" : "Yes, create",
+        cancelText: "Cancel",
+        tone: "neutral",
+      });
+      if (!ok) {
+        setIsFormSubmitting(false);
+        return;
+      }
 
       if (!isEdit) {
         sendDataObj.scheme_image_file_url = updatedFileURL || null;

@@ -27,6 +27,11 @@ export const PUBLIC_PROFILE_UPDATE_URL = "/public-profile/update"; // PUT /api/p
 export const PUBLIC_PROFILE_SUBMIT_COMPLETE_URL = "/public-profile/submit-complete"; // POST - profile + all documents in one request
 export const PUBLIC_PROFILE_UPLOAD_DOCUMENT_URL = "/public-profile/upload-document"; // POST /api/public-profile/upload-document
 export const PUBLIC_PROFILE_DELETE_DOCUMENT_URL = "/public-profile/delete-document"; // DELETE /api/public-profile/delete-document
+/** GET list | POST add/upsert by Aadhaar | PUT `.../:memberId` update by BeneficiaryPerson _id (account holder only) */
+export const PUBLIC_PROFILE_HOUSEHOLD_MEMBERS_URL = "/public-profile/household-members";
+
+export const publicProfileHouseholdMemberByIdUrl = (memberId) =>
+  `${PUBLIC_PROFILE_HOUSEHOLD_MEMBERS_URL}/${encodeURIComponent(String(memberId))}`;
 
 //#endregion
 
@@ -63,6 +68,8 @@ export const APPLICATION_FORWARD_URL = "/applications"; // POST /applications/:a
 export const APPLICATION_ASSIGN_URL = "/applications"; // POST /applications/:applicationId/assign - Assign application to admin
 export const APPLICATION_NEXT_STAGE_ADMINS_URL = "/applications"; // GET /applications/:applicationId/next-stage-admins - Get admins for next stage
 export const APPLICATION_BIOAUTH_QUEUE_URL = "/applications/bioauthentication/queue"; // POST /applications/bioauthentication/queue - Queue apps for bio-auth restart
+export const APPLICATION_BIOAUTH_REQUEUE_URL = "/applications/bioauthentication/requeue"; // POST /applications/bioauthentication/requeue - Bulk requeue for re-bioauth (back to CSC stage)
+export const APPLICATION_MARK_BENEFIT_TRANSFERRED_URL = "/applications"; // PUT /applications/:id/mark-benefit-transferred - Mark payable (Benefit Transferred)
 
 // Bulk Upload URLs
 export const BULK_UPLOAD_PREVIEW_URL = "/bulk-upload/preview"; // POST /bulk-upload/preview - Upload file and get preview
@@ -71,5 +78,5 @@ export const BULK_UPLOAD_CONFIRM_URL = "/bulk-upload/confirm"; // POST /bulk-upl
 //#endregion
 
 //#region CSC Admin URLs (CSCAdmin role only)
-export const CSD_PENDING_APPLICATIONS_URL = "/csd/pending-applications"; // Applications with verification_level 5 (or 9 legacy), status !== "Rejected"
+export const CSC_PENDING_APPLICATIONS_URL = "/csc/pending-applications"; // Applications with verification_level 5 (or 9 legacy), status !== "Rejected"
 //#endregion

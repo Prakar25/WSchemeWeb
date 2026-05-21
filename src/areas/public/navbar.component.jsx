@@ -4,11 +4,13 @@ import { Link, useLocation } from "react-router-dom";
 
 import skGovtLogo from "../../assets/sikkim_gov.png";
 import RotatingText from "../../reusable-components/RotatingText/RotatingText";
+import { isPublicUserLoggedIn } from "../../utils/user.utils";
 
 const Navbar = () => {
   const { pathname } = useLocation();
   const isAuthPage = pathname === "/login" || pathname === "/admin-login" || pathname === "/admin-register";
   const isHome = pathname === "/";
+  const isLoggedInPublic = isPublicUserLoggedIn();
   return (
     <header className="bg-[#c2edda]/20 border-b border-[#68d388]/30 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,22 +48,33 @@ const Navbar = () => {
 
           {/* Right side: Login button or spacer to keep nav centered */}
           {!isAuthPage ? (
-            <Link to="/login">
-              <button className="bg-[#d85a30] hover:bg-[#ffb766] text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center min-w-[7.5rem]">
-                <RotatingText
-                  texts={["Login", "Register"]}
-                  mainClassName="overflow-hidden"
-                  staggerFrom="last"
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "-120%" }}
-                  staggerDuration={0.025}
-                  splitLevelClassName="overflow-hidden"
-                  transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                  rotationInterval={2000}
-                />
-              </button>
-            </Link>
+            isLoggedInPublic ? (
+              <Link to="/user/dashboard">
+                <button
+                  type="button"
+                  className="bg-[#d85a30] hover:bg-[#ffb766] text-white px-4 py-2 rounded-lg font-medium transition-colors min-w-[7.5rem]"
+                >
+                  My Dashboard
+                </button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <button className="bg-[#d85a30] hover:bg-[#ffb766] text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center min-w-[7.5rem]">
+                  <RotatingText
+                    texts={["Login", "Register"]}
+                    mainClassName="overflow-hidden"
+                    staggerFrom="last"
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "-120%" }}
+                    staggerDuration={0.025}
+                    splitLevelClassName="overflow-hidden"
+                    transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                    rotationInterval={2000}
+                  />
+                </button>
+              </Link>
+            )
           ) : (
             <div className="min-w-[7.5rem]" aria-hidden="true" />
           )}

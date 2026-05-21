@@ -1,16 +1,24 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
 import axios from "../../../api/axios";
 import { PUBLIC_PROFILE_GET_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
-import { getStoredUser, isProfileComplete, getVerificationStatus, getAccountStatusMessage } from "../../../utils/user.utils";
+import {
+  getStoredUser,
+  isProfileComplete,
+  isCscVerified,
+  getCscVerificationStatus,
+  getCscStatusMessage,
+  getProfileCompletionStatus,
+} from "../../../utils/user.utils";
 import showToast from "../../../utils/notification/NotificationModal";
 
 const ViewSchemeDetails = ({ scheme, onClose }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [profileComplete, setProfileComplete] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
@@ -52,9 +60,9 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
     checkProfile();
   }, []);
 
-  const isVerified = getVerificationStatus(user) === "verified";
+  const isVerified = isCscVerified(user);
   const canApply = profileComplete && isVerified;
-  const accountStatusMessage = getAccountStatusMessage(user);
+  const cscStatusMessage = getCscStatusMessage(user);
 
   const handleApplyClick = () => {
     if (!user) {
@@ -62,18 +70,21 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
       return;
     }
     if (!profileComplete) {
-      showToast(
-        "Please complete your profile before applying for schemes.",
-        "error"
-      );
+      showToast(getProfileCompletionStatus(user).message, "error");
       navigate("/user/complete-profile");
       return;
     }
     if (!isVerified) {
-      showToast(accountStatusMessage || "Please verify your account to apply for schemes.", "error");
+      showToast(
+        cscStatusMessage ||
+          `CSC verification is ${getCscVerificationStatus(user) || "pending"}. You cannot apply yet.`,
+        "error"
+      );
       return;
     }
-    navigate("/user/apply-to-scheme", { state: { scheme } });
+    navigate("/user/apply-to-scheme", {
+      state: { scheme, from: location.pathname },
+    });
   };
 
   if (!scheme) return null;
@@ -267,12 +278,13 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
                       </p>
                     </div>
                   )}
-                  {user && profileComplete && !isVerified && accountStatusMessage && (
+                  {user && profileComplete && !isVerified && cscStatusMessage && (
                     <div className="mb-4 p-3 bg-[#68d388]/20 border border-[#68d388]/40 rounded-lg">
-                      <p className="text-sm text-black">{accountStatusMessage}</p>
+                      <p className="text-sm text-black font-medium mb-1">CSC verification</p>
+                      <p className="text-sm text-black">{cscStatusMessage}</p>
                     </div>
                   )}
-                  {user && profileComplete && !isVerified && !accountStatusMessage && (
+                  {user && profileComplete && !isVerified && !cscStatusMessage && (
                     <p className="text-sm text-gray-600 mb-4">Verify your account to apply.</p>
                   )}
                   <button

@@ -27,11 +27,7 @@ function NavItem({ to, pathname, icon, label, isActive }) {
   );
 }
 
-export default function CSDAdminSidebar({
-  pathname,
-  sidebarExpanded,
-  setSidebarExpanded,
-}) {
+export default function CSCAdminSidebar({ pathname, sidebarExpanded, setSidebarExpanded }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -50,26 +46,25 @@ export default function CSDAdminSidebar({
         <ul>
           <li>
             <NavItem
-              to="/csd-admin/pending-applications"
+              to="/csc-admin/pending-applications"
               pathname={pathname}
               icon={<MdAssignment size={20} />}
               label="Applications"
-              isActive={pathname.includes("/csd-admin/pending-applications")}
+              isActive={pathname.includes("/csc-admin/pending-applications")}
             />
           </li>
         </ul>
       </div>
 
-      {/* Settings and Logout at bottom */}
       <div className="border-t border-white/20 pt-3 mt-auto">
         <ul>
           <li>
             <NavItem
-              to="/csd-admin/profile"
+              to="/csc-admin/profile"
               pathname={pathname}
               icon={<IoSettingsOutline size={20} />}
               label="Settings"
-              isActive={pathname.includes("/csd-admin/profile")}
+              isActive={pathname.includes("/csc-admin/profile")}
             />
           </li>
 
@@ -91,3 +86,4 @@ export default function CSDAdminSidebar({
     </section>
   );
 }
+

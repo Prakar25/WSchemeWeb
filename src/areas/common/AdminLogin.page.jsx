@@ -43,7 +43,7 @@ export default function AdminLogin() {
 
       const role = (user.role || "").trim();
       if (role === "CSCAdmin") {
-        navigate("/csd-admin/pending-applications", { replace: true });
+        navigate("/csc-admin/pending-applications", { replace: true });
       } else {
         navigate("/system-admin/dashboard", { replace: true });
       }

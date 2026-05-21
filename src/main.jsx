@@ -7,6 +7,7 @@ import "./index.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./styles/toast.css";
+import ConfirmDialogProvider from "./reusable-components/ConfirmDialog/ConfirmDialogProvider.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -24,7 +25,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         theme="light"
       />
       <div className="font-roboto">
-        <App />
+        <ConfirmDialogProvider>
+          <App />
+        </ConfirmDialogProvider>
       </div>
     </BrowserRouter>
   </React.StrictMode>

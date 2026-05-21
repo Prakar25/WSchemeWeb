@@ -12,9 +12,11 @@ import Footer from "../footer.component";
 import SplitText from "../../../reusable-components/SplitText/SplitText";
 import PublicHeader from "../components/PublicHeader.component";
 import { FormSelectInput } from "../../../reusable-components/inputs/FormSelect/FormSelect";
+import { useActiveApplicantId } from "../../../hooks/useActiveApplicantId";
 
 export default function PublicSchemes() {
   const navigate = useNavigate();
+  const activeApplicantId = useActiveApplicantId();
   const [schemesList, setSchemesList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -56,25 +58,19 @@ export default function PublicSchemes() {
   }, []);
 
   useEffect(() => {
-    // Fetch user ID from localStorage
-    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-    const userId = storedUser?._id || storedUser?.userId;
-
-    // Fetch schemes with user_id if available
-    // Public users should only see approved schemes
     const getSchemesList = async () => {
       try {
         const params = new URLSearchParams();
         params.append("approved_only", "true");
-        params.append("filter_type", "scheme");
-        
-        if (userId) {
-          params.append("user_id", userId);
-          params.append("filter_type", "applicant"); // Use applicant filter when user_id is provided
+        if (activeApplicantId) {
+          params.append("user_id", activeApplicantId);
+          params.append("filter_type", "applicant");
+        } else {
+          params.append("filter_type", "scheme");
         }
-        
+
         const url = `${SCHEMES_CONFIG_URL}?${params.toString()}`;
-        const response = await axios.get(url);
+        const response = await axios.get(url, { withCredentials: true });
         if (response.status === 200) {
           const schemes = Array.isArray(response.data) ? response.data : [];
           // Additional client-side filter to ensure only approved schemes
@@ -89,7 +85,7 @@ export default function PublicSchemes() {
     };
 
     getSchemesList();
-  }, []);
+  }, [activeApplicantId]);
 
   // Reset scroll position when scheme is selected or closed
   useEffect(() => {

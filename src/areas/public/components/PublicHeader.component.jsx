@@ -1,22 +1,22 @@
 /* eslint-disable no-unused-vars */
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { FiLogOut } from "react-icons/fi";
 import axios from "../../../api/axios";
 import { PROFILE_URL } from "../../../api/api_routing_urls";
 import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 import { getStoredUser } from "../../../utils/user.utils";
 import { useEffect, useState } from "react";
 import skGovtLogo from "../../../assets/sikkim_gov.png";
+import ApplicantSwitcherDropdown from "./ApplicantSwitcherDropdown";
 
 export default function PublicHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
 
+  // OTP account (avatar / mobile line) — not the active beneficiary
   useEffect(() => {
     const storedUser = getStoredUser();
-    
-    // Fetch user profile from API for updated data
+
     const fetchUserProfile = async () => {
       if (!storedUser?._id && !storedUser?.userId) {
         // Fallback to stored user if no ID
@@ -89,13 +89,6 @@ export default function PublicHeader() {
     return location.pathname === path;
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-    localStorage.removeItem("sidebar-expanded");
-    navigate("/login", { replace: true });
-  };
-
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -140,10 +133,22 @@ export default function PublicHeader() {
             >
               My Applications
             </button>
+            <button
+              onClick={() => navigate("/user/household-members")}
+              className={`font-medium transition-colors ${
+                isActive("/user/household-members")
+                  ? "text-[#d85a30] font-semibold"
+                  : "text-black hover:text-[#d85a30]"
+              }`}
+            >
+              Household
+            </button>
           </nav>
 
           {/* Right side - Profile and Logout */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ApplicantSwitcherDropdown />
+
             {/* Profile Picture */}
             {user && (
               <button
@@ -163,15 +168,6 @@ export default function PublicHeader() {
                 )}
               </button>
             )}
-
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-black hover:text-gray-800 cursor-pointer transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
-              title="Logout"
-            >
-              <FiLogOut size={18} />
-            </button>
           </div>
         </div>
       </div>
