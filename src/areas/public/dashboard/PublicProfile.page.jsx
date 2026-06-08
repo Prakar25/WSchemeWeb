@@ -20,6 +20,7 @@ import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerContr
 import Footer from "../footer.component";
 import SplitText from "../../../reusable-components/SplitText/SplitText";
 import PublicHeader from "../components/PublicHeader.component";
+import { fetchDocumentTypes, documentTypesByKey } from "../../../utils/documentTypes";
 
 export default function PublicProfile() {
   const navigate = useNavigate();
@@ -27,6 +28,13 @@ export default function PublicProfile() {
   const [user, setUser] = useState(null);
   const [showAadhaar, setShowAadhaar] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [profileDocTypes, setProfileDocTypes] = useState([]);
+
+  useEffect(() => {
+    fetchDocumentTypes({ profileOnly: true })
+      .then(setProfileDocTypes)
+      .catch(() => setProfileDocTypes([]));
+  }, []);
 
   useEffect(() => {
     const storedUser = getStoredUser();
@@ -119,12 +127,14 @@ export default function PublicProfile() {
   };
 
   const hasDoc = (doc) => doc?.filePath != null && doc?.filePath !== "";
-  const docLabel = (key) =>
-    key === "aadhaarCard"
-      ? "Aadhaar Card"
-      : key === "birthCertificate"
-        ? "Birth Certificate"
-        : "Certificate of Identification";
+  const docTypesByKey = documentTypesByKey(profileDocTypes);
+  const docLabel = (key) => docTypesByKey[key]?.label || key;
+
+  const profileDocumentKeys = () => {
+    if (profileDocTypes.length) return profileDocTypes.map((t) => t.key);
+    const docs = user?.documents;
+    return docs && typeof docs === "object" ? Object.keys(docs) : [];
+  };
 
   if (loading || !user) {
     return (
@@ -307,8 +317,7 @@ export default function PublicProfile() {
             <FiFileText /> Documents
           </h3>
           <div className="space-y-3">
-            {["aadhaarCard", "birthCertificate", "certificateOfIdentification"].map(
-              (key) => {
+            {profileDocumentKeys().map((key) => {
                 const doc = user.documents?.[key];
                 const uploaded = hasDoc(doc);
                 return (

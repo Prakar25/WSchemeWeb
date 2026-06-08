@@ -5,6 +5,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { FiCheck, FiChevronDown, FiUsers } from "react-icons/fi";
 import axios from "../../../api/axios";
 import { PUBLIC_PROFILE_HOUSEHOLD_MEMBERS_URL } from "../../../api/api_routing_urls";
+import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
 import {
   ACTIVE_APPLICANT_CHANGED_EVENT,
   getStoredAccountUserId,
@@ -26,6 +27,11 @@ function memberInitial(member) {
   return memberFirstName(member).charAt(0).toUpperCase() || "?";
 }
 
+function memberPhotoUrl(member) {
+  const url = member?.photo?.url || member?.photo?.filePath || member?.photoUrl;
+  return url ? displayMedia(url) : null;
+}
+
 function memberSubtitle(member) {
   const relation = (
     member?.relationToPrimary ||
@@ -39,13 +45,38 @@ function memberSubtitle(member) {
 
 function getApplicantDisplay(activeApplicant) {
   if (!activeApplicant) {
-    return { initial: "?", primary: "Select", secondary: null };
+    return { initial: "?", primary: "Select", secondary: null, photoUrl: null };
   }
   return {
     initial: memberInitial(activeApplicant),
     primary: memberFirstName(activeApplicant),
     secondary: memberSubtitle(activeApplicant),
+    photoUrl: memberPhotoUrl(activeApplicant),
   };
+}
+
+function MemberAvatar({ member, size = "md" }) {
+  const photo = memberPhotoUrl(member);
+  const initial = memberInitial(member);
+  const sizeClass = size === "sm" ? "w-8 h-8 text-sm" : "w-9 h-9 text-xs";
+
+  if (photo) {
+    return (
+      <img
+        src={photo}
+        alt=""
+        className={`flex-shrink-0 ${sizeClass} rounded-full object-cover ring-2 ring-white`}
+      />
+    );
+  }
+  return (
+    <span
+      className={`flex-shrink-0 ${sizeClass} rounded-full bg-gradient-to-br from-[#c2edda] to-[#d85a30]/80 text-white font-bold flex items-center justify-center`}
+      aria-hidden
+    >
+      {initial}
+    </span>
+  );
 }
 
 export default function ApplicantSwitcherDropdown() {
@@ -96,15 +127,25 @@ export default function ApplicantSwitcherDropdown() {
     loadMembers();
   };
 
-  const handleSelect = (member) => {
+  /** Switch active applicant (if needed) and open their profile */
+  const handleSelectMember = (member) => {
     const id = resolveBeneficiaryPersonId(member);
-    if (id && String(id) === String(activeApplicantId)) return;
-    if (!setActiveApplicantSelection(member)) {
-      showToast("Could not switch applicant. Try again.", "error");
+    if (!id) {
+      showToast("Could not open profile (missing member id).", "error");
       return;
     }
-    setActiveApplicant(member);
-    showToast(`Now applying as ${memberFirstName(member)}`, "success");
+
+    const isSame = activeApplicantId && String(id) === String(activeApplicantId);
+    if (!isSame) {
+      if (!setActiveApplicantSelection(member)) {
+        showToast("Could not switch applicant. Try again.", "error");
+        return;
+      }
+      setActiveApplicant(member);
+      showToast(`Now applying as ${memberFirstName(member)}`, "success");
+    }
+
+    navigate("/user/profile");
   };
 
   const display = getApplicantDisplay(activeApplicant);
@@ -114,18 +155,26 @@ export default function ApplicantSwitcherDropdown() {
       <MenuButton
         type="button"
         onClick={handleOpen}
-        className="flex items-center gap-1.5 max-w-[9.5rem] sm:max-w-[11rem] pl-1 pr-2 py-1 rounded-lg border border-gray-200/90 bg-gray-50 hover:bg-[#c2edda]/25 hover:border-[#68d388]/40 transition-colors focus:outline-none data-[focus]:ring-2 data-[focus]:ring-[#d85a30]/30 data-[focus]:ring-offset-1 data-[hover]:bg-[#c2edda]/25"
-        aria-label={`Active applicant: ${display.primary}. Open to switch.`}
+        className="flex items-center gap-1.5 max-w-[10rem] sm:max-w-[12rem] pl-1 pr-2 py-1 rounded-lg border border-gray-200/90 bg-gray-50 hover:bg-[#c2edda]/25 hover:border-[#68d388]/40 transition-colors focus:outline-none data-[focus]:ring-2 data-[focus]:ring-[#d85a30]/30 data-[focus]:ring-offset-1 data-[hover]:bg-[#c2edda]/25"
+        aria-label={`${display.primary} — open profile and switch applicant`}
       >
-        <span
-          className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-[#c2edda] to-[#d85a30]/80 text-white text-xs font-bold flex items-center justify-center"
-          aria-hidden
-        >
-          {display.initial}
-        </span>
+        {display.photoUrl ? (
+          <img
+            src={display.photoUrl}
+            alt=""
+            className="flex-shrink-0 w-9 h-9 rounded-full object-cover ring-2 ring-[#c2edda]/50"
+          />
+        ) : (
+          <span
+            className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-[#c2edda] to-[#d85a30]/80 text-white text-xs font-bold flex items-center justify-center"
+            aria-hidden
+          >
+            {display.initial}
+          </span>
+        )}
         <span className="min-w-0 flex flex-col items-start leading-tight text-left">
           <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">
-            Applicant
+            Profile
           </span>
           <span className="text-xs font-semibold text-gray-900 truncate w-full">
             {display.primary}
@@ -150,10 +199,10 @@ export default function ApplicantSwitcherDropdown() {
       >
         <div className="px-3 py-2 border-b border-gray-100">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            Switch applicant
+            Household profiles
           </p>
           <p className="text-[11px] text-gray-500 mt-0.5">
-            Schemes and applications will use the member you select.
+            Choose a member to view their profile and apply for schemes as them.
           </p>
         </div>
 
@@ -176,14 +225,12 @@ export default function ApplicantSwitcherDropdown() {
                     <button
                       type="button"
                       disabled={!id}
-                      onClick={() => handleSelect(m)}
+                      onClick={() => handleSelectMember(m)}
                       className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left rounded-lg transition-colors ${
                         focus ? "bg-[#c2edda]/30" : ""
                       } ${selected ? "bg-[#c2edda]/20" : ""}`}
                     >
-                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 text-[#d85a30] text-sm font-bold flex items-center justify-center">
-                        {memberInitial(m)}
-                      </span>
+                      <MemberAvatar member={m} size="sm" />
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1.5">
                           <span className="text-sm font-semibold text-gray-900 truncate">
@@ -220,6 +267,21 @@ export default function ApplicantSwitcherDropdown() {
         </div>
 
         <div className="border-t border-gray-100 p-1">
+          {activeApplicant && (
+            <MenuItem>
+              {({ focus }) => (
+                <button
+                  type="button"
+                  onClick={() => handleSelectMember(activeApplicant)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-800 rounded-lg ${
+                    focus ? "bg-gray-50" : ""
+                  }`}
+                >
+                  View current profile
+                </button>
+              )}
+            </MenuItem>
+          )}
           <MenuItem>
             {({ focus }) => (
               <button

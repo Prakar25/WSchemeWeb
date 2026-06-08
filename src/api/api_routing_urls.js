@@ -33,6 +33,13 @@ export const PUBLIC_PROFILE_HOUSEHOLD_MEMBERS_URL = "/public-profile/household-m
 export const publicProfileHouseholdMemberByIdUrl = (memberId) =>
   `${PUBLIC_PROFILE_HOUSEHOLD_MEMBERS_URL}/${encodeURIComponent(String(memberId))}`;
 
+/** Document type catalog (admin + public) */
+export const DOCUMENT_TYPES_URL = "/document-types";
+
+/** Per-scheme document requirements for apply flow (prefill from profile) */
+export const applicationSchemeDocumentRequirementsUrl = (schemeId) =>
+  `/applications/scheme/${encodeURIComponent(String(schemeId))}/document-requirements`;
+
 //#endregion
 
 //#region System Admin User URLs

@@ -14,8 +14,10 @@ import {
   DEPARTMENTS_URL,
   CATEGORIES_URL,
   ADMIN_ROLES_URL,
-  ADMIN_ROLES_FOR_AUTHORIZATION_URL
+  ADMIN_ROLES_FOR_AUTHORIZATION_URL,
 } from "../../../../api/api_routing_urls";
+import { fetchDocumentTypes, getSchemeRequiredDocumentKeys } from "../../../../utils/documentTypes";
+import DocumentTypeMultiSelect from "../../../../reusable-components/DocumentTypeMultiSelect/DocumentTypeMultiSelect";
 
 import HeadingAndButton from "../../../../reusable-components/HeadingAndButton";
 import Input from "../../../../reusable-components/inputs/InputTextBox/Input";
@@ -75,6 +77,10 @@ const AddSchemeForm = ({
 
   // Per-scheme custom form fields: [{ field_key, label, type, required, options }]
   const [customFormFields, setCustomFormFields] = useState([]);
+
+  const [documentTypeCatalog, setDocumentTypeCatalog] = useState([]);
+  const [loadingDocumentTypes, setLoadingDocumentTypes] = useState(true);
+  const [selectedRequiredDocKeys, setSelectedRequiredDocKeys] = useState([]);
 
 
   // Fixed gender options per spec: All, Male, Female
@@ -226,7 +232,24 @@ const AddSchemeForm = ({
     fetchDepartments();
     fetchCategories();
     fetchAdminRoles();
+    (async () => {
+      setLoadingDocumentTypes(true);
+      try {
+        const types = await fetchDocumentTypes();
+        setDocumentTypeCatalog(types);
+      } catch {
+        showToast("Could not load document types.", "error");
+      } finally {
+        setLoadingDocumentTypes(false);
+      }
+    })();
   }, []);
+
+  useEffect(() => {
+    if (isEdit && editSchemeDetails) {
+      setSelectedRequiredDocKeys(getSchemeRequiredDocumentKeys(editSchemeDetails));
+    }
+  }, [isEdit, editSchemeDetails]);
 
   // Set default department and category when editing
   useEffect(() => {
@@ -353,11 +376,6 @@ const AddSchemeForm = ({
       : (Array.isArray(editSchemeDetails?.scheme_eligibility?.custom_fields)
           ? editSchemeDetails.scheme_eligibility.custom_fields.map((f) => f.title || f.label || f.field_key || "").filter(Boolean)
           : []),
-    scheme_required_document_types: !isEdit
-      ? []
-      : (Array.isArray(editSchemeDetails?.scheme_required_document_types)
-          ? editSchemeDetails.scheme_required_document_types
-          : []),
     scheme_image_file_url: !isEdit
       ? ""
       : editSchemeDetails?.scheme_image_file_url,
@@ -478,8 +496,8 @@ const AddSchemeForm = ({
       const scheme_benefits = Array.isArray(data?.scheme_benefits)
         ? data.scheme_benefits.filter(item => item && item.trim() !== "")
         : [];
-      const scheme_required_document_types = Array.isArray(data?.scheme_required_document_types)
-        ? data.scheme_required_document_types.filter(item => item && item.trim() !== "")
+      const scheme_required_document_types = Array.isArray(selectedRequiredDocKeys)
+        ? selectedRequiredDocKeys.filter((k) => k && String(k).trim())
         : [];
 
       // Validate arrays are not empty
@@ -963,19 +981,23 @@ const AddSchemeForm = ({
           <div className="mb-6 pb-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Required Documents</h2>
             <div className="col-span-2">
-              <p className="text-xs text-gray-600 mb-1">Add at least one document type (e.g. Aadhaar Card). Use Add button to add more.</p>
-              <ArrayInput
-                defaultName="scheme_required_document_types"
-                register={register}
-                name="Required Document Types"
-                required={true}
-                errors={errors}
-                setValue={setValue}
-                data={!isEdit ? [] : (Array.isArray(editSchemeDetails?.scheme_required_document_types)
-                  ? editSchemeDetails.scheme_required_document_types
-                  : [])}
-                placeholder="Enter document type (e.g., Aadhaar Card)"
+              <DocumentTypeMultiSelect
+                documentTypes={documentTypeCatalog}
+                selectedKeys={selectedRequiredDocKeys}
+                onChange={setSelectedRequiredDocKeys}
+                disabled={isFormSubmitting}
+                loading={loadingDocumentTypes}
               />
+              {isEdit &&
+                Array.isArray(editSchemeDetails?.scheme_required_documents_enriched) &&
+                editSchemeDetails.scheme_required_documents_enriched.length > 0 && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Current on scheme:{" "}
+                    {editSchemeDetails.scheme_required_documents_enriched
+                      .map((d) => d.label || d.key)
+                      .join(", ")}
+                  </p>
+                )}
             </div>
           </div>
 

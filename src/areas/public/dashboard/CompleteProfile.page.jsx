@@ -31,6 +31,7 @@ import { FiUpload, FiX, FiCheck, FiTrash2 } from "react-icons/fi";
 import { getCountries, getStatesForCountry, getDistrictsForState, normalizeLocationValue } from "../../../utils/locationOptions";
 import FormSelect from "../../../reusable-components/inputs/FormSelect/FormSelect";
 import { useConfirm } from "../../../reusable-components/ConfirmDialog/ConfirmDialogProvider";
+import { fetchDocumentTypes } from "../../../utils/documentTypes";
 
 export default function CompleteProfile() {
   const navigate = useNavigate();
@@ -40,11 +41,8 @@ export default function CompleteProfile() {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [deletingDocs, setDeletingDocs] = useState({
-    aadhaarCard: false,
-    birthCertificate: false,
-    certificateOfIdentification: false,
-  });
+  const [profileDocTypes, setProfileDocTypes] = useState([]);
+  const [deletingDocs, setDeletingDocs] = useState({});
 
   const formRef = useRef(null);
 
@@ -60,13 +58,34 @@ export default function CompleteProfile() {
     mode: "onChange",
   });
 
-  const [documents, setDocuments] = useState({
-    aadhaarCard: null,
-    birthCertificate: null,
-    certificateOfIdentification: null,
-  });
+  const [documents, setDocuments] = useState({});
 
   const [locationUi, setLocationUi] = useState({ country: "India", state: "", district: "" });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const types = await fetchDocumentTypes({ profileOnly: true });
+        setProfileDocTypes(types);
+        setDocuments((prev) => {
+          const next = { ...prev };
+          types.forEach((t) => {
+            if (next[t.key] === undefined) next[t.key] = null;
+          });
+          return next;
+        });
+        setDeletingDocs((prev) => {
+          const next = { ...prev };
+          types.forEach((t) => {
+            if (next[t.key] === undefined) next[t.key] = false;
+          });
+          return next;
+        });
+      } catch {
+        showToast("Could not load document types.", "error");
+      }
+    })();
+  }, []);
 
   // Load user profile on mount
   useEffect(() => {
@@ -168,11 +187,7 @@ export default function CompleteProfile() {
     if (!userId) return;
 
     const docLabel =
-      docType === "aadhaarCard"
-        ? "Aadhaar Card"
-        : docType === "birthCertificate"
-          ? "Birth Certificate"
-          : "Certificate of Identification";
+      profileDocTypes.find((t) => t.key === docType)?.label || docType;
     const ok = await confirm({
       title: `Delete ${docLabel}?`,
       description: "This document will be removed from your profile.",
@@ -242,10 +257,10 @@ export default function CompleteProfile() {
       if (data.pincode?.trim()) formData.append("pincode", data.pincode.trim());
       formData.append("country", data.country?.trim() || "India");
 
-      // Document files (only append if user selected a file)
-      if (documents.aadhaarCard) formData.append("aadhaarCard", documents.aadhaarCard);
-      if (documents.birthCertificate) formData.append("birthCertificate", documents.birthCertificate);
-      if (documents.certificateOfIdentification) formData.append("certificateOfIdentification", documents.certificateOfIdentification);
+      profileDocTypes.forEach((dt) => {
+        const file = documents[dt.key];
+        if (file) formData.append(dt.key, file);
+      });
 
       const response = await axios.post(PUBLIC_PROFILE_SUBMIT_COMPLETE_URL, formData, {
         params: { userId },
@@ -257,7 +272,13 @@ export default function CompleteProfile() {
         const updatedUser = response.data.user;
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setUser(updatedUser);
-        setDocuments({ aadhaarCard: null, birthCertificate: null, certificateOfIdentification: null });
+        setDocuments((prev) => {
+          const cleared = { ...prev };
+          profileDocTypes.forEach((dt) => {
+            cleared[dt.key] = null;
+          });
+          return cleared;
+        });
         showToast("Profile and documents saved successfully!", "success");
         await loadProfile(userId);
       } else {
@@ -631,33 +652,22 @@ export default function CompleteProfile() {
               Select documents below. They will be saved when you press Submit at the bottom.
             </p>
             <div className="space-y-4">
-              <DocumentUpload
-                label="Aadhaar Card"
-                docType="aadhaarCard"
-                file={documents.aadhaarCard}
-                existingDocument={user?.documents?.aadhaarCard}
-                deleting={deletingDocs.aadhaarCard}
-                onFileChange={(file) => handleDocumentChange("aadhaarCard", file)}
-                onDelete={() => deleteDocument("aadhaarCard")}
-              />
-              <DocumentUpload
-                label="Birth Certificate"
-                docType="birthCertificate"
-                file={documents.birthCertificate}
-                existingDocument={user?.documents?.birthCertificate}
-                deleting={deletingDocs.birthCertificate}
-                onFileChange={(file) => handleDocumentChange("birthCertificate", file)}
-                onDelete={() => deleteDocument("birthCertificate")}
-              />
-              <DocumentUpload
-                label="Certificate of Identification"
-                docType="certificateOfIdentification"
-                file={documents.certificateOfIdentification}
-                existingDocument={user?.documents?.certificateOfIdentification}
-                deleting={deletingDocs.certificateOfIdentification}
-                onFileChange={(file) => handleDocumentChange("certificateOfIdentification", file)}
-                onDelete={() => deleteDocument("certificateOfIdentification")}
-              />
+              {profileDocTypes.length === 0 ? (
+                <p className="text-sm text-gray-500">Loading document types…</p>
+              ) : (
+                profileDocTypes.map((dt) => (
+                  <DocumentUpload
+                    key={dt.key}
+                    label={dt.label}
+                    docType={dt.key}
+                    file={documents[dt.key]}
+                    existingDocument={user?.documents?.[dt.key]}
+                    deleting={!!deletingDocs[dt.key]}
+                    onFileChange={(file) => handleDocumentChange(dt.key, file)}
+                    onDelete={() => deleteDocument(dt.key)}
+                  />
+                ))
+              )}
             </div>
             </Step>
           </Stepper>

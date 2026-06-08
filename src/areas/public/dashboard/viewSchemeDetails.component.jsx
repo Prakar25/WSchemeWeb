@@ -14,6 +14,11 @@ import {
   getCscStatusMessage,
   getProfileCompletionStatus,
 } from "../../../utils/user.utils";
+import {
+  fetchDocumentTypes,
+  documentTypesByKey,
+  getSchemeRequiredDocumentsDisplay,
+} from "../../../utils/documentTypes";
 import showToast from "../../../utils/notification/NotificationModal";
 
 const ViewSchemeDetails = ({ scheme, onClose }) => {
@@ -22,6 +27,13 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
   const [user, setUser] = useState(null);
   const [profileComplete, setProfileComplete] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
+  const [docTypeMap, setDocTypeMap] = useState({});
+
+  useEffect(() => {
+    fetchDocumentTypes()
+      .then((types) => setDocTypeMap(documentTypesByKey(types)))
+      .catch(() => setDocTypeMap({}));
+  }, []);
 
   useEffect(() => {
     const checkProfile = async () => {
@@ -108,11 +120,7 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
     scheme.scheme_benefits || scheme.schemeBenefits
   );
   const schemeRequiredDocuments = normalizeItems(
-    scheme.scheme_required_documents
-      ? Array.isArray(scheme.scheme_required_documents)
-        ? scheme.scheme_required_documents.map((doc) => doc.document_type || doc)
-        : scheme.scheme_required_documents
-      : scheme.schemeRequiredDocuments
+    getSchemeRequiredDocumentsDisplay(scheme, docTypeMap).map((d) => d.label)
   );
 
   // Get eligibility data

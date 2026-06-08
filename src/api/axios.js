@@ -1,5 +1,8 @@
 import axios from "axios";
-import { getPublicSessionAnchorParams } from "../utils/user.utils";
+import {
+  getPublicSessionAnchorParams,
+  getStoredPublicUserId,
+} from "../utils/user.utils";
 
 const BASE_URL =
   import.meta.env.VITE_NODE_ENV === "development"
