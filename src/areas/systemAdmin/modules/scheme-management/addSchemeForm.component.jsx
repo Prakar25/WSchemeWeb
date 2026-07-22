@@ -16,19 +16,8 @@ import {
   ADMIN_ROLES_URL,
   ADMIN_ROLES_FOR_AUTHORIZATION_URL,
 } from "../../../../api/api_routing_urls";
-import {
-  fetchDocumentTypes,
-  findProfileDocumentOverlap,
-  getSchemeProfileDocumentKeys,
-  getSchemeRequiredDocumentLabels,
-  getSchemeRequiredDocumentsDisplay,
-} from "../../../../utils/documentTypes";
-import CustomSchemeDocumentsInput from "../../../../reusable-components/CustomSchemeDocumentsInput/CustomSchemeDocumentsInput";
-import ProfileDocumentTypeMultiSelect from "../../../../reusable-components/ProfileDocumentTypeMultiSelect/ProfileDocumentTypeMultiSelect";
-import RequiredDocumentsEnrichedList from "../../../../reusable-components/RequiredDocumentsEnrichedList/RequiredDocumentsEnrichedList";
-import SchemeFormSection, {
-  SchemeFormSubBlock,
-} from "../../../../reusable-components/SchemeFormSection/SchemeFormSection";
+import { fetchDocumentTypes, getSchemeRequiredDocumentKeys } from "../../../../utils/documentTypes";
+import DocumentTypeMultiSelect from "../../../../reusable-components/DocumentTypeMultiSelect/DocumentTypeMultiSelect";
 
 import HeadingAndButton from "../../../../reusable-components/HeadingAndButton";
 import Input from "../../../../reusable-components/inputs/InputTextBox/Input";
@@ -89,10 +78,9 @@ const AddSchemeForm = ({
   // Per-scheme custom form fields: [{ field_key, label, type, required, options }]
   const [customFormFields, setCustomFormFields] = useState([]);
 
-  const [profileDocumentTypes, setProfileDocumentTypes] = useState([]);
-  const [loadingProfileDocumentTypes, setLoadingProfileDocumentTypes] = useState(true);
-  const [requiredDocumentLabels, setRequiredDocumentLabels] = useState([]);
-  const [selectedProfileDocKeys, setSelectedProfileDocKeys] = useState([]);
+  const [documentTypeCatalog, setDocumentTypeCatalog] = useState([]);
+  const [loadingDocumentTypes, setLoadingDocumentTypes] = useState(true);
+  const [selectedRequiredDocKeys, setSelectedRequiredDocKeys] = useState([]);
 
 
   // Fixed gender options per spec: All, Male, Female
@@ -245,22 +233,21 @@ const AddSchemeForm = ({
     fetchCategories();
     fetchAdminRoles();
     (async () => {
-      setLoadingProfileDocumentTypes(true);
+      setLoadingDocumentTypes(true);
       try {
-        const types = await fetchDocumentTypes({ profileOnly: true });
-        setProfileDocumentTypes(types);
+        const types = await fetchDocumentTypes();
+        setDocumentTypeCatalog(types);
       } catch {
-        showToast("Could not load profile document types.", "error");
+        showToast("Could not load document types.", "error");
       } finally {
-        setLoadingProfileDocumentTypes(false);
+        setLoadingDocumentTypes(false);
       }
     })();
   }, []);
 
   useEffect(() => {
     if (isEdit && editSchemeDetails) {
-      setRequiredDocumentLabels(getSchemeRequiredDocumentLabels(editSchemeDetails));
-      setSelectedProfileDocKeys(getSchemeProfileDocumentKeys(editSchemeDetails));
+      setSelectedRequiredDocKeys(getSchemeRequiredDocumentKeys(editSchemeDetails));
     }
   }, [isEdit, editSchemeDetails]);
 
@@ -509,11 +496,8 @@ const AddSchemeForm = ({
       const scheme_benefits = Array.isArray(data?.scheme_benefits)
         ? data.scheme_benefits.filter(item => item && item.trim() !== "")
         : [];
-      const scheme_required_document_types = Array.isArray(requiredDocumentLabels)
-        ? requiredDocumentLabels.map((s) => String(s).trim()).filter(Boolean)
-        : [];
-      const scheme_profile_document_types = Array.isArray(selectedProfileDocKeys)
-        ? selectedProfileDocKeys.filter((k) => k && String(k).trim())
+      const scheme_required_document_types = Array.isArray(selectedRequiredDocKeys)
+        ? selectedRequiredDocKeys.filter((k) => k && String(k).trim())
         : [];
 
       // Validate arrays are not empty
@@ -527,28 +511,8 @@ const AddSchemeForm = ({
         setIsFormSubmitting(false);
         return;
       }
-      if (
-        scheme_required_document_types.length === 0 &&
-        scheme_profile_document_types.length === 0
-      ) {
-        showToast(
-          "Please add at least one required document (custom text and/or profile pre-fill).",
-          "error"
-        );
-        setIsFormSubmitting(false);
-        return;
-      }
-
-      const overlap = findProfileDocumentOverlap(
-        scheme_required_document_types,
-        scheme_profile_document_types,
-        profileDocumentTypes
-      );
-      if (overlap.length > 0) {
-        showToast(
-          `Move profile documents to the profile section instead of the text list: ${overlap.join(", ")}`,
-          "error"
-        );
+      if (scheme_required_document_types.length === 0) {
+        showToast("Please provide at least one required document type.", "error");
         setIsFormSubmitting(false);
         return;
       }
@@ -625,9 +589,8 @@ const AddSchemeForm = ({
           upper_age_limit: upperAgeLimit,
           ...(eligibilityCustomFieldsPayload.length > 0 && { custom_fields: eligibilityCustomFieldsPayload }),
         },
-        scheme_required_document_types: scheme_required_document_types,
-        scheme_profile_document_types: scheme_profile_document_types,
-        scheme_required_documents: [],
+        scheme_required_document_types: scheme_required_document_types, // Array of strings
+        scheme_required_documents: [], // Empty array (documents uploaded separately)
         excluded_schemes: excludedSchemeIds, // Array of ObjectId strings
         authorization_levels, // Array of numbers (max 4) - included for both new and edit
         custom_form_fields, // Per-scheme form field definitions
@@ -708,8 +671,6 @@ const AddSchemeForm = ({
       if (!isEdit) {
         setAuthLevels([]);
         setCustomFormFields([]);
-        setRequiredDocumentLabels([]);
-        setSelectedProfileDocKeys([]);
       }
       reset();
     } catch (error) {
@@ -751,28 +712,7 @@ const AddSchemeForm = ({
           errorMessage = `Bad Request (400): ${errorMessage}`;
           console.error("400 Bad Request - Check if _id is being sent correctly in the request body");
         } else if (status === 422) {
-          const code = errorData.code || errorData.error;
-          if (code === "NO_REQUIRED_DOCUMENTS") {
-            errorMessage =
-              errorData.message ||
-              "Add at least one required document (custom text and/or profile pre-fill).";
-          } else if (code === "INVALID_PROFILE_DOCUMENT_TYPE") {
-            const invalid =
-              errorData.invalid_keys ??
-              errorData.invalidKeys ??
-              errorData.invalid_types;
-            errorMessage = Array.isArray(invalid) && invalid.length
-              ? `Invalid profile document type(s): ${invalid.join(", ")}. Use profile catalog keys only.`
-              : errorData.message ||
-                "Invalid profile document type. Use keys from the profile document catalog.";
-          } else {
-            const unknown = errorData.unknown_types ?? errorData.unknownTypes;
-            if (Array.isArray(unknown) && unknown.length) {
-              errorMessage = `Unknown document type(s): ${unknown.join(", ")}`;
-            } else {
-              errorMessage = `Validation Error (422): ${errorMessage}`;
-            }
-          }
+          errorMessage = `Validation Error (422): ${errorMessage}`;
         }
         
         showToast(errorMessage, "error");
@@ -810,68 +750,26 @@ const AddSchemeForm = ({
     }
   };
 
-  const enrichedDocsForEdit =
-    isEdit &&
-    getSchemeRequiredDocumentsDisplay(
-      editSchemeDetails,
-      Object.fromEntries(profileDocumentTypes.map((t) => [t.key, t]))
-    );
-
-  const renderSchemeImageUpload = () => (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-      <button
-        type="button"
-        onClick={() => {
-          document.body.click();
-          setTimeout(() => setShowSchemeDz(true), 100);
-        }}
-        className="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:border-[#d85a30] hover:text-[#d85a30] transition-colors"
-      >
-        <BsUpload size={14} />
-        {docScheme !== null ? "Change image" : "Upload image"}
-      </button>
-      {docScheme !== null && (
-        <div className="flex items-center gap-2 text-sm text-gray-700">
-          <span className="truncate max-w-[200px]">{docScheme[0]?.name}</span>
-          <button
-            type="button"
-            onClick={() => setDocScheme(null)}
-            className="rounded p-1 text-red-600 hover:bg-red-50"
-            aria-label="Remove selected image"
-          >
-            <RxCross2 />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
   return (
-    <section className="pb-8">
+    <section>
       <HeadingAndButton
-        title={isEdit ? "Edit Scheme" : "Create Scheme"}
-        buttonText="Back to list"
+        title="Add Schemes"
+        buttonText="Back"
         buttonIcon={IoChevronBack}
         onButtonClick={() => setCurrentPage(!currentPage)}
       />
 
-      <p className="text-sm text-gray-500 mb-4 -mt-2">
-        Complete each section below. Required fields are marked on the inputs.
-      </p>
-
-      <form
-        className="w-full space-y-5"
-        onSubmit={handleSubmit(onSubmit, (err) => {
-          const first = Object.values(err)[0];
-          showToast(first?.message || "Please fix the form errors before submitting.", "error");
-        })}
-      >
-          <SchemeFormSection
-            step={1}
-            title="Scheme details"
-            description="Name, classification, and cover image for this welfare scheme."
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
+      <div>
+        <form
+          onSubmit={handleSubmit(onSubmit, (err) => {
+            const first = Object.values(err)[0];
+            showToast(first?.message || "Please fix the form errors before submitting.", "error");
+          })}
+        >
+          {/* Section: Basic Info */}
+          <div className="mb-6 pb-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Info</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 gap-y-5">
             <Input
               defaultName="scheme_name"
               register={register}
@@ -987,303 +885,324 @@ const AddSchemeForm = ({
               setValue={setValue}
             />
             </div>
-            </div>
+          </div>
 
-            <SchemeFormSubBlock
-              title="Scheme image"
-              hint="Required for new schemes. Shown on the public schemes list."
-              className="mt-5"
-            >
-              {!isEdit ? (
-                renderSchemeImageUpload()
-              ) : editSchemeDeleteImagePath ? (
-                <div className="space-y-3">
-                  <img
-                    src={displayMedia(editSchemeDeleteImagePath)}
-                    alt="Scheme cover"
-                    className="h-48 w-full max-w-md object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => onClickDeleteImage(defaultValues?.scheme_id)}
-                    className="text-sm font-medium text-red-600 hover:text-red-800"
-                  >
-                    Remove image
-                  </button>
-                </div>
-              ) : (
-                renderSchemeImageUpload()
-              )}
-            </SchemeFormSubBlock>
-          </SchemeFormSection>
-
-          <SchemeFormSection
-            step={2}
-            title="Objectives & benefits"
-            description="What this scheme aims to achieve and what applicants receive."
-          >
-            <div className="space-y-5">
-              <SchemeFormSubBlock
-                title="Objectives"
-                hint="Add at least one. Press Add for more rows."
-              >
-                <ArrayInput
-                  defaultName="scheme_objectives"
-                  register={register}
-                  name="Scheme Objectives"
-                  required={true}
-                  errors={errors}
-                  setValue={setValue}
-                  data={
-                    !isEdit
-                      ? []
-                      : Array.isArray(editSchemeDetails?.scheme_objectives)
-                        ? editSchemeDetails.scheme_objectives
-                        : []
-                  }
-                  placeholder="Enter objective"
-                />
-              </SchemeFormSubBlock>
-              <SchemeFormSubBlock
-                title="Benefits"
-                hint="Add at least one. Press Add for more rows."
-              >
-                <ArrayInput
-                  defaultName="scheme_benefits"
-                  register={register}
-                  name="Scheme Benefits"
-                  required={true}
-                  errors={errors}
-                  setValue={setValue}
-                  data={
-                    !isEdit
-                      ? []
-                      : Array.isArray(editSchemeDetails?.scheme_benefits)
-                        ? editSchemeDetails.scheme_benefits
-                        : []
-                  }
-                  placeholder="Enter benefit"
-                />
-              </SchemeFormSubBlock>
-            </div>
-          </SchemeFormSection>
-
-          <SchemeFormSection
-            step={3}
-            title="Eligibility"
-            description="Age limits and any extra criteria shown to applicants."
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 mb-5">
-              <Input
-                defaultName="scheme_eligibility_lower_age_limit"
-                register={register}
-                name="Minimum age"
-                required={true}
-                pattern={null}
-                errors={errors}
-                placeholder="e.g. 18"
-                setError={setError}
-                clearError={clearErrors}
-                autoComplete="off"
-                type="number"
-                classes="px-3 py-2 text-sm w-full rounded"
-                onChangeInput={null}
-                defaultValue={defaultValues.scheme_eligibility_lower_age_limit}
-                setValue={setValue}
-              />
-              <Input
-                defaultName="scheme_eligibility_upper_age_limit"
-                register={register}
-                name="Maximum age"
-                required={true}
-                pattern={null}
-                errors={errors}
-                placeholder="e.g. 60"
-                setError={setError}
-                clearError={clearErrors}
-                autoComplete="off"
-                type="number"
-                classes="px-3 py-2 text-sm w-full rounded"
-                onChangeInput={null}
-                defaultValue={defaultValues.scheme_eligibility_upper_age_limit}
-                setValue={setValue}
-              />
-            </div>
-            <SchemeFormSubBlock
-              title="Extra eligibility notes"
-              hint="Optional bullet points shown on the scheme page (e.g. must have ration card)."
-            >
+          {/* Section: Objectives & Benefits */}
+          <div className="mb-6 pb-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Objectives & Benefits</h2>
+            <div className="col-span-2">
+              <p className="text-xs text-gray-600 mb-1">Add at least one objective. Use Add button to add more.</p>
               <ArrayInput
-                defaultName="scheme_eligibility_custom_criteria"
+                defaultName="scheme_objectives"
                 register={register}
-                name="Eligibility criteria"
-                required={false}
+                name="Scheme Objectives"
+                required={true}
                 errors={errors}
                 setValue={setValue}
-                data={
-                  !isEdit
-                    ? []
-                    : Array.isArray(editSchemeDetails?.scheme_eligibility?.custom_fields)
-                      ? editSchemeDetails.scheme_eligibility.custom_fields
-                          .map((f) => f.title || f.label || f.field_key || "")
-                          .filter(Boolean)
-                      : []
-                }
-                placeholder="e.g. Must have ration card"
+                data={!isEdit ? [] : (Array.isArray(editSchemeDetails?.scheme_objectives) 
+                  ? editSchemeDetails.scheme_objectives 
+                  : [])}
+                placeholder="Enter objective"
               />
-            </SchemeFormSubBlock>
-          </SchemeFormSection>
-
-          <SchemeFormSection
-            step={4}
-            title="Required documents"
-            description="At least one custom upload or profile pre-fill document is required."
-          >
-            {isEdit && editSchemeDetails?.uses_legacy_document_format && (
-              <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
-                Legacy format detected — re-save to split custom uploads and profile pre-fill.
-              </p>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <SchemeFormSubBlock
-                title="Custom uploads"
-                hint="Applicants upload these for every application."
-              >
-                <CustomSchemeDocumentsInput
-                  documents={requiredDocumentLabels}
-                  onChange={setRequiredDocumentLabels}
-                  disabled={isFormSubmitting}
-                  placeholder="e.g. UDID Certificate"
-                />
-              </SchemeFormSubBlock>
-              <SchemeFormSubBlock
-                title="Profile pre-fill"
-                hint="Loaded automatically from the applicant's profile."
-              >
-                <ProfileDocumentTypeMultiSelect
-                  documentTypes={profileDocumentTypes}
-                  selectedKeys={selectedProfileDocKeys}
-                  onChange={setSelectedProfileDocKeys}
-                  disabled={isFormSubmitting}
-                  loading={loadingProfileDocumentTypes}
-                />
-              </SchemeFormSubBlock>
             </div>
 
-            {enrichedDocsForEdit?.length > 0 && (
-              <div className="mt-4">
-                <RequiredDocumentsEnrichedList
-                  variant="summary"
-                  title="Saved documents on this scheme"
-                  documents={enrichedDocsForEdit}
-                />
-              </div>
-            )}
-          </SchemeFormSection>
+            <div className="col-span-2">
+              <p className="text-xs text-gray-600 mb-1">Add at least one benefit. Use Add button to add more.</p>
+              <ArrayInput
+                defaultName="scheme_benefits"
+                register={register}
+                name="Scheme Benefits"
+                required={true}
+                errors={errors}
+                setValue={setValue}
+                data={!isEdit ? [] : (Array.isArray(editSchemeDetails?.scheme_benefits) 
+                  ? editSchemeDetails.scheme_benefits 
+                  : [])}
+                placeholder="Enter benefit"
+              />
+            </div>
+          </div>
 
-          <SchemeFormSection
-            step={5}
-            title="Application questions"
-            description="Extra fields applicants fill when applying (income, yes/no questions, etc.)."
-          >
+          {/* Section: Eligibility */}
+          <div className="mb-6 pb-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Eligibility</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-10 gap-y-5 mb-5">
+            <Input
+              defaultName="scheme_eligibility_lower_age_limit"
+              register={register}
+              name="Eligibility Lower Age Limit"
+              required={true}
+              pattern={null}
+              errors={errors}
+              placeholder="Enter age"
+              setError={setError}
+              clearError={clearErrors}
+              autoComplete="off"
+              type="number"
+              classes={`px-3 py-2 text-sm w-full rounded`}
+              onChangeInput={null}
+              defaultValue={defaultValues.scheme_eligibility_lower_age_limit}
+              setValue={setValue}
+            />
+
+            <Input
+              defaultName="scheme_eligibility_upper_age_limit"
+              register={register}
+              name="Eligibility Upper Age Limit"
+              required={true}
+              pattern={null}
+              errors={errors}
+              placeholder="Enter age"
+              setError={setError}
+              clearError={clearErrors}
+              autoComplete="off"
+              type="number"
+              classes={`px-3 py-2 text-sm w-full rounded`}
+              onChangeInput={null}
+              defaultValue={defaultValues.scheme_eligibility_upper_age_limit}
+              setValue={setValue}
+            />
+            </div>
+            <ArrayInput
+              defaultName="scheme_eligibility_custom_criteria"
+              register={register}
+              name="Eligibility criteria (informative text)"
+              required={false}
+              errors={errors}
+              setValue={setValue}
+              data={!isEdit ? [] : (Array.isArray(editSchemeDetails?.scheme_eligibility?.custom_fields)
+                ? editSchemeDetails.scheme_eligibility.custom_fields.map((f) => f.title || f.label || f.field_key || "").filter(Boolean)
+                : [])}
+              placeholder="e.g. Must have ration card, Rural residence only"
+            />
+          </div>
+
+          {/* Section: Required Documents */}
+          <div className="mb-6 pb-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Required Documents</h2>
+            <div className="col-span-2">
+              <DocumentTypeMultiSelect
+                documentTypes={documentTypeCatalog}
+                selectedKeys={selectedRequiredDocKeys}
+                onChange={setSelectedRequiredDocKeys}
+                disabled={isFormSubmitting}
+                loading={loadingDocumentTypes}
+              />
+              {isEdit &&
+                Array.isArray(editSchemeDetails?.scheme_required_documents_enriched) &&
+                editSchemeDetails.scheme_required_documents_enriched.length > 0 && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Current on scheme:{" "}
+                    {editSchemeDetails.scheme_required_documents_enriched
+                      .map((d) => d.label || d.key)
+                      .join(", ")}
+                  </p>
+                )}
+            </div>
+          </div>
+
+          {/* Section: Custom Form Fields */}
+          <div className="mb-6 pb-4 border-b border-gray-200">
             <CustomFormFieldsSelector
               fields={customFormFields}
               onChange={setCustomFormFields}
               disabled={isFormSubmitting}
-              title=""
-              description=""
-              emptyHint="Add questions like annual income, disability status, or ration card number."
             />
-          </SchemeFormSection>
+          </div>
 
-          <SchemeFormSection
-            step={6}
-            title="Workflow & advanced"
-            description="Approval routing and scheme exclusions."
-            optional
-          >
-            <div className="space-y-5">
-              <SchemeFormSubBlock
-                title="Excluded schemes"
-                hint="Applicants who already receive these schemes may be blocked."
-              >
-                <ExcludedSchemesSelector
-                  selectedSchemeIds={selectedExcludedSchemeIds}
-                  onChange={setSelectedExcludedSchemeIds}
-                  currentSchemeId={
-                    isEdit ? editSchemeDetails?._id || editSchemeDetails?.scheme_id : null
-                  }
-                />
-              </SchemeFormSubBlock>
-              <SchemeFormSubBlock
-                title="Authorization levels"
-                hint="Who must approve applications for this scheme."
-              >
-                <DynamicAuthLevelsSelector
-                  levels={authLevels}
-                  options={authLevelOptions}
-                  onChange={setAuthLevels}
-                  onAddLevel={() => setAuthLevels([...authLevels, { level: null }])}
-                  onRemoveLevel={(index) =>
-                    setAuthLevels(authLevels.filter((_, i) => i !== index))
-                  }
-                  onClearAll={() => setAuthLevels([])}
-                  onStartWithDefault={() => {
-                    const first = authLevelOptions[0];
-                    if (first) setAuthLevels([{ level: first.value }]);
-                  }}
-                  loading={loadingAuthLevels}
-                  disabled={isFormSubmitting}
-                  showPreview={true}
-                />
-              </SchemeFormSubBlock>
+          {/* Section: Optional */}
+          <div className="mb-6 pb-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Optional</h2>
+            <div className="col-span-2">
+              <label className="font-medium text-left text-gray-900 pl-1 pb-3 text-xs md:text-sm lg:text-base block">
+                Excluded Schemes
+                <span className="text-gray-500 text-xs ml-2 font-normal">
+                  (Optional - Select schemes that should be excluded)
+                </span>
+              </label>
+              <ExcludedSchemesSelector
+                selectedSchemeIds={selectedExcludedSchemeIds}
+                onChange={setSelectedExcludedSchemeIds}
+                currentSchemeId={isEdit ? (editSchemeDetails?._id || editSchemeDetails?.scheme_id) : null}
+                className="mt-2"
+              />
             </div>
-          </SchemeFormSection>
+
+            {/* Dynamic Authorization Levels */}
+            <div className="col-span-2 border-t pt-5 mt-2">
+              <DynamicAuthLevelsSelector
+                levels={authLevels}
+                options={authLevelOptions}
+                onChange={setAuthLevels}
+                onAddLevel={() => setAuthLevels([...authLevels, { level: null }])}
+                onRemoveLevel={(index) => setAuthLevels(authLevels.filter((_, i) => i !== index))}
+                onClearAll={() => setAuthLevels([])}
+                onStartWithDefault={() => {
+                  const first = authLevelOptions[0];
+                  if (first) setAuthLevels([{ level: first.value }]);
+                }}
+                loading={loadingAuthLevels}
+                disabled={isFormSubmitting}
+                showPreview={true}
+              />
+            </div>
+
+            <div className="col-span-2">
+            <div className="flex flex-col justify-start mt-3 items-start">
+              <div className="mb-4 font-semibold">
+                Scheme Image <span className="text-red-700">*</span>
+              </div>
+
+              {!isEdit ? (
+                <div className="flex gap-x-5 items-center">
+                  <div
+                    onClick={() => {
+                      // Close any open dropdowns before opening modal
+                      document.body.click();
+                      setTimeout(() => setShowSchemeDz(true), 100);
+                    }}
+                    className="h-10 flex items-center gap-x-2 border rounded px-4 cursor-pointer hover:border-primary"
+                  >
+                    <div className="text-sm">
+                      {docScheme !== null ? "Change" : "Upload"}
+                    </div>
+                    <div>
+                      <BsUpload size={14} />
+                    </div>
+                  </div>
+
+                  <div>
+                    {docScheme !== null && (
+                      <div className="flex flex-wrap gap-x-2 items-center">
+                        <div className="text-sm text-black">
+                          {docScheme[0]?.name}
+                        </div>
+
+                        <div
+                          onClick={() => setDocScheme(null)}
+                          className="ml-1 p-1 bg-red-500 text-white cursor-pointer"
+                        >
+                          <RxCross2 />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {editSchemeDeleteImagePath ? (
+                    <div>
+                      <img
+                        src={displayMedia(
+                          // defaultValues?.scheme_image_file_url
+                          editSchemeDeleteImagePath
+                        )}
+                        className="h-72 w-full object-cover rounded"
+                      />
+
+                      <div
+                        onClick={() =>
+                          onClickDeleteImage(defaultValues?.scheme_id)
+                        }
+                        className="text-red-700 text-sm mt-1 font-semibold cursor-pointer"
+                      >
+                        Remove Image
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-x-5 items-center">
+                      <div
+                        onClick={() => {
+                          // Close any open dropdowns before opening modal
+                          document.body.click();
+                          setTimeout(() => setShowSchemeDz(true), 100);
+                        }}
+                        className="h-10 flex items-center gap-x-2 border rounded px-4 cursor-pointer hover:border-primary"
+                      >
+                        <div className="text-sm">
+                          {docScheme !== null ? "Change" : "Upload"}
+                        </div>
+                        <div>
+                          <BsUpload size={14} />
+                        </div>
+                      </div>
+
+                      <div>
+                        {docScheme !== null && (
+                          <div className="flex flex-wrap gap-x-2 items-center">
+                            <div className="text-sm text-black">
+                              {docScheme[0]?.name}
+                            </div>
+
+                            <div
+                              onClick={() => setDocScheme(null)}
+                              className="ml-1 p-1 bg-red-500 text-white cursor-pointer"
+                            >
+                              <RxCross2 />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            </div>
+          </div>
 
           {showSchemeDz && (
             <GenericModal
               open={showSchemeDz}
               setOpen={setShowSchemeDz}
-              title="Upload scheme photo"
+              title={`Upload Scheme Photo`}
               isAdd={true}
             >
-              <DocDropzone
-                onChange={setDocScheme}
-                multiple={false}
-                setShowDropzone={setShowSchemeDz}
-              />
+              <div>
+                <DocDropzone
+                  // fieldTitle={"Scheme Photo"}
+                  onChange={setDocScheme}
+                  multiple={false}
+                  setShowDropzone={setShowSchemeDz}
+                />
+              </div>
             </GenericModal>
           )}
 
-          <div className="sticky bottom-0 z-10 -mx-1 px-1 pt-2 pb-1 bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent">
-            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-md">
-              <button
-                type="button"
-                onClick={() => setCurrentPage(!currentPage)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
+          {/* Buttons */}
+          <div className="mt-10 mb-5 w-full grid grid-cols-3">
+            {!isFormSubmitting ? (
               <button
                 type="submit"
-                disabled={isFormSubmitting}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-[#d85a30] text-white text-sm font-semibold hover:bg-[#ffb766] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                className="col-start-2 flex justify-self-center items-center bg-[#d85a30] w-fit text-white py-2 px-5 rounded cursor-pointer"
               >
-                {isFormSubmitting ? (
-                  <>
-                    <Spinner />
-                    {isEdit ? "Updating…" : "Creating…"}
-                  </>
-                ) : isEdit ? (
-                  "Save changes"
-                ) : (
-                  "Create scheme"
-                )}
+                <span className="text-sm font-medium">
+                  {!isEdit ? "Submit" : "Update"}
+                </span>
               </button>
+            ) : (
+              <div className="col-start-2 flex justify-self-center items-center bg-[#d85a30] w-fit text-white py-2 px-5 rounded cursor-pointer">
+                <div className="flex gap-x-1 items-center">
+                  <p className="text-sm font-medium">
+                    {!isEdit ? "Submitting" : "Updating"}
+                  </p>
+                  <div className="pl-1">
+                    <Spinner />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div
+              onClick={() => setCurrentPage(!currentPage)}
+              className="justify-self-end py-2 px-5 border rounded cursor-pointer text-sm font-medium"
+            >
+              Cancel
             </div>
           </div>
+          </div>
         </form>
+      </div>
     </section>
   );
 };

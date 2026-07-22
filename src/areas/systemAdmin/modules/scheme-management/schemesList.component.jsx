@@ -160,22 +160,17 @@ const SchemesList = ({
     });
   }, [schemesList, searchQuery]);
 
-  const onClickEdit = async (schemeObj) => {
-    const schemeId = schemeObj?._id || schemeObj?.scheme_id;
+  const onClickEdit = (schemeObj) => {
     const rawImagePath = schemeObj?.scheme_image_file_url;
-    let fullScheme = schemeObj;
-
-    if (schemeId) {
-      try {
-        const response = await axios.get(`${SCHEMES_CONFIG_URL}/${encodeURIComponent(String(schemeId))}`);
-        fullScheme = response.data?.scheme ?? response.data ?? schemeObj;
-      } catch (error) {
-        console.warn("Could not fetch full scheme for edit, using list data:", error);
-      }
-    }
-
-    setEditSchemeDetails(fullScheme);
-    setEditSchemeDeleteImagePath(fullScheme?.scheme_image_file_url || rawImagePath);
+    const resolvedImageUrl = rawImagePath ? displayMedia(rawImagePath) : "";
+    console.log("[Edit scheme] image path", {
+      schemeId: schemeObj?._id,
+      schemeName: schemeObj?.scheme_name,
+      scheme_image_file_url: rawImagePath,
+      resolvedImageUrl,
+    });
+    setEditSchemeDetails(schemeObj);
+    setEditSchemeDeleteImagePath(rawImagePath);
     setCurrentPage(!currentPage);
   };
 

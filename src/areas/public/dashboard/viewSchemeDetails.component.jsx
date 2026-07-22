@@ -119,7 +119,9 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
   const schemeBenefits = normalizeItems(
     scheme.scheme_benefits || scheme.schemeBenefits
   );
-  const schemeRequiredDocuments = getSchemeRequiredDocumentsDisplay(scheme, docTypeMap);
+  const schemeRequiredDocuments = normalizeItems(
+    getSchemeRequiredDocumentsDisplay(scheme, docTypeMap).map((d) => d.label)
+  );
 
   // Get eligibility data
   const eligibility = {
@@ -258,31 +260,10 @@ const ViewSchemeDetails = ({ scheme, onClose }) => {
 
                 {/* Required Documents */}
                 {schemeRequiredDocuments.length > 0 && (
-                  <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Required Documents
-                    </h3>
-                    <ul className="space-y-2">
-                      {schemeRequiredDocuments.map((doc) => (
-                        <li
-                          key={doc.key || doc.label}
-                          className="flex flex-wrap items-center gap-2 text-gray-700"
-                        >
-                          <span>{doc.label}</span>
-                          {doc.profileReusable && (
-                            <span className="text-[10px] font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-                              Pre-fills from profile
-                            </span>
-                          )}
-                          {(doc.isCustom || doc.isTextDocument) && (
-                            <span className="text-[10px] font-medium text-violet-800 bg-violet-50 border border-violet-200 px-1.5 py-0.5 rounded">
-                              Required upload
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  <SidebarSection
+                    title="Required Documents"
+                    items={schemeRequiredDocuments}
+                  />
                 )}
 
                 {/* Application Status */}

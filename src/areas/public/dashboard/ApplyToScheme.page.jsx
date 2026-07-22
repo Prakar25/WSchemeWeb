@@ -6,12 +6,15 @@ import { FaArrowLeft, FaUpload, FaCheckCircle, FaTimes, FaCalendarAlt } from "re
 import axios from "../../../api/axios";
 import {
   APPLICATIONS_APPLY_URL,
-  APPLICATIONS_PREVIEW_DOCUMENTS_URL,
+  applicationSchemeDocumentRequirementsUrl,
   DEPARTMENTS_URL,
   CATEGORIES_URL,
   SCHEMES_CONFIG_URL,
 } from "../../../api/api_routing_urls";
-import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerController";
+import {
+  uploadFileToServer,
+  displayMedia,
+} from "../../../utils/uploadFiles/uploadFileToServerController";
 import {
   getStoredUser,
   isProfileComplete,
@@ -21,24 +24,18 @@ import {
   calculateAge,
   formatDobForAge,
   setStoredActiveApplicantProfile,
+  mergePublicApiParams,
 } from "../../../utils/user.utils";
-import {
-  fetchSchemeApplyForm,
-  formatDocumentSummary,
-  uploadApplicationDocument,
-} from "../../../utils/documentTypes";
+import { fetchDocumentTypes, documentTypesByKey } from "../../../utils/documentTypes";
 import { useActiveApplicantId } from "../../../hooks/useActiveApplicantId";
 import showToast from "../../../utils/notification/NotificationModal";
 import { PUBLIC_PROFILE_GET_URL } from "../../../api/api_routing_urls";
 import PublicHeader from "../components/PublicHeader.component";
 import Footer from "../footer.component";
+import DocDropzone from "../../../reusable-components/FileUploader/PDFImageDropZoneUploader/PDFImageDropZoneUploader.component";
 import Spinner from "../../../reusable-components/spinner/spinner.component";
 import { getCountries, getStatesForCountry, getDistrictsForState, normalizeLocationValue } from "../../../utils/locationOptions";
 import { FormSelectInput } from "../../../reusable-components/inputs/FormSelect/FormSelect";
-
-const DOC_FILE_ACCEPT = "image/jpeg,image/jpg,image/png,image/webp,application/pdf";
-
-const isPdfDocUrl = (path) => /\.pdf(\?|$)/i.test(path || "");
 
 export default function ApplyToScheme() {
   const navigate = useNavigate();
@@ -58,23 +55,20 @@ export default function ApplyToScheme() {
 
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({});
-  const [applyForm, setApplyForm] = useState(null);
   const [docRequirements, setDocRequirements] = useState([]);
-  const [loadingApplyForm, setLoadingApplyForm] = useState(false);
-  /** New/changed uploads only — keys are catalog keys → file_url */
+  const [loadingDocRequirements, setLoadingDocRequirements] = useState(false);
+  const [docTypesByKey, setDocTypesByKey] = useState({});
+  /** New/changed uploads only — keys are catalog keys */
   const [overrideUploads, setOverrideUploads] = useState({});
-  const [uploadingDocs, setUploadingDocs] = useState({});
+  const [replacePrefill, setReplacePrefill] = useState({});
+  const [showDocUploader, setShowDocUploader] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [departments, setDepartments] = useState(new Map()); // Map<departmentId, departmentObject>
   const [categories, setCategories] = useState(new Map()); // Map<categoryId, categoryObject>
 
-  const customFormFields =
-    Array.isArray(applyForm?.custom_form_fields) && applyForm.custom_form_fields.length
-      ? applyForm.custom_form_fields
-      : Array.isArray(scheme?.custom_form_fields)
-        ? scheme.custom_form_fields
-        : [];
+  // Get custom form fields from scheme (defined by admin when creating/editing scheme)
+  const customFormFields = Array.isArray(scheme?.custom_form_fields) ? scheme.custom_form_fields : [];
 
   /** Derive field_key from title (backend does this if field_key not sent) */
   const getFieldKey = (field) =>
@@ -312,39 +306,65 @@ export default function ApplyToScheme() {
   }, [scheme, navigate, activeApplicantId]);
 
   useEffect(() => {
+    fetchDocumentTypes()
+      .then((types) => setDocTypesByKey(documentTypesByKey(types)))
+      .catch(() => setDocTypesByKey({}));
+  }, []);
+
+  useEffect(() => {
     const schemeId = scheme?._id || scheme?.scheme_id;
     if (!schemeId || !activeApplicantId) {
-      setApplyForm(null);
       setDocRequirements([]);
       return;
     }
 
-    const loadApplyForm = async () => {
-      setLoadingApplyForm(true);
+    const loadRequirements = async () => {
+      setLoadingDocRequirements(true);
       try {
-        const form = await fetchSchemeApplyForm(schemeId, activeApplicantId);
-        setApplyForm(form);
-        if (form.scheme) {
-          setScheme((prev) => ({ ...(prev || {}), ...form.scheme }));
-        }
-        const normalized = form.required_documents || [];
+        const res = await axios.get(applicationSchemeDocumentRequirementsUrl(schemeId), {
+          params: mergePublicApiParams({ userId: activeApplicantId }),
+          withCredentials: true,
+        });
+        const raw =
+          res.data?.required_documents ??
+          res.data?.requiredDocuments ??
+          (Array.isArray(res.data) ? res.data : []);
+        const normalized = (Array.isArray(raw) ? raw : [])
+          .map((item) => {
+            const key = item.key || item.document_type || item.documentType;
+            if (!key) return null;
+            return {
+              key: String(key),
+              label: item.label || String(key),
+              will_prefill: Boolean(item.will_prefill ?? item.willPrefill),
+              needs_upload: Boolean(item.needs_upload ?? item.needsUpload),
+              profile_document:
+                item.profile_document ?? item.profileDocument ?? null,
+            };
+          })
+          .filter(Boolean);
         setDocRequirements(normalized);
         setOverrideUploads({});
+        setReplacePrefill({});
+        const uploaderState = {};
+        normalized.forEach((d) => {
+          uploaderState[d.key] = false;
+        });
+        setShowDocUploader(uploaderState);
       } catch (err) {
-        console.error("apply-form", err);
-        setApplyForm(null);
+        console.error("document-requirements", err);
         setDocRequirements([]);
         showToast(
           err.response?.data?.message ||
-            "Could not load the application form for this scheme.",
+            "Could not load document requirements for this scheme.",
           "error"
         );
       } finally {
-        setLoadingApplyForm(false);
+        setLoadingDocRequirements(false);
       }
     };
 
-    loadApplyForm();
+    loadRequirements();
   }, [scheme?._id, scheme?.scheme_id, activeApplicantId]);
 
   // Pre-fill common fields from profile when user loads (only for empty fields)
@@ -385,10 +405,10 @@ export default function ApplyToScheme() {
   const isDocumentSatisfied = (req) => {
     const key = req.key;
     if (overrideUploads[key]) return true;
-    if (req.isCustom) return false;
     if (
       req.will_prefill &&
-      (req.profile_document?.filePath || req.profile_document?.file_path)
+      req.profile_document?.filePath &&
+      !replacePrefill[key]
     ) {
       return true;
     }
@@ -400,31 +420,28 @@ export default function ApplyToScheme() {
 
   const handleDocumentUpload = async (docKey, files, label) => {
     if (!files || files.length === 0) return;
-    const file = files[0];
-    const req = docRequirements.find((d) => d.key === docKey);
 
-    setUploadingDocs((prev) => ({ ...prev, [docKey]: true }));
     try {
-      const schemeId = scheme?._id || scheme?.scheme_id;
-      const { file_url } = await uploadApplicationDocument(
-        file,
-        docKey,
-        activeApplicantId,
-        req,
-        schemeId
-      );
-      setOverrideUploads((prev) => ({ ...prev, [docKey]: file_url }));
-      showToast(`${label || docKey} uploaded`, "success");
+      const uploadedUrls = [];
+      for (const file of files) {
+        const fileUrl = await uploadFileToServer(file, "user-docs");
+        if (fileUrl) uploadedUrls.push(`public${fileUrl}`);
+      }
+
+      if (uploadedUrls.length > 0) {
+        setOverrideUploads((prev) => ({
+          ...prev,
+          [docKey]: uploadedUrls.length === 1 ? uploadedUrls[0] : uploadedUrls,
+        }));
+        setReplacePrefill((prev) => ({ ...prev, [docKey]: false }));
+        setShowDocUploader((prev) => ({ ...prev, [docKey]: false }));
+        showToast(`${label || docKey} uploaded`, "success");
+      } else {
+        showToast(`Failed to upload ${label || docKey}`, "error");
+      }
     } catch (error) {
       console.error("Error uploading document:", error);
-      showToast(
-        error.message ||
-          error.response?.data?.message ||
-          `Error uploading ${label || docKey}`,
-        "error"
-      );
-    } finally {
-      setUploadingDocs((prev) => ({ ...prev, [docKey]: false }));
+      showToast(`Error uploading ${label || docKey}`, "error");
     }
   };
 
@@ -434,6 +451,10 @@ export default function ApplyToScheme() {
       delete next[docKey];
       return next;
     });
+    const req = docRequirements.find((d) => d.key === docKey);
+    if (req?.will_prefill && getProfileDocPath(req)) {
+      setReplacePrefill((prev) => ({ ...prev, [docKey]: false }));
+    }
   };
 
   // Validate form (documents are optional)
@@ -471,49 +492,19 @@ export default function ApplyToScheme() {
         return;
       }
 
-      const documentsSubmitted = Object.entries(overrideUploads)
-        .filter(([, url]) => url)
-        .map(([docKey, url]) => ({
-          document_type: docKey,
-          file_url: url,
-        }));
-
-      const schemeId = scheme._id || scheme.scheme_id;
-
-      try {
-        const previewRes = await axios.post(APPLICATIONS_PREVIEW_DOCUMENTS_URL, {
-          user_id: activeApplicantId,
-          scheme_id: schemeId,
-          documents_submitted: documentsSubmitted,
+      const documentsSubmitted = [];
+      Object.entries(overrideUploads).forEach(([docKey, val]) => {
+        if (!val) return;
+        const urls = Array.isArray(val) ? val : [val];
+        urls.forEach((url) => {
+          if (url) {
+            documentsSubmitted.push({
+              document_type: docKey,
+              file_url: url,
+            });
+          }
         });
-        const preview = previewRes.data?.data ?? previewRes.data ?? {};
-        if (preview.ready_to_apply === false) {
-          const labels = preview.missing_document_labels;
-          const keys = preview.missing_document_keys;
-          const msg = Array.isArray(labels) && labels.length
-            ? `Missing documents: ${labels.join(", ")}`
-            : Array.isArray(keys) && keys.length
-              ? `Missing documents: ${keys.join(", ")}`
-              : preview.message || "Some required documents are still missing.";
-          showToast(msg, "error");
-          setIsSubmitting(false);
-          return;
-        }
-      } catch (previewErr) {
-        if (previewErr.response?.status === 422) {
-          const pdata = previewErr.response.data || {};
-          const labels = pdata.missing_document_labels;
-          const keys = pdata.missing_document_keys;
-          const msg = Array.isArray(labels) && labels.length
-            ? `Missing documents: ${labels.join(", ")}`
-            : Array.isArray(keys) && keys.length
-              ? `Missing documents: ${keys.join(", ")}`
-              : pdata.message || "Some required documents are still missing.";
-          showToast(msg, "error");
-          setIsSubmitting(false);
-          return;
-        }
-      }
+      });
 
       // Build form_data: common fields + custom form fields (backend ignores unknown keys)
       const commonKeys = COMMON_FIELDS.map((f) => f.key);
@@ -534,7 +525,7 @@ export default function ApplyToScheme() {
       const payload = {
         // New: send applicant person id when available
         user_id: activeApplicantId,
-        scheme_id: schemeId,
+        scheme_id: scheme._id || scheme.scheme_id,
         form_data: Object.keys(filteredFormData).length > 0 ? filteredFormData : {},
         documents_submitted: documentsSubmitted.length > 0 ? documentsSubmitted : [],
       };
@@ -574,6 +565,14 @@ export default function ApplyToScheme() {
           getCscStatusMessage(user) ||
           getProfileCompletionStatus(user).message ||
           "You must complete profile KYC and CSC verification before applying.";
+      } else if (data) {
+        if (data.message && data.reason) {
+          errorMessage = `${data.message}: ${data.reason}`;
+        } else if (data.message) {
+          errorMessage = data.message;
+        } else if (data.error) {
+          errorMessage = data.error;
+        }
       } else if (status === 422) {
         const labels = data?.missing_document_labels;
         const keys = data?.missing_document_keys;
@@ -594,14 +593,6 @@ export default function ApplyToScheme() {
         } else if (data?.message) {
           errorMessage = data.message;
         }
-      } else if (data) {
-        if (data.message && data.reason) {
-          errorMessage = `${data.message}: ${data.reason}`;
-        } else if (data.message) {
-          errorMessage = data.message;
-        } else if (data.error) {
-          errorMessage = data.error;
-        }
       } else if (status === 400) {
         errorMessage = "Invalid request. Please check your input and try again.";
       } else if (error.message) {
@@ -617,8 +608,6 @@ export default function ApplyToScheme() {
   if (!scheme) {
     return null;
   }
-
-  const documentSummaryText = formatDocumentSummary(applyForm?.document_summary);
 
   return (
     <div className="min-h-screen relative">
@@ -685,65 +674,8 @@ export default function ApplyToScheme() {
           </div>
         </motion.div>
 
-        {loadingApplyForm && (
-          <div className="bg-white rounded-lg shadow-md p-8 mb-6 flex items-center justify-center gap-3 text-gray-600">
-            <Spinner />
-            <span>Loading application form…</span>
-          </div>
-        )}
-
-        {applyForm && !applyForm.isEligible && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6"
-          >
-            <h2 className="text-lg font-semibold text-red-800 mb-2">Not eligible</h2>
-            <p className="text-red-700">
-              {applyForm.eligibilityReason ||
-                "You do not meet the eligibility criteria for this scheme."}
-            </p>
-            <button
-              type="button"
-              onClick={goBackFromApply}
-              className="mt-4 px-4 py-2 border border-red-300 text-red-800 rounded-md hover:bg-red-100"
-            >
-              Back to schemes
-            </button>
-          </motion.div>
-        )}
-
-        {applyForm?.already_applied && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6"
-          >
-            <h2 className="text-lg font-semibold text-amber-900 mb-2">
-              Application already submitted
-            </h2>
-            <p className="text-amber-800 mb-4">
-              You have already applied to this scheme. You cannot submit another application.
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate("/user/applications")}
-              className="px-4 py-2 bg-[#d85a30] text-white rounded-md hover:bg-[#ffb766]"
-            >
-              View my applications
-            </button>
-          </motion.div>
-        )}
-
         {/* Application Form */}
-        <form
-          onSubmit={handleSubmit}
-          className={
-            (applyForm && !applyForm.isEligible) || applyForm?.already_applied
-              ? "hidden"
-              : ""
-          }
-        >
+        <form onSubmit={handleSubmit}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1014,145 +946,127 @@ export default function ApplyToScheme() {
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
                 Required documents
               </h2>
-              {documentSummaryText && (
-                <p className="text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 mb-4">
-                  {documentSummaryText}
-                </p>
-              )}
               <p className="text-sm text-gray-500 mb-6">
                 Documents already on your profile are loaded automatically. Upload only
                 when asked or if you want to replace a file.
               </p>
 
-              {loadingApplyForm ? (
+              {loadingDocRequirements ? (
                 <div className="flex items-center gap-3 text-gray-600">
                   <Spinner />
                   <span className="text-sm">Checking document requirements…</span>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-6">
                   {docRequirements.map((req) => {
                     const key = req.key;
-                    const label = req.label || key;
-                    const isCustom = Boolean(req.isCustom);
+                    const label = req.label || docTypesByKey[key]?.label || key;
                     const profilePath = getProfileDocPath(req);
-                    const hasOverride = Boolean(overrideUploads[key]);
                     const prefilled =
-                      !isCustom && req.will_prefill && profilePath && !hasOverride;
-                    const isUploading = Boolean(uploadingDocs[key]);
-                    const filePath = hasOverride
-                      ? overrideUploads[key]
-                      : prefilled
-                        ? profilePath
-                        : null;
-                    const fileUrl = filePath ? displayMedia(filePath) : null;
-                    const needsUpload =
-                      !hasOverride && (isCustom || req.needs_upload) && !prefilled;
-
-                    let statusLabel = "Upload required";
-                    let statusClass = "text-amber-800 bg-amber-50 border-amber-200";
-                    if (isUploading) {
-                      statusLabel = "Uploading…";
-                      statusClass = "text-gray-600 bg-gray-100 border-gray-200";
-                    } else if (hasOverride) {
-                      statusLabel = "Uploaded";
-                      statusClass = "text-emerald-800 bg-emerald-50 border-emerald-200";
-                    } else if (prefilled) {
-                      statusLabel = "From profile";
-                      statusClass = "text-emerald-800 bg-emerald-50 border-emerald-200";
-                    }
+                      req.will_prefill && profilePath && !replacePrefill[key];
+                    const hasOverride = Boolean(overrideUploads[key]);
+                    const showUpload =
+                      showDocUploader[key] ||
+                      (req.needs_upload && !prefilled && !hasOverride) ||
+                      replacePrefill[key];
 
                     return (
                       <div
                         key={key}
                         className="border border-gray-200 rounded-lg p-4"
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div className="flex items-center gap-3 min-w-0 flex-1">
-                            {fileUrl && !isPdfDocUrl(filePath) && (
-                              <a
-                                href={fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-shrink-0 h-12 w-12 rounded border border-gray-200 overflow-hidden bg-gray-50"
-                              >
-                                <img
-                                  src={fileUrl}
-                                  alt={label}
-                                  className="h-full w-full object-cover"
-                                />
-                              </a>
+                        <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                          <div>
+                            <h3 className="text-base font-semibold text-gray-900">
+                              {label}
+                            </h3>
+                            {prefilled && !hasOverride && (
+                              <p className="text-sm text-emerald-700 mt-1 flex items-center gap-1">
+                                <FaCheckCircle className="flex-shrink-0" />
+                                Loaded from profile
+                              </p>
                             )}
-                            <div className="min-w-0">
-                              <h3 className="text-base font-semibold text-gray-900 truncate">
-                                {label}
-                              </h3>
-                              <span
-                                className={`inline-flex items-center gap-1 mt-1 text-xs font-medium px-2 py-0.5 rounded border ${statusClass}`}
-                              >
-                                {!isUploading && (hasOverride || prefilled) && (
-                                  <FaCheckCircle className="flex-shrink-0" />
-                                )}
-                                {isUploading ? (
-                                  <>
-                                    <Spinner />
-                                    {statusLabel}
-                                  </>
-                                ) : (
-                                  statusLabel
-                                )}
-                              </span>
-                            </div>
+                            {req.needs_upload && !prefilled && !hasOverride && (
+                              <p className="text-sm text-amber-700 mt-1">
+                                Upload required for this application
+                              </p>
+                            )}
                           </div>
-
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <input
-                              id={`apply-doc-${key}`}
-                              type="file"
-                              accept={DOC_FILE_ACCEPT}
-                              className="hidden"
-                              disabled={isUploading}
-                              onChange={(e) => {
-                                const files = e.target.files;
-                                if (files?.length) {
-                                  handleDocumentUpload(key, files, label);
-                                }
-                                e.target.value = "";
-                              }}
-                            />
-                            {fileUrl && (
-                              <a
-                                href={fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm font-medium text-[#d85a30] hover:underline px-2"
-                              >
-                                View
-                              </a>
+                          <div className="flex flex-wrap gap-2">
+                            {prefilled && !hasOverride && (
+                              <>
+                                {profilePath && (
+                                  <a
+                                    href={displayMedia(profilePath)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm font-medium text-[#d85a30] hover:underline"
+                                  >
+                                    View
+                                  </a>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setReplacePrefill((p) => ({ ...p, [key]: true }))
+                                  }
+                                  className="text-sm font-medium text-gray-600 hover:text-gray-900"
+                                >
+                                  Replace
+                                </button>
+                              </>
                             )}
-                            {hasOverride && !isUploading && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveOverride(key)}
-                                className="text-sm font-medium text-red-600 hover:text-red-700 px-2"
-                              >
-                                Remove
-                              </button>
+                            {hasOverride && (
+                              <div className="flex items-center gap-2">
+                                <FaCheckCircle className="text-[#d85a30]" />
+                                <span className="text-sm text-[#d85a30] font-medium">
+                                  {prefilled ? "Replaced" : "Uploaded"}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveOverride(key)}
+                                  className="text-sm text-red-600 hover:text-red-700"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             )}
-                            {(needsUpload || prefilled) && !isUploading && (
+                            {!hasOverride && (!prefilled || replacePrefill[key]) && (
                               <button
                                 type="button"
                                 onClick={() =>
-                                  document.getElementById(`apply-doc-${key}`)?.click()
+                                  setShowDocUploader((prev) => ({
+                                    ...prev,
+                                    [key]: !prev[key],
+                                  }))
                                 }
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#d85a30] text-white rounded-md hover:bg-[#ffb766] text-sm"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-[#d85a30] text-white rounded-md hover:bg-[#ffb766] text-sm"
                               >
-                                <FaUpload />
-                                {prefilled ? "Replace" : "Upload"}
+                                <FaUpload /> Upload
                               </button>
                             )}
                           </div>
                         </div>
+
+                        {showUpload && (
+                          <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            <DocDropzone
+                              fieldTitle={`Upload ${label}`}
+                              onChange={(files) => {
+                                if (files?.length) {
+                                  handleDocumentUpload(key, files, label);
+                                }
+                              }}
+                              multiple={false}
+                              setShowDropzone={(show) => {
+                                setShowDocUploader((prev) => ({
+                                  ...prev,
+                                  [key]: show,
+                                }));
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     );
                   })}
