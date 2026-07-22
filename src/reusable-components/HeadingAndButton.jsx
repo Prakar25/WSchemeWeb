@@ -9,7 +9,7 @@ const HeadingAndButton = ({
   onButtonClick,
 }) => {
   return (
-    <div className="flex justify-between items-center pb-4 mb-10 border-b border-[#d85a30]">
+    <div className="flex justify-between items-center pb-3 mb-5 border-b border-[#d85a30]">
       <div className="font-bold text-lg text-black">{title}</div>
       <Link
         to="#"

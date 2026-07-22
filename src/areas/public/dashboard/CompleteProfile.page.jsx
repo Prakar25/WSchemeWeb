@@ -31,7 +31,11 @@ import { FiUpload, FiX, FiCheck, FiTrash2 } from "react-icons/fi";
 import { getCountries, getStatesForCountry, getDistrictsForState, normalizeLocationValue } from "../../../utils/locationOptions";
 import FormSelect from "../../../reusable-components/inputs/FormSelect/FormSelect";
 import { useConfirm } from "../../../reusable-components/ConfirmDialog/ConfirmDialogProvider";
-import { fetchDocumentTypes } from "../../../utils/documentTypes";
+import {
+  fetchProfileDocumentSlots,
+  uploadProfileDocument,
+  documentTypesByKey,
+} from "../../../utils/documentTypes";
 
 export default function CompleteProfile() {
   const navigate = useNavigate();
@@ -41,7 +45,9 @@ export default function CompleteProfile() {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [profileDocTypes, setProfileDocTypes] = useState([]);
+  const [documentSlots, setDocumentSlots] = useState([]);
+  const [docTypesByKey, setDocTypesByKey] = useState({});
+  const [uploadingDocs, setUploadingDocs] = useState({});
   const [deletingDocs, setDeletingDocs] = useState({});
 
   const formRef = useRef(null);
@@ -58,34 +64,22 @@ export default function CompleteProfile() {
     mode: "onChange",
   });
 
-  const [documents, setDocuments] = useState({});
-
   const [locationUi, setLocationUi] = useState({ country: "India", state: "", district: "" });
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const types = await fetchDocumentTypes({ profileOnly: true });
-        setProfileDocTypes(types);
-        setDocuments((prev) => {
-          const next = { ...prev };
-          types.forEach((t) => {
-            if (next[t.key] === undefined) next[t.key] = null;
-          });
-          return next;
-        });
-        setDeletingDocs((prev) => {
-          const next = { ...prev };
-          types.forEach((t) => {
-            if (next[t.key] === undefined) next[t.key] = false;
-          });
-          return next;
-        });
-      } catch {
-        showToast("Could not load document types.", "error");
-      }
-    })();
-  }, []);
+  const loadDocumentSlots = async (uid) => {
+    try {
+      const { slots } = await fetchProfileDocumentSlots(uid);
+      setDocumentSlots(slots);
+      setDocTypesByKey(documentTypesByKey(slots.map((s) => ({ key: s.key, label: s.label }))));
+      const delState = {};
+      slots.forEach((s) => {
+        delState[s.key] = false;
+      });
+      setDeletingDocs(delState);
+    } catch {
+      showToast("Could not load profile documents.", "error");
+    }
+  };
 
   // Load user profile on mount
   useEffect(() => {
@@ -105,6 +99,7 @@ export default function CompleteProfile() {
 
     setUserId(storedUserId);
     loadProfile(storedUserId);
+    loadDocumentSlots(storedUserId);
   }, [navigate, activeApplicantId]);
 
   // Load profile from API
@@ -164,30 +159,26 @@ export default function CompleteProfile() {
     }
   };
 
-  // Handle document file selection (for submit-complete: files sent on form submit)
-  const handleDocumentChange = (docType, file) => {
-    if (!file) {
-      setDocuments((prev) => ({ ...prev, [docType]: null }));
-      return;
+  const handleDocumentUpload = async (docType, file) => {
+    if (!file || !userId) return;
+    setUploadingDocs((prev) => ({ ...prev, [docType]: true }));
+    try {
+      await uploadProfileDocument(file, docType, userId, docTypesByKey[docType]);
+      showToast(`${docTypesByKey[docType]?.label || docType} saved to profile.`, "success");
+      await loadDocumentSlots(userId);
+      await loadProfile(userId);
+    } catch (err) {
+      showToast(err.message || err.response?.data?.message || "Upload failed.", "error");
+    } finally {
+      setUploadingDocs((prev) => ({ ...prev, [docType]: false }));
     }
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"];
-    if (!validTypes.includes(file.type)) {
-      showToast("Please upload a valid image (JPEG, PNG, WebP) or PDF file.", "error");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      showToast("File size must be less than 10MB.", "error");
-      return;
-    }
-    setDocuments((prev) => ({ ...prev, [docType]: file }));
   };
 
   // Delete document (existing server document only)
   const deleteDocument = async (docType) => {
     if (!userId) return;
 
-    const docLabel =
-      profileDocTypes.find((t) => t.key === docType)?.label || docType;
+    const docLabel = docTypesByKey[docType]?.label || docType;
     const ok = await confirm({
       title: `Delete ${docLabel}?`,
       description: "This document will be removed from your profile.",
@@ -216,6 +207,7 @@ export default function CompleteProfile() {
         showToast("Document deleted successfully!", "success");
         // Reload profile
         await loadProfile(userId);
+        await loadDocumentSlots(userId);
       } else {
         throw new Error(response.data.message || "Failed to delete document");
       }
@@ -257,11 +249,6 @@ export default function CompleteProfile() {
       if (data.pincode?.trim()) formData.append("pincode", data.pincode.trim());
       formData.append("country", data.country?.trim() || "India");
 
-      profileDocTypes.forEach((dt) => {
-        const file = documents[dt.key];
-        if (file) formData.append(dt.key, file);
-      });
-
       const response = await axios.post(PUBLIC_PROFILE_SUBMIT_COMPLETE_URL, formData, {
         params: { userId },
         headers: { "Content-Type": "multipart/form-data" },
@@ -272,15 +259,9 @@ export default function CompleteProfile() {
         const updatedUser = response.data.user;
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setUser(updatedUser);
-        setDocuments((prev) => {
-          const cleared = { ...prev };
-          profileDocTypes.forEach((dt) => {
-            cleared[dt.key] = null;
-          });
-          return cleared;
-        });
-        showToast("Profile and documents saved successfully!", "success");
+        showToast("Profile saved successfully!", "success");
         await loadProfile(userId);
+        await loadDocumentSlots(userId);
       } else {
         throw new Error(response.data.message || "Failed to save profile");
       }
@@ -649,22 +630,23 @@ export default function CompleteProfile() {
             <Step>
               <h2 className="text-xl font-semibold text-black mb-6">Documents</h2>
               <p className="text-sm text-black mb-4">
-              Select documents below. They will be saved when you press Submit at the bottom.
+              Upload identity documents once — they reuse across scheme applications.
             </p>
             <div className="space-y-4">
-              {profileDocTypes.length === 0 ? (
-                <p className="text-sm text-gray-500">Loading document types…</p>
+              {documentSlots.length === 0 ? (
+                <p className="text-sm text-gray-500">Loading documents…</p>
               ) : (
-                profileDocTypes.map((dt) => (
+                documentSlots.map((slot) => (
                   <DocumentUpload
-                    key={dt.key}
-                    label={dt.label}
-                    docType={dt.key}
-                    file={documents[dt.key]}
-                    existingDocument={user?.documents?.[dt.key]}
-                    deleting={!!deletingDocs[dt.key]}
-                    onFileChange={(file) => handleDocumentChange(dt.key, file)}
-                    onDelete={() => deleteDocument(dt.key)}
+                    key={slot.key}
+                    label={slot.label}
+                    docType={slot.key}
+                    file={null}
+                    existingDocument={slot.uploaded ? slot.document : user?.documents?.[slot.key]}
+                    deleting={!!deletingDocs[slot.key]}
+                    uploading={!!uploadingDocs[slot.key]}
+                    onFileChange={(file) => file && handleDocumentUpload(slot.key, file)}
+                    onDelete={() => deleteDocument(slot.key)}
                   />
                 ))
               )}
@@ -688,6 +670,7 @@ function DocumentUpload({
   file,
   existingDocument,
   deleting,
+  uploading = false,
   onFileChange,
   onDelete,
 }) {
@@ -815,23 +798,32 @@ function DocumentUpload({
         </div>
       )}
 
-      <label className="cursor-pointer block">
+      <label className={`block ${uploading ? "opacity-60 pointer-events-none" : "cursor-pointer"}`}>
         <input
           type="file"
           accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
-          onChange={(e) => onFileChange(e.target.files[0] || null)}
+          disabled={uploading}
+          onChange={(e) => {
+            const f = e.target.files[0];
+            if (f) onFileChange(f);
+            e.target.value = "";
+          }}
           className="hidden"
         />
         <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 text-center hover:border-[#d85a30] transition-colors">
-          <FiUpload className="mx-auto mb-2 text-gray-400" />
+          {uploading ? (
+            <Spinner />
+          ) : (
+            <FiUpload className="mx-auto mb-2 text-gray-400" />
+          )}
           <span className="text-sm text-black">
-            {file ? "Change File" : "Choose File"}
+            {uploading ? "Uploading…" : hasExistingDoc ? "Replace file" : "Choose file"}
           </span>
         </div>
       </label>
 
       <p className="mt-2 text-xs text-black">
-        Supported: JPEG, PNG, WebP, PDF (Max 10MB). Saved when you press Submit.
+        Supported: JPEG, PNG, WebP, PDF (max 10 MB). Saved to your profile immediately.
       </p>
     </div>
   );

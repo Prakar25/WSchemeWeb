@@ -25,8 +25,10 @@ export const PUBLIC_AUTH_LOGIN_VERIFY_OTP_URL = "/public-auth/login/verify-otp";
 export const PUBLIC_PROFILE_GET_URL = "/public-profile"; // GET /api/public-profile
 export const PUBLIC_PROFILE_UPDATE_URL = "/public-profile/update"; // PUT /api/public-profile/update
 export const PUBLIC_PROFILE_SUBMIT_COMPLETE_URL = "/public-profile/submit-complete"; // POST - profile + all documents in one request
-export const PUBLIC_PROFILE_UPLOAD_DOCUMENT_URL = "/public-profile/upload-document"; // POST /api/public-profile/upload-document
-export const PUBLIC_PROFILE_DELETE_DOCUMENT_URL = "/public-profile/delete-document"; // DELETE /api/public-profile/delete-document
+export const PUBLIC_PROFILE_UPLOAD_DOCUMENT_URL = "/public-profile/upload-document";
+export const PUBLIC_PROFILE_UPLOAD_DOCUMENTS_BATCH_URL = "/public-profile/upload-documents-batch";
+export const PUBLIC_PROFILE_DOCUMENTS_URL = "/public-profile/documents";
+export const PUBLIC_PROFILE_DELETE_DOCUMENT_URL = "/public-profile/delete-document";
 /** GET list | POST add/upsert by Aadhaar | PUT `.../:memberId` update by BeneficiaryPerson _id (account holder only) */
 export const PUBLIC_PROFILE_HOUSEHOLD_MEMBERS_URL = "/public-profile/household-members";
 
@@ -36,9 +38,12 @@ export const publicProfileHouseholdMemberByIdUrl = (memberId) =>
 /** Document type catalog (admin + public) */
 export const DOCUMENT_TYPES_URL = "/document-types";
 
-/** Per-scheme document requirements for apply flow (prefill from profile) */
-export const applicationSchemeDocumentRequirementsUrl = (schemeId) =>
-  `/applications/scheme/${encodeURIComponent(String(schemeId))}/document-requirements`;
+/** Full apply screen payload (scheme, fields, document prefill) */
+export const applicationSchemeApplyFormUrl = (schemeId) =>
+  `/applications/scheme/${encodeURIComponent(String(schemeId))}/apply-form`;
+
+export const APPLICATIONS_UPLOAD_DOCUMENT_URL = "/applications/upload-document";
+export const APPLICATIONS_PREVIEW_DOCUMENTS_URL = "/applications/preview-documents";
 
 //#endregion
 

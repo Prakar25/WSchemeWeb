@@ -20,7 +20,7 @@ import { displayMedia } from "../../../utils/uploadFiles/uploadFileToServerContr
 import Footer from "../footer.component";
 import SplitText from "../../../reusable-components/SplitText/SplitText";
 import PublicHeader from "../components/PublicHeader.component";
-import { fetchDocumentTypes, documentTypesByKey } from "../../../utils/documentTypes";
+import { fetchProfileDocumentSlots } from "../../../utils/documentTypes";
 
 export default function PublicProfile() {
   const navigate = useNavigate();
@@ -28,13 +28,7 @@ export default function PublicProfile() {
   const [user, setUser] = useState(null);
   const [showAadhaar, setShowAadhaar] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [profileDocTypes, setProfileDocTypes] = useState([]);
-
-  useEffect(() => {
-    fetchDocumentTypes({ profileOnly: true })
-      .then(setProfileDocTypes)
-      .catch(() => setProfileDocTypes([]));
-  }, []);
+  const [documentSlots, setDocumentSlots] = useState([]);
 
   useEffect(() => {
     const storedUser = getStoredUser();
@@ -54,12 +48,16 @@ export default function PublicProfile() {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(PUBLIC_PROFILE_GET_URL, {
-          params: { userId },
-          withCredentials: true,
-        });
-        if (response.data?.status === "success" && response.data?.user) {
-          setUser(response.data.user);
+        const [profileRes, slotsRes] = await Promise.all([
+          axios.get(PUBLIC_PROFILE_GET_URL, {
+            params: { userId },
+            withCredentials: true,
+          }),
+          fetchProfileDocumentSlots(userId).catch(() => ({ slots: [] })),
+        ]);
+        setDocumentSlots(slotsRes.slots || []);
+        if (profileRes.data?.status === "success" && profileRes.data?.user) {
+          setUser(profileRes.data.user);
           return;
         }
       } catch (err) {
@@ -127,14 +125,8 @@ export default function PublicProfile() {
   };
 
   const hasDoc = (doc) => doc?.filePath != null && doc?.filePath !== "";
-  const docTypesByKey = documentTypesByKey(profileDocTypes);
-  const docLabel = (key) => docTypesByKey[key]?.label || key;
-
-  const profileDocumentKeys = () => {
-    if (profileDocTypes.length) return profileDocTypes.map((t) => t.key);
-    const docs = user?.documents;
-    return docs && typeof docs === "object" ? Object.keys(docs) : [];
-  };
+  const docLabel = (key) =>
+    documentSlots.find((s) => s.key === key)?.label || key;
 
   if (loading || !user) {
     return (
@@ -317,15 +309,24 @@ export default function PublicProfile() {
             <FiFileText /> Documents
           </h3>
           <div className="space-y-3">
-            {profileDocumentKeys().map((key) => {
-                const doc = user.documents?.[key];
+            {(documentSlots.length
+              ? documentSlots
+              : Object.entries(user.documents || {}).map(([key, document]) => ({
+                  key,
+                  label: docLabel(key),
+                  uploaded: Boolean(document?.filePath),
+                  document,
+                }))
+            ).map((slot) => {
+              const key = slot.key;
+              const doc = slot.document ?? user.documents?.[key];
                 const uploaded = hasDoc(doc);
                 return (
                   <div
                     key={key}
                     className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
                   >
-                    <span className="text-gray-700">{docLabel(key)}</span>
+                    <span className="text-gray-700">{slot.label || docLabel(key)}</span>
                     {uploaded ? (
                       <a
                         href={displayMedia(doc.filePath)}
