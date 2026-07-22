@@ -68,8 +68,11 @@ const DropzoneFileUploader = ({
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    multiple: true,
-    accept: ["image/*", "application/pdf"],
+    multiple: multiple ?? false,
+    accept: {
+      "image/*": [],
+      "application/pdf": [],
+    },
   });
 
   return (

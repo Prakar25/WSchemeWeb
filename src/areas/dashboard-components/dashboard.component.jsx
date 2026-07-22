@@ -67,7 +67,7 @@ export default function Dashboard(props) {
         <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         <main>
-          <div className="px-4 sm:px-6 lg:px-3 py-8 w-full max-w-9xl mx-auto">
+          <div className="px-3 sm:px-4 py-6 w-full">
             {props?.children}
           </div>
         </main>
